@@ -544,17 +544,56 @@ body.custom-cursor * {
 }
 
 .hero__lettering {
+  --letter-h: clamp(126px, 30vh, 320px);
   display: block;
+  position: relative;
   margin: clamp(8px, 1.6vh, 20px) 0;
-  /* drops the near-white plate into the cream page without an alpha channel.
-     Any ancestor animating opacity/filter would isolate this — don't add one. */
+  /* Height leads on wide screens, width leads on narrow ones. Sizing the box
+     rather than the image keeps the artwork from being squashed either way. */
+  width: min(100%, calc(var(--letter-h) * 1718 / 482));
+  aspect-ratio: 1718 / 482;
+}
+
+/* Fallback layer. The artwork has no alpha channel, so multiply is what drops
+   its near-white plate into the cream page. Any ancestor animating opacity or
+   filter would isolate the blend group and bring the white box back. */
+.hero__lettering-still {
+  width: 100%;
+  height: 100%;
   mix-blend-mode: multiply;
 }
 
-.hero__lettering img {
-  height: clamp(126px, 30vh, 320px);
-  width: auto;
-  max-width: 100%;
+.hero__lettering-video {
+  display: none;
+}
+
+/* Where masks are supported the artwork becomes a stencil: the landscape is a
+   looping video underneath, so the scenery moves and the letters hold still. */
+@supports (mask-image: url('/images/punta-cana-mask.png')) or
+  (-webkit-mask-image: url('/images/punta-cana-mask.png')) {
+  .hero__lettering-still {
+    /* keeps sizing the box, but the video is what you see */
+    visibility: hidden;
+  }
+
+  .hero__lettering-video {
+    display: block;
+    position: absolute;
+    inset: 0;
+    mask-image: url('/images/punta-cana-mask.png');
+    -webkit-mask-image: url('/images/punta-cana-mask.png');
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+  }
+
+  .hero__lettering-video video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 }
 
 .hero__sub {
