@@ -37,10 +37,21 @@ npm run preview
 | TrustBar | ⏳ |
 | ¿Por Qué Elegirnos? | ⏳ |
 | Flota | ⏳ |
-| Excursiones | ⏳ |
+| Excursiones | ✅ 38 del catálogo real, filtrables |
 | Banda CTA | ⏳ |
 | Footer | ⏳ |
 | WhatsApp flotante | ⏳ |
+
+### Excursiones
+
+`src/data/excursions.ts` lleva las 38 excursiones reales del cliente, extraídas de
+las tres páginas de `dominicanroutes.com/excursiones`. Cada una tiene una categoría
+asignada a mano para poder filtrar; el sitio actual solo pagina.
+
+Las fotos las envía el cliente. Hasta entonces cada tarjeta muestra un marcador
+diseñado (trama diagonal, marca de línea distinta por categoría y la etiqueta
+"Imagen próximamente"), en lugar de una foto provisional que habría que recordar
+cambiar.
 
 ## Notas de diseño
 
