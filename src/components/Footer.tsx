@@ -64,7 +64,7 @@ export default function Footer() {
                 <a href="tel:+18292191573">+1 (829) 219-1573</a>
               </li>
               <li>
-                <a href="mailto:info@dominicanroutes.com">info@dominicanroutes.com</a>
+                <a href="mailto:dominicanroutes@gmail.com">dominicanroutes@gmail.com</a>
               </li>
               <li>Atención 24/7</li>
             </ul>

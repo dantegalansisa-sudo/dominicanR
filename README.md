@@ -28,6 +28,20 @@ npm run build
 npm run preview
 ```
 
+## Orden de la página
+
+Los traslados son el negocio principal y las excursiones el secundario, así que
+la página va: hero con buscador → cifras → **traslados** → excursiones → por qué
+nosotros → banda CTA → formulario → footer. El navbar sigue el mismo orden.
+
+## Reservas y canales
+
+Todo camino termina en el formulario. El botón de cada vehículo y el de cada
+excursión no abren WhatsApp: rellenan el formulario con el contexto de lo que el
+visitante estaba viendo (vehículo y modelo, o excursión y duración) y lo llevan
+hasta ahí. WhatsApp queda como canal secundario, en enlaces de texto, porque el
+cliente prefiere recibir las solicitudes por correo.
+
 ## Formulario de contacto
 
 El formulario envía a la bandeja del cliente mediante una Vercel Function
@@ -39,7 +53,7 @@ ni dependencias añadidas.
 | Variable | Obligatoria | Valor |
 |---|---|---|
 | `RESEND_API_KEY` | sí | La clave de la cuenta de Resend |
-| `CONTACT_TO` | no | Destino. Por defecto `info@dominicanroutes.com` |
+| `CONTACT_TO` | no | Destino. Por defecto `dominicanroutes@gmail.com` |
 | `CONTACT_FROM` | no | Remitente. Por defecto el dominio de pruebas de Resend |
 
 Sin `RESEND_API_KEY` el endpoint responde 503 y la web muestra un aviso claro
@@ -51,6 +65,16 @@ con el remitente de pruebas.
 
 El `reply_to` del correo es la dirección del visitante, así que el cliente
 responde desde su bandeja y le llega directo a quien escribió.
+
+### Preparado para la pasarela de pago
+
+Cada solicitud dispara **dos correos**: la petición al negocio y un acuse de
+recibo al visitante. Esa doble confirmación es la misma forma que necesitará la
+reserva con pago, así que cuando entre la pasarela solo hay que añadir el
+endpoint de cobro y reutilizar `sendEmail` para las confirmaciones.
+
+Si el acuse al visitante falla, la solicitud **no se pierde**: el negocio ya la
+tiene, así que el formulario reporta éxito y el fallo queda en los logs.
 
 ### Anti-spam
 

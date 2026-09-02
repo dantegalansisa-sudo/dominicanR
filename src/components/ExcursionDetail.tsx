@@ -9,7 +9,7 @@ import { EASINGS } from '../utils/easings';
 const WHATSAPP = 'https://wa.me/18292191573';
 
 const GUARANTEES = [
-  'Confirmación inmediata por WhatsApp',
+  'Confirmación por correo el mismo día',
   'Cancelación gratuita hasta 24 horas antes',
   'Guía profesional certificado',
   'Recogida y regreso a tu hotel incluidos',
@@ -34,9 +34,11 @@ const Ico = ({ d }: { d: string }) => (
 export default function ExcursionDetail({
   item,
   onClose,
+  onReserve,
 }: {
   item: Excursion | null;
   onClose: () => void;
+  onReserve: (e: Excursion) => void;
 }) {
   const [pax, setPax] = useState(2);
   const [date, setDate] = useState('');
@@ -189,12 +191,20 @@ export default function ExcursionDetail({
               <MagneticButton
                 className="btn btn--primary btn--block"
                 block
-                href={waHref}
                 magnetStrength={0.16}
+                onClick={() => onReserve(item)}
               >
-                Reservar por WhatsApp
+                Solicitar esta reserva
                 <Ico d="M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5" />
               </MagneticButton>
+
+              <p className="sheet__alt">
+                Te confirmamos por correo. ¿Prefieres WhatsApp?{' '}
+                <a href={waHref} target="_blank" rel="noopener noreferrer">
+                  Escríbenos
+                </a>
+                .
+              </p>
             </div>
           </motion.aside>
         </>

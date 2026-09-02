@@ -1,28 +1,62 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
+import Fleet from './components/Fleet';
 import Excursions from './components/Excursions';
 import WhyUs from './components/WhyUs';
-import Fleet from './components/Fleet';
 import CtaBand from './components/CtaBand';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-import FloatingWhatsApp from './components/FloatingWhatsApp';
+import FloatingCta from './components/FloatingCta';
 import ExcursionDetail from './components/ExcursionDetail';
 import type { Excursion } from './data/excursions';
 import { FLEET } from './data/fleet';
 
-const WHATSAPP = 'https://wa.me/18292191573';
+/** What a CTA hands to the contact form when it sends the visitor there. */
+export interface Prefill {
+  topic: string;
+  message: string;
+  /** Changes on every request so repeating the same one still re-applies. */
+  nonce: number;
+}
 
 export default function App() {
   const [detail, setDetail] = useState<Excursion | null>(null);
+  const [prefill, setPrefill] = useState<Prefill | null>(null);
 
-  const requestTransfer = (vehicleSlug: string) => {
-    const vehicle = FLEET.find((v) => v.slug === vehicleSlug);
-    const text = `Hola, quiero cotizar un traslado en ${vehicle?.name ?? vehicleSlug}.`;
-    window.open(`${WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
-  };
+  // Every "reservar" across the page lands here: fill the form with the
+  // context the visitor was looking at, then take them to it.
+  const requestQuote = useCallback((topic: string, message: string) => {
+    setPrefill({ topic, message, nonce: Date.now() });
+    setDetail(null);
+    requestAnimationFrame(() => {
+      document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }, []);
+
+  const requestTransfer = useCallback(
+    (vehicleSlug: string) => {
+      const v = FLEET.find((x) => x.slug === vehicleSlug);
+      requestQuote(
+        'Traslado',
+        v
+          ? `Quiero cotizar un traslado en ${v.name} (${v.model}), para hasta ${v.maxPax} pasajeros.\n\nOrigen:\nDestino:\nFecha y hora:`
+          : 'Quiero cotizar un traslado.',
+      );
+    },
+    [requestQuote],
+  );
+
+  const requestExcursion = useCallback(
+    (e: Excursion) => {
+      requestQuote(
+        'Excursión',
+        `Quiero reservar "${e.name}" (${e.duration}).\n\nPersonas:\nFecha preferida:\nHotel de recogida:`,
+      );
+    },
+    [requestQuote],
+  );
 
   return (
     <>
@@ -30,15 +64,19 @@ export default function App() {
       <main>
         <Hero />
         <TrustBar />
+        <Fleet onRequest={requestTransfer} />
         <Excursions onSelect={setDetail} />
         <WhyUs />
-        <Fleet onRequest={requestTransfer} />
         <CtaBand />
-        <Contact />
+        <Contact prefill={prefill} />
       </main>
       <Footer />
-      <FloatingWhatsApp />
-      <ExcursionDetail item={detail} onClose={() => setDetail(null)} />
+      <FloatingCta />
+      <ExcursionDetail
+        item={detail}
+        onClose={() => setDetail(null)}
+        onReserve={requestExcursion}
+      />
     </>
   );
 }

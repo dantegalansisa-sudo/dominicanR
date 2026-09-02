@@ -26,13 +26,13 @@ export default function CtaBand() {
               {['¿Listo', 'para', 'tu', <em key="prox">próxima aventura?</em>]}
             </RevealText>
             <p className="cta-card__sub">
-              Escríbenos y armamos tu traslado o tu excursión según tu grupo, tus
-              fechas y tu presupuesto. Respondemos en minutos.
+              Cuéntanos tu grupo, tus fechas y tu presupuesto. Te enviamos la
+              cotización por correo el mismo día.
             </p>
 
             <div className="cta-card__actions">
-              <MagneticButton className="btn btn--primary" href={WHATSAPP}>
-                Escríbenos por WhatsApp
+              <MagneticButton className="btn btn--primary" href="#contacto">
+                Solicitar mi cotización
                 <svg
                   className="btn__arrow"
                   width="17"
@@ -56,6 +56,16 @@ export default function CtaBand() {
                 <strong>+1 (829) 219-1573</strong>
               </a>
             </div>
+
+            <p className="cta-card__alt">
+              También por{' '}
+              <a href="mailto:dominicanroutes@gmail.com">dominicanroutes@gmail.com</a>
+              {' '}o{' '}
+              <a href={WHATSAPP} target="_blank" rel="noopener noreferrer">
+                WhatsApp
+              </a>
+              .
+            </p>
           </div>
         </motion.div>
       </div>

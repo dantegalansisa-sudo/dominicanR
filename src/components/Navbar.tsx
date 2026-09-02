@@ -4,8 +4,8 @@ import { EASINGS } from '../utils/easings';
 
 const LINKS = [
   { label: 'Inicio', href: '#inicio' },
-  { label: 'Excursiones', href: '#excursiones' },
   { label: 'Traslados', href: '#traslados' },
+  { label: 'Excursiones', href: '#excursiones' },
   { label: 'Quiénes Somos', href: '#nosotros' },
   { label: 'Blog', href: '#blog' },
   { label: 'Contacto', href: '#contacto' },
@@ -80,25 +80,8 @@ export default function Navbar() {
               ))}
             </div>
 
-            <a className="nav__mail" href="mailto:info@dominicanroutes.com">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect
-                  x="2.5"
-                  y="5"
-                  width="19"
-                  height="14"
-                  rx="2.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="m3.5 7 7.4 5.3a2 2 0 0 0 2.2 0L20.5 7"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-              info@dominicanroutes.com
+            <a className="nav__cta" href="#contacto">
+              Reservar
             </a>
 
             <button
@@ -155,7 +138,7 @@ export default function Navbar() {
               exit={{ opacity: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <span>info@dominicanroutes.com</span>
+              <span>dominicanroutes@gmail.com</span>
               <span>+1 (829) 219-1573</span>
             </motion.div>
           </motion.div>

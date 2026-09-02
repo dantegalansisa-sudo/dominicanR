@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import { EASINGS } from '../utils/easings';
+import type { Prefill } from '../App';
 
 const TOPICS = ['Traslado', 'Excursión', 'Grupo o evento', 'Otro'] as const;
 
@@ -40,15 +41,33 @@ const DETAILS = [
   {
     icon: MAIL,
     label: 'Correo',
-    value: 'info@dominicanroutes.com',
-    href: 'mailto:info@dominicanroutes.com',
+    value: 'dominicanroutes@gmail.com',
+    href: 'mailto:dominicanroutes@gmail.com',
   },
 ];
 
-export default function Contact() {
+export default function Contact({ prefill }: { prefill: Prefill | null }) {
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
   const [topic, setTopic] = useState<string>(TOPICS[0]);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // A CTA elsewhere on the page sent the visitor here with context. Drop it
+  // into the form so they only have to fill in what we cannot know.
+  useEffect(() => {
+    if (!prefill) return;
+    setStatus('idle');
+    setError('');
+    if (TOPICS.includes(prefill.topic as (typeof TOPICS)[number])) {
+      setTopic(prefill.topic);
+    }
+    const form = formRef.current;
+    if (!form) return;
+    const area = form.elements.namedItem('message') as HTMLTextAreaElement | null;
+    if (area) area.value = prefill.message;
+    const name = form.elements.namedItem('name') as HTMLInputElement | null;
+    if (name && !name.value) window.setTimeout(() => name.focus(), 650);
+  }, [prefill]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -95,14 +114,15 @@ export default function Contact() {
             {['Cuéntanos', 'qué', 'viaje', <em key="mente">tienes en mente</em>]}
           </RevealText>
           <p className="contact__sub">
-            Respondemos todas las solicitudes por correo y por WhatsApp. Si es
-            urgente, llámanos — atendemos 24/7.
+            Respondemos por correo el mismo día, con la cotización cerrada y sin
+            cargos sorpresa. Si es urgente, llámanos — atendemos 24/7.
           </p>
         </div>
 
         <div className="contact__layout">
           <motion.form
             className="form"
+            ref={formRef}
             onSubmit={onSubmit}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
