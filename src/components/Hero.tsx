@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import RevealText from './RevealText';
-import MagneticButton from './MagneticButton';
 import SearchBar from './SearchBar';
 import { EASINGS } from '../utils/easings';
 
@@ -123,37 +122,6 @@ export default function Hero() {
               >
                 como se debe vivir
               </RevealText>
-
-              <motion.span
-                className="hero__actions"
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.32, ease: EASINGS.premium }}
-              >
-                <MagneticButton href="#excursiones" className="btn btn--primary">
-                  Ver Excursiones
-                  <svg
-                    className="btn__arrow"
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </MagneticButton>
-
-                <MagneticButton href="#traslados" className="btn btn--ghost-dark">
-                  Ver Traslados
-                </MagneticButton>
-              </motion.span>
             </motion.span>
           </h1>
         </div>
