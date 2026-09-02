@@ -9,7 +9,7 @@ const WHATSAPP =
 
 export default function CtaBand() {
   return (
-    <section className="section cta-band" id="contacto">
+    <section className="section cta-band">
       <div className="container">
         <motion.div
           className="cta-card"

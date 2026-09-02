@@ -12,6 +12,8 @@ interface MagneticButtonProps {
   innerStrength?: number;
   magnetStrength?: number;
   block?: boolean;
+  type?: 'button' | 'submit';
+  disabled?: boolean;
 }
 
 /**
@@ -28,13 +30,15 @@ export default function MagneticButton({
   innerStrength = 0.14,
   magnetStrength = 0.32,
   block = false,
+  type = 'button',
+  disabled = false,
 }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || disabled) return;
     const rect = el.getBoundingClientRect();
     const dx = e.clientX - (rect.left + rect.width / 2);
     const dy = e.clientY - (rect.top + rect.height / 2);
@@ -78,10 +82,11 @@ export default function MagneticButton({
           </a>
         ) : (
           <button
-            type="button"
+            type={type}
             onClick={onClick}
             className={className}
             aria-label={ariaLabel}
+            disabled={disabled}
           >
             {content}
           </button>

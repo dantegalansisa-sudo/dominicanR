@@ -28,6 +28,35 @@ npm run build
 npm run preview
 ```
 
+## Formulario de contacto
+
+El formulario envía a la bandeja del cliente mediante una Vercel Function
+(`api/contact.ts`) que llama a [Resend](https://resend.com) por HTTP. No hay SDK
+ni dependencias añadidas.
+
+### Variables de entorno (Vercel → Settings → Environment Variables)
+
+| Variable | Obligatoria | Valor |
+|---|---|---|
+| `RESEND_API_KEY` | sí | La clave de la cuenta de Resend |
+| `CONTACT_TO` | no | Destino. Por defecto `info@dominicanroutes.com` |
+| `CONTACT_FROM` | no | Remitente. Por defecto el dominio de pruebas de Resend |
+
+Sin `RESEND_API_KEY` el endpoint responde 503 y la web muestra un aviso claro
+invitando a escribir por WhatsApp, en lugar de fingir que el mensaje se envió.
+
+Para usar un remitente propio (`reservas@dominicanroutes.com`) hay que verificar
+el dominio en Resend y poner ese valor en `CONTACT_FROM`. Mientras tanto funciona
+con el remitente de pruebas.
+
+El `reply_to` del correo es la dirección del visitante, así que el cliente
+responde desde su bandeja y le llega directo a quien escribió.
+
+### Anti-spam
+
+Campo trampa (*honeypot*) oculto a personas y visible para bots. Si viene lleno,
+el endpoint responde 200 sin enviar nada, para no darle señal al bot.
+
 ## Estado
 
 | Sección | Estado |
@@ -41,6 +70,7 @@ npm run preview
 | Banda CTA | ✅ |
 | Footer | ✅ |
 | WhatsApp flotante | ✅ |
+| Contacto + mapa | ✅ formulario conectado a correo |
 
 ### Cifras
 

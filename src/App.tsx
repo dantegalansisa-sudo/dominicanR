@@ -6,6 +6,7 @@ import Excursions from './components/Excursions';
 import WhyUs from './components/WhyUs';
 import Fleet from './components/Fleet';
 import CtaBand from './components/CtaBand';
+import Contact from './components/Contact';
 import Footer from './components/Footer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import ExcursionDetail from './components/ExcursionDetail';
@@ -33,6 +34,7 @@ export default function App() {
         <WhyUs />
         <Fleet onRequest={requestTransfer} />
         <CtaBand />
+        <Contact />
       </main>
       <Footer />
       <FloatingWhatsApp />
