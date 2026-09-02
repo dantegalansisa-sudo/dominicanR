@@ -34,13 +34,26 @@ npm run preview
 |---|---|
 | Navbar | ✅ |
 | Hero + barra de búsqueda | ✅ |
-| TrustBar | ⏳ |
-| ¿Por Qué Elegirnos? | ⏳ |
-| Flota | ⏳ |
+| TrustBar | ✅ cifras derivadas del catálogo |
+| ¿Por Qué Elegirnos? | ✅ |
+| Flota | ✅ 6 vehículos reales, selector animado |
 | Excursiones | ✅ 38 del catálogo real, filtrables |
-| Banda CTA | ⏳ |
-| Footer | ⏳ |
-| WhatsApp flotante | ⏳ |
+| Banda CTA | ✅ |
+| Footer | ✅ |
+| WhatsApp flotante | ✅ |
+
+### Cifras
+
+Ninguna estadística de la página está inventada. La TrustBar y los chips del hero
+se **calculan** desde `excursions.ts` y `fleet.ts` en tiempo de render: 38 excursiones,
+4.7 de promedio ponderado, 45.670 reseñas declaradas y 6 tipos de vehículo. Si el
+catálogo cambia, las cifras cambian solas.
+
+### Flota
+
+`src/data/fleet.ts` lleva los 6 vehículos que el cliente confirmó por WhatsApp, con
+modelo concreto (Hyundai Grand Starex, Toyota Hiace, Chevrolet Suburban, Toyota
+Coaster). Toda la flota se opera en blanco o negro.
 
 ### Excursiones
 

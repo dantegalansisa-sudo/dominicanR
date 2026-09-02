@@ -54,10 +54,18 @@ const MARKS: Record<string, React.ReactNode> = {
       <path d="m12 3.5 2.5 5.2 5.5.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.5-.8Z" {...stroke} />
     </>
   ),
+  vehiculo: (
+    <>
+      <path d="M3 16.5v-3.2l2-4.6A2 2 0 0 1 6.8 7.5h10.4a2 2 0 0 1 1.8 1.2l2 4.6v3.2" {...stroke} />
+      <path d="M3 16.5h18M5.2 12.8h13.6" {...stroke} />
+      <circle cx="7.4" cy="16.5" r="1.7" {...stroke} />
+      <circle cx="16.6" cy="16.5" r="1.7" {...stroke} />
+    </>
+  ),
 };
 
 interface ImagePlaceholderProps {
-  category: CategoryId;
+  category: CategoryId | 'vehiculo';
   /** Shown under the mark; keep it short. */
   label?: string;
 }

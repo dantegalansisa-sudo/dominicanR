@@ -43,6 +43,7 @@ const ClockIcon = () => (
 
 const ArrowIcon = ({ dir = 'right' }: { dir?: 'left' | 'right' }) => (
   <svg
+    className="btn__arrow"
     width="17"
     height="17"
     viewBox="0 0 24 24"
@@ -82,13 +83,25 @@ function Stars({ rating }: { rating: number }) {
         const filled = rating - i;
         if (filled >= 0.75) return <StarIcon key={i} />;
         if (filled >= 0.25) return <StarIcon key={i} half />;
-        return <span key={i} className="stars__empty"><StarIcon /></span>;
+        return (
+          <span key={i} className="stars__empty">
+            <StarIcon />
+          </span>
+        );
       })}
     </span>
   );
 }
 
-function ExcursionCard({ item, index }: { item: Excursion; index: number }) {
+function ExcursionCard({
+  item,
+  index,
+  onSelect,
+}: {
+  item: Excursion;
+  index: number;
+  onSelect: (e: Excursion) => void;
+}) {
   return (
     <motion.article className="exc-card" variants={railCardVariants} custom={index}>
       <div className="exc-card__media">
@@ -129,9 +142,10 @@ function ExcursionCard({ item, index }: { item: Excursion; index: number }) {
             className="btn btn--navy btn--block"
             block
             magnetStrength={0.18}
-            ariaLabel={`Ver disponibilidad de ${item.name}`}
+            onClick={() => onSelect(item)}
+            ariaLabel={`Ver la experiencia ${item.name}`}
           >
-            Ver Disponibilidad
+            Ver experiencia
             <ArrowIcon />
           </MagneticButton>
         </div>
@@ -140,8 +154,13 @@ function ExcursionCard({ item, index }: { item: Excursion; index: number }) {
   );
 }
 
-export default function Excursions() {
+export default function Excursions({
+  onSelect,
+}: {
+  onSelect: (e: Excursion) => void;
+}) {
   const [active, setActive] = useState<CategoryId>('todas');
+  const [expanded, setExpanded] = useState(false);
   const [progress, setProgress] = useState(0);
   const [edges, setEdges] = useState({ start: true, end: false });
   const railRef = useRef<HTMLDivElement>(null);
@@ -162,13 +181,13 @@ export default function Excursions() {
     setEdges({ start: el.scrollLeft <= 4, end: max <= 4 || el.scrollLeft >= max - 4 });
   }, []);
 
-  // Re-measure when the filter swaps the rail's contents out.
+  // Re-measure when the filter or the layout swaps the rail's contents out.
   useEffect(() => {
     const el = railRef.current;
     if (!el) return;
     el.scrollTo({ left: 0 });
     readRail();
-  }, [active, readRail]);
+  }, [active, expanded, readRail]);
 
   useEffect(() => {
     readRail();
@@ -183,6 +202,12 @@ export default function Excursions() {
     const step = card ? card.getBoundingClientRect().width + 24 : el.clientWidth * 0.8;
     el.scrollBy({ left: dir * step, behavior: 'smooth' });
   };
+
+  const cards = items.map((item, i) => (
+    <div key={item.slug} className="excursions__cell">
+      <ExcursionCard item={item} index={i} onSelect={onSelect} />
+    </div>
+  ));
 
   return (
     <section className="section excursions" id="excursiones">
@@ -199,26 +224,28 @@ export default function Excursions() {
             </p>
           </div>
 
-          <div className="excursions__nav">
-            <button
-              type="button"
-              className="round-btn"
-              onClick={() => nudge(-1)}
-              disabled={edges.start}
-              aria-label="Excursiones anteriores"
-            >
-              <ArrowIcon dir="left" />
-            </button>
-            <button
-              type="button"
-              className="round-btn"
-              onClick={() => nudge(1)}
-              disabled={edges.end}
-              aria-label="Siguientes excursiones"
-            >
-              <ArrowIcon />
-            </button>
-          </div>
+          {!expanded && (
+            <div className="excursions__nav">
+              <button
+                type="button"
+                className="round-btn"
+                onClick={() => nudge(-1)}
+                disabled={edges.start}
+                aria-label="Excursiones anteriores"
+              >
+                <ArrowIcon dir="left" />
+              </button>
+              <button
+                type="button"
+                className="round-btn"
+                onClick={() => nudge(1)}
+                disabled={edges.end}
+                aria-label="Siguientes excursiones"
+              >
+                <ArrowIcon />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="filters" role="tablist" aria-label="Categorías de excursiones">
@@ -252,39 +279,50 @@ export default function Excursions() {
         </div>
       </div>
 
-      <div className="excursions__rail-wrap">
-        {/* Keyed by filter so the rail remounts and the stagger replays on every
-            category change. Without the remount the new cards inherit the
-            container's finished "visible" state, mount as hidden and never
-            animate in. */}
+      {/* Keyed by filter and layout so the stagger replays on every change.
+          Without the remount the new cards inherit the container's finished
+          "visible" state, mount as hidden and never animate in. */}
+      {expanded ? (
         <motion.div
-          key={active}
-          className="excursions__rail container"
-          ref={railRef}
-          onScroll={readRail}
+          key={`grid-${active}`}
+          className="container excursions__grid"
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.05 }}
+          animate="visible"
         >
-          {items.map((item, i) => (
-            <div key={item.slug} className="excursions__cell">
-              <ExcursionCard item={item} index={i} />
-            </div>
-          ))}
+          {cards}
         </motion.div>
-      </div>
+      ) : (
+        <div className="excursions__rail-wrap">
+          <motion.div
+            key={`rail-${active}`}
+            className="excursions__rail container"
+            ref={railRef}
+            onScroll={readRail}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.05 }}
+          >
+            {cards}
+          </motion.div>
+        </div>
+      )}
 
       <div className="container excursions__foot">
-        <div className="excursions__progress" aria-hidden="true">
-          <motion.span
-            className="excursions__progress-bar"
-            animate={{ scaleX: Math.max(0.06, progress || 0.06) }}
-            transition={{ duration: 0.25, ease: EASINGS.snappy }}
-          />
-        </div>
+        {!expanded && (
+          <div className="excursions__progress" aria-hidden="true">
+            <motion.span
+              className="excursions__progress-bar"
+              animate={{ scaleX: Math.max(0.06, progress || 0.06) }}
+              transition={{ duration: 0.25, ease: EASINGS.snappy }}
+            />
+          </div>
+        )}
 
-        <MagneticButton className="btn btn--ghost-dark" href="#excursiones">
-          Ver las {EXCURSIONS.length} excursiones
+        <MagneticButton
+          className="btn btn--ghost-dark"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? 'Volver al carrusel' : `Ver el catálogo completo (${items.length})`}
           <ArrowIcon />
         </MagneticButton>
       </div>

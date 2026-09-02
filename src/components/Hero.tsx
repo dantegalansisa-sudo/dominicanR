@@ -3,6 +3,17 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import RevealText from './RevealText';
 import SearchBar from './SearchBar';
 import { EASINGS } from '../utils/easings';
+import { EXCURSIONS } from '../data/excursions';
+import { FLEET } from '../data/fleet';
+
+// Derived from the real catalogue — nothing here is a made-up figure.
+const AVG_RATING =
+  EXCURSIONS.reduce((sum, e) => sum + e.rating, 0) / EXCURSIONS.length;
+
+const TOTAL_REVIEWS = EXCURSIONS.reduce(
+  (sum, e) => sum + Number(e.reviews.replace(/[^0-9]/g, '')),
+  0,
+).toLocaleString('es-DO') + '+';
 
 const StarIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -78,11 +89,11 @@ export default function Hero() {
             <div className="hero__chips">
               <span className="chip">
                 <StarIcon />
-                <strong>4.9</strong> de 5 · +5.000 viajeros
+                <strong>{AVG_RATING.toFixed(1)}</strong> de 5 · {TOTAL_REVIEWS} reseñas
               </span>
               <span className="chip">
                 <RouteIcon />
-                <strong>12.000+</strong> traslados completados
+                <strong>{EXCURSIONS.length}</strong> excursiones · {FLEET.length} vehículos
               </span>
             </div>
           </motion.div>
