@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-ssr/
+
+# local screenshots / scratch
+shots/
+
+# logs
+*.log
+npm-debug.log*
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# env
+.env
+.env.*
+!.env.example
+
+# vercel
+.vercel
