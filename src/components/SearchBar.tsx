@@ -1,10 +1,24 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import MagneticButton from './MagneticButton';
+import PlaceField from './PlaceField';
+import PassengersField, {
+  EMPTY_PARTY,
+  partyLabel,
+  partyTotal,
+  suggestVehicle,
+} from './PassengersField';
+import type { Party } from './PassengersField';
+import { PICKUP_PLACES, TRANSFER_PLACES } from '../data/places';
+import { EXCURSIONS } from '../data/excursions';
 import { EASINGS } from '../utils/easings';
 
 const TABS = ['Traslado', 'Excursiones'] as const;
 type Tab = (typeof TABS)[number];
+
+const EXCURSION_PLACES = [
+  { label: 'Excursiones', items: EXCURSIONS.map((e) => e.name) },
+];
 
 const ico = {
   width: 13,
@@ -44,13 +58,6 @@ const ClockIcon = () => (
   </svg>
 );
 
-const UsersIcon = () => (
-  <svg {...ico} aria-hidden="true">
-    <circle cx="9" cy="8" r="3.4" />
-    <path d="M3 20a6 6 0 0 1 12 0M16.5 5.2a3.4 3.4 0 0 1 0 5.6M18 20a6 6 0 0 0-2.2-4.6" />
-  </svg>
-);
-
 const ShieldIcon = () => (
   <svg {...ico} width="14" height="14" aria-hidden="true">
     <path d="M12 3l7 3v5.5c0 4.5-3 8-7 9.5-4-1.5-7-5-7-9.5V6l7-3Z" />
@@ -78,15 +85,60 @@ const ArrowIcon = () => (
 );
 
 /**
- * Horizontal search rail that straddles the hero's bottom edge — the same
- * fields the live site collects, in a completely different shape.
+ * Horizontal search rail. Submitting does not fake a results page — it hands
+ * everything to the contact form, which is where the business actually wants
+ * the request to land.
  */
-export default function SearchBar() {
+export default function SearchBar({
+  onSearch,
+}: {
+  onSearch: (topic: string, message: string) => void;
+}) {
   const [tab, setTab] = useState<Tab>('Traslado');
-  const [pax, setPax] = useState(2);
+  const [origin, setOrigin] = useState('');
+  const [destination, setDestination] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [party, setParty] = useState<Party>(EMPTY_PARTY);
   const [round, setRound] = useState(false);
 
   const isTransfer = tab === 'Traslado';
+  const total = partyTotal(party);
+  const vehicle = suggestVehicle(total);
+
+  // ISO reads like a database row in an email; give the operator dd/mm/aaaa.
+  const prettyDate = (iso: string) => {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return d && m && y ? `${d}/${m}/${y}` : iso;
+  };
+
+  const submit = () => {
+    const lines = [
+      isTransfer
+        ? `Quiero cotizar un traslado${round ? ' ida y vuelta' : ''}.`
+        : 'Quiero reservar una excursión.',
+      '',
+      `${isTransfer ? 'Origen' : 'Punto de recogida'}: ${origin || '(por confirmar)'}`,
+      `${isTransfer ? 'Destino' : 'Excursión'}: ${destination || '(por confirmar)'}`,
+      `Fecha: ${prettyDate(date) || '(por confirmar)'}`,
+      `Hora: ${time || '(por confirmar)'}`,
+      `Pasajeros: ${partyLabel(party)}`,
+    ];
+
+    if (party.babySeats > 0) {
+      lines.push(
+        `Necesito ${party.babySeats} ${
+          party.babySeats === 1 ? 'silla' : 'sillas'
+        } de bebé.`,
+      );
+    }
+    if (isTransfer && vehicle) {
+      lines.push('', `Vehículo sugerido por la web: ${vehicle.name}.`);
+    }
+
+    onSearch(isTransfer ? 'Traslado' : 'Excursión', lines.join('\n'));
+  };
 
   return (
     <motion.div
@@ -118,34 +170,37 @@ export default function SearchBar() {
       </div>
 
       <div className="search__bar">
-        <div className="search__field">
-          <label className="search__label" htmlFor="sb-origin">
-            <PinIcon />
-            {isTransfer ? 'Origen' : 'Punto de encuentro'}
-          </label>
-          <input
-            id="sb-origin"
-            placeholder={isTransfer ? 'Aeropuerto (PUJ)' : 'Tu hotel en Bávaro'}
-          />
-        </div>
+        <PlaceField
+          id="sb-origin"
+          label={isTransfer ? 'Origen' : 'Punto de recogida'}
+          placeholder={isTransfer ? 'Aeropuerto, hotel o zona' : 'Tu hotel o zona'}
+          icon={<PinIcon />}
+          groups={isTransfer ? TRANSFER_PLACES : PICKUP_PLACES}
+          value={origin}
+          onChange={setOrigin}
+        />
 
-        <div className="search__field">
-          <label className="search__label" htmlFor="sb-dest">
-            <FlagIcon />
-            {isTransfer ? 'Destino' : 'Excursión'}
-          </label>
-          <input
-            id="sb-dest"
-            placeholder={isTransfer ? 'Hotel o resort' : 'Montaña Redonda…'}
-          />
-        </div>
+        <PlaceField
+          id="sb-dest"
+          label={isTransfer ? 'Destino' : 'Excursión'}
+          placeholder={isTransfer ? 'Hotel, zona o dirección' : 'Elige una excursión'}
+          icon={<FlagIcon />}
+          groups={isTransfer ? TRANSFER_PLACES : EXCURSION_PLACES}
+          value={destination}
+          onChange={setDestination}
+        />
 
         <div className="search__field">
           <label className="search__label" htmlFor="sb-date">
             <CalendarIcon />
             Fecha
           </label>
-          <input id="sb-date" placeholder="dd / mm / aaaa" />
+          <input
+            id="sb-date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </div>
 
         <div className="search__field">
@@ -153,81 +208,54 @@ export default function SearchBar() {
             <ClockIcon />
             Hora
           </label>
-          <input id="sb-time" placeholder="10:30" />
+          <input
+            id="sb-time"
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+          />
         </div>
 
-        <div className="search__field">
-          <span className="search__label">
-            <UsersIcon />
-            Pasajeros
-          </span>
-          <div className="search__stepper">
-            <button
-              type="button"
-              className="search__stepper-btn"
-              onClick={() => setPax((p) => Math.max(1, p - 1))}
-              disabled={pax <= 1}
-              aria-label="Quitar pasajero"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M5 12h14"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-            <span className="search__stepper-value" aria-live="polite">
-              {pax} {pax === 1 ? 'pasajero' : 'pasajeros'}
-            </span>
-            <button
-              type="button"
-              className="search__stepper-btn"
-              onClick={() => setPax((p) => Math.min(16, p + 1))}
-              disabled={pax >= 16}
-              aria-label="Agregar pasajero"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M12 5v14M5 12h14"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <PassengersField value={party} onChange={setParty} />
 
         <div className="search__submit">
-          <MagneticButton className="btn btn--primary" magnetStrength={0.22}>
-            {isTransfer ? 'Buscar Traslado' : 'Buscar Excursión'}
+          <MagneticButton
+            className="btn btn--primary"
+            magnetStrength={0.22}
+            onClick={submit}
+          >
+            {isTransfer ? 'Pedir traslado' : 'Pedir excursión'}
             <ArrowIcon />
           </MagneticButton>
         </div>
       </div>
 
       <div className="search__foot">
-        <button
-          type="button"
-          className="search__return"
-          onClick={() => setRound((v) => !v)}
-          aria-pressed={round}
-        >
-          <span className={`switch${round ? ' is-on' : ''}`}>
-            <motion.span
-              className="switch__knob"
-              layout
-              transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-            />
-          </span>
-          Agregar regreso
-        </button>
+        {isTransfer ? (
+          <button
+            type="button"
+            className="search__return"
+            onClick={() => setRound((v) => !v)}
+            aria-pressed={round}
+          >
+            <span className={`switch${round ? ' is-on' : ''}`}>
+              <motion.span
+                className="switch__knob"
+                layout
+                transition={{ type: 'spring', stiffness: 500, damping: 34 }}
+              />
+            </span>
+            Agregar regreso
+          </button>
+        ) : (
+          <span />
+        )}
 
         <p className="search__note">
           <ShieldIcon />
-          Confirmación inmediata · Cancelación gratuita · Pago al llegar
+          {party.infants > 0
+            ? 'Llevamos sillas para bebé sin costo · Cancelación gratuita'
+            : 'Confirmación por correo · Cancelación gratuita · Pago al llegar'}
         </p>
       </div>
     </motion.div>

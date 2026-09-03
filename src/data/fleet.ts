@@ -13,6 +13,11 @@ export interface Vehicle {
   price: number | null;
   /** Los cuatro que el cliente quiere ver destacados. */
   featured: boolean;
+  /**
+   * Elegible para la sugerencia automática por número de pasajeros. La limusina
+   * y la miniván accesible se eligen a propósito, no por conteo de cabezas.
+   */
+  standard: boolean;
   summary: string;
   features: string[];
 }
@@ -28,6 +33,7 @@ export const FLEET: Vehicle[] = [
     maxPax: 2,
     price: 25,
     featured: true,
+    standard: true,
     summary:
       'Para parejas o viajeros solos que quieren llegar rápido y sin compartir el auto con nadie.',
     features: ['Aire acondicionado', 'Asientos de cuero', 'Maletero para 2 maletas'],
@@ -40,6 +46,7 @@ export const FLEET: Vehicle[] = [
     maxPax: 6,
     price: 30,
     featured: true,
+    standard: true,
     summary:
       'El punto dulce entre espacio y precio. Familias medianas con equipaje completo.',
     features: ['Asientos reclinables', 'Climatización potente', 'Equipaje sin apretar'],
@@ -52,6 +59,7 @@ export const FLEET: Vehicle[] = [
     maxPax: 11,
     price: 50,
     featured: true,
+    standard: true,
     summary:
       'Grupos que no quieren dividirse en dos vehículos ni pagar de más por ello.',
     features: ['Once plazas cómodas', 'Bodega para maletas', 'Conductor con experiencia'],
@@ -64,6 +72,7 @@ export const FLEET: Vehicle[] = [
     maxPax: 6,
     price: 60,
     featured: true,
+    standard: true,
     summary:
       'Traslado ejecutivo cuando la llegada también cuenta como parte del viaje.',
     features: ['Interior premium en cuero', 'Climatización dual', 'Conductor bilingüe'],
@@ -76,6 +85,7 @@ export const FLEET: Vehicle[] = [
     maxPax: 22,
     price: null,
     featured: false,
+    standard: true,
     summary: 'Bodas, incentivos y grupos que se mueven juntos de principio a fin.',
     features: ['Hasta 22 pasajeros', 'Climatización central', 'Bodega de gran capacidad'],
   },
@@ -87,6 +97,7 @@ export const FLEET: Vehicle[] = [
     maxPax: 50,
     price: null,
     featured: false,
+    standard: true,
     summary: 'La opción para eventos corporativos y tours largos con el grupo completo.',
     features: ['Hasta 50 pasajeros', 'Asientos reclinables', 'Baño a bordo'],
   },
@@ -98,6 +109,7 @@ export const FLEET: Vehicle[] = [
     maxPax: 6,
     price: 350,
     featured: false,
+    standard: false,
     summary: 'Bodas, aniversarios y celebraciones donde la llegada es parte del evento.',
     features: ['Bar integrado', 'Iluminación LED y techo panorámico', 'Chofer uniformado'],
   },
@@ -109,6 +121,7 @@ export const FLEET: Vehicle[] = [
     maxPax: 4,
     price: 80,
     featured: false,
+    standard: false,
     summary:
       'Adaptada para silla de ruedas, con conductor capacitado en asistencia. Hasta 4 pasajeros más la silla.',
     features: [

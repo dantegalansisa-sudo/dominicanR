@@ -44,6 +44,29 @@ Los traslados son el negocio principal y las excursiones el secundario, así que
 la página va: hero con buscador → cifras → **traslados** → excursiones → por qué
 nosotros → banda CTA → formulario → footer. El navbar sigue el mismo orden.
 
+## Buscador del hero
+
+Origen y destino son un combobox sobre los siete aeropuertos internacionales del
+país y las dieciséis zonas hoteleras (`src/data/places.ts`). Busca sin acentos y
+por código — "bavaro" encuentra Bávaro, "puj" encuentra Punta Cana — pero **nunca
+obliga**: lo que el visitante escriba vale, porque muchas recogidas son un hotel
+o una dirección concreta que no está en la lista.
+
+Pasajeros se desglosa en adultos, niños y bebés, con estas reglas:
+
+- Siempre al menos **un adulto**: un menor no viaja solo.
+- La fila de **sillas para bebé** solo aparece si hay bebés, y nunca puede superar
+  su número. Si se quitan bebés, las sillas bajan con ellos.
+- El total no pasa de 50, la capacidad del vehículo más grande. Al llegar ahí el
+  panel propone coordinar varias unidades en vez de bloquear en seco.
+- Se **sugiere vehículo** por el total, pero solo entre los `standard`. La miniván
+  accesible y la limusina quedan fuera: se eligen a propósito, no por conteo de
+  cabezas. Ofrecerle la van con rampa a una familia de cuatro porque caben cuatro
+  estaría mal.
+
+Al enviar no se finge una página de resultados: todo se vuelca al formulario de
+contacto, que es donde el negocio quiere la solicitud.
+
 ## Reservas y canales
 
 Todo camino termina en el formulario. El botón de cada vehículo y el de cada

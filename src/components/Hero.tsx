@@ -38,7 +38,11 @@ const RouteIcon = () => (
   </svg>
 );
 
-export default function Hero() {
+export default function Hero({
+  onSearch,
+}: {
+  onSearch: (topic: string, message: string) => void;
+}) {
   // Pixel-driven so the parallax behaves before the page is tall enough to
   // produce a meaningful scroll progress.
   const [vh, setVh] = useState(900);
@@ -172,7 +176,7 @@ export default function Hero() {
         </div>
       </section>
 
-      <SearchBar />
+      <SearchBar onSearch={onSearch} />
     </div>
   );
 }

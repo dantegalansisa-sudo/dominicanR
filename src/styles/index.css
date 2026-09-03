@@ -697,46 +697,15 @@ ul {
 
 /* passenger stepper lives inline in the bar */
 
-.search__stepper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 
-.search__stepper-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  color: var(--ink);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition:
-    background-color 0.22s ease,
-    color 0.22s ease,
-    border-color 0.22s ease;
-}
 
-.search__stepper-btn:hover:not(:disabled) {
-  background: var(--coral);
-  color: var(--white);
-  border-color: var(--coral);
-}
 
-.search__stepper-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
 
-.search__stepper-value {
-  font-size: 15px;
-  font-weight: 600;
-  white-space: nowrap;
-  text-align: center;
-  flex: 1;
-}
+
+
+
+
+
 
 .search__submit {
   display: flex;
@@ -2596,23 +2565,9 @@ ul {
   box-shadow: 0 14px 34px rgba(var(--coral-rgb), 0.38);
 }
 
-.fab__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--white);
-  animation: fab-blink 2.4s ease-in-out infinite;
-}
 
-@keyframes fab-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
-}
+
+
 
 .fab svg {
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2780,5 +2735,226 @@ ul {
     padding: 0 14px 0 18px;
     border-top: none;
     border-left: 1px solid var(--line);
+  }
+}
+
+/* ---------- place combobox ---------- */
+
+.place {
+  position: relative;
+}
+
+.place__menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  min-width: 250px;
+  max-height: 288px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 20px 46px rgba(11, 30, 51, 0.16);
+  padding: 8px;
+  z-index: 40;
+}
+
+.place__group + .place__group {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.place__group-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--coral);
+  padding: 6px 10px;
+}
+
+.place__option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: 9px;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.place__option.is-cursor {
+  background: var(--cream);
+}
+
+.place__option[aria-selected='true'] {
+  font-weight: 600;
+  color: var(--coral);
+}
+
+/* ---------- passengers popover ---------- */
+
+.passengers {
+  position: relative;
+}
+
+.passengers__trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+
+.passengers__count {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.passengers__break {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--sea);
+}
+
+.passengers__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  width: 320px;
+  max-width: calc(100vw - 40px);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 20px 46px rgba(11, 30, 51, 0.16);
+  padding: 8px 18px 16px;
+  z-index: 40;
+}
+
+.passengers__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.passengers__row--seats {
+  overflow: hidden;
+}
+
+.passengers__row-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.passengers__row-hint {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin-top: 1px;
+}
+
+.passengers__stepper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.passengers__stepper button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.passengers__stepper button:hover:not(:disabled) {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: var(--white);
+}
+
+.passengers__stepper button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.passengers__stepper strong {
+  font-family: var(--font-display);
+  font-size: 17px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.passengers__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 14px;
+}
+
+.passengers__note {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.passengers__note strong {
+  color: var(--ink);
+}
+
+.passengers__note--warn {
+  color: #b1441f;
+}
+
+.passengers__done {
+  flex-shrink: 0;
+  align-self: flex-end;
+  background: var(--navy-deep);
+  color: var(--white);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.22s ease;
+}
+
+.passengers__done:hover {
+  background: #16324f;
+}
+
+/* the rail clips its own dropdowns otherwise */
+.search__bar {
+  overflow: visible;
+}
+
+@media (max-width: 1180px) {
+  .passengers__panel,
+  .place__menu {
+    left: auto;
+    right: 0;
   }
 }

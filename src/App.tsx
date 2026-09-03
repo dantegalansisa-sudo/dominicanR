@@ -27,10 +27,12 @@ function Home({
   prefill,
   onSelect,
   onRequestTransfer,
+  onSearch,
 }: {
   prefill: Prefill | null;
   onSelect: (e: Excursion) => void;
   onRequestTransfer: (slug: string) => void;
+  onSearch: (topic: string, message: string) => void;
 }) {
   useEffect(() => {
     document.title = 'Dominican Routes — Traslados y Excursiones en Punta Cana';
@@ -38,7 +40,7 @@ function Home({
 
   return (
     <>
-      <Hero />
+      <Hero onSearch={onSearch} />
       <TrustBar />
       <Fleet onRequest={onRequestTransfer} />
       <Excursions onSelect={onSelect} />
@@ -112,6 +114,7 @@ export default function App() {
                 prefill={prefill}
                 onSelect={setDetail}
                 onRequestTransfer={requestTransfer}
+                onSearch={requestQuote}
               />
             }
           />
