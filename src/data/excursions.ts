@@ -27,6 +27,16 @@ export interface Excursion {
   description: string;
 }
 
+/** Las seis más solicitadas, en el orden que indicó el cliente. */
+export const FEATURED_SLUGS = [
+  'isla-saona-clasica',
+  'isla-saona-vip',
+  'city-tour-santo-domingo',
+  'coco-bongo',
+  'isla-catalina',
+  'city-tour-higuey',
+] as const;
+
 export const EXCURSIONS: Excursion[] = [
   {
     slug: "isla-saona-clasica",
@@ -409,3 +419,8 @@ export const EXCURSIONS: Excursion[] = [
     description: "Recorre los lugares emblemáticos de Punta Cana y sus zonas comerciales.",
   },
 ];
+
+/** Ordenadas como las listó el cliente, no por rating. */
+export const FEATURED_EXCURSIONS = FEATURED_SLUGS.map(
+  (slug) => EXCURSIONS.find((e) => e.slug === slug)!,
+);

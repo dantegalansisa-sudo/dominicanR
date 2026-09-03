@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
@@ -10,6 +11,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import FloatingCta from './components/FloatingCta';
 import ExcursionDetail from './components/ExcursionDetail';
+import ExcursionsPage from './pages/ExcursionsPage';
 import type { Excursion } from './data/excursions';
 import { FLEET } from './data/fleet';
 
@@ -21,19 +23,59 @@ export interface Prefill {
   nonce: number;
 }
 
+function Home({
+  prefill,
+  onSelect,
+  onRequestTransfer,
+}: {
+  prefill: Prefill | null;
+  onSelect: (e: Excursion) => void;
+  onRequestTransfer: (slug: string) => void;
+}) {
+  useEffect(() => {
+    document.title = 'Dominican Routes — Traslados y Excursiones en Punta Cana';
+  }, []);
+
+  return (
+    <>
+      <Hero />
+      <TrustBar />
+      <Fleet onRequest={onRequestTransfer} />
+      <Excursions onSelect={onSelect} />
+      <WhyUs />
+      <CtaBand />
+      <Contact prefill={prefill} />
+    </>
+  );
+}
+
 export default function App() {
   const [detail, setDetail] = useState<Excursion | null>(null);
   const [prefill, setPrefill] = useState<Prefill | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Every "reservar" across the page lands here: fill the form with the
-  // context the visitor was looking at, then take them to it.
-  const requestQuote = useCallback((topic: string, message: string) => {
-    setPrefill({ topic, message, nonce: Date.now() });
-    setDetail(null);
-    requestAnimationFrame(() => {
-      document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
-    });
-  }, []);
+  // Every "reservar" across the site lands here: fill the form with the
+  // context the visitor was looking at, then take them to it. From the
+  // catalogue page that means routing home first.
+  const requestQuote = useCallback(
+    (topic: string, message: string) => {
+      setPrefill({ topic, message, nonce: Date.now() });
+      setDetail(null);
+      if (location.pathname !== '/') {
+        navigate('/');
+        // wait for the home route to mount before looking for the form
+        window.setTimeout(() => {
+          document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
+        }, 80);
+      } else {
+        requestAnimationFrame(() => {
+          document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+    },
+    [location.pathname, navigate],
+  );
 
   const requestTransfer = useCallback(
     (vehicleSlug: string) => {
@@ -62,13 +104,22 @@ export default function App() {
     <>
       <Navbar />
       <main>
-        <Hero />
-        <TrustBar />
-        <Fleet onRequest={requestTransfer} />
-        <Excursions onSelect={setDetail} />
-        <WhyUs />
-        <CtaBand />
-        <Contact prefill={prefill} />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Home
+                prefill={prefill}
+                onSelect={setDetail}
+                onRequestTransfer={requestTransfer}
+              />
+            }
+          />
+          <Route
+            path="/excursiones"
+            element={<ExcursionsPage onSelect={setDetail} />}
+          />
+        </Routes>
       </main>
       <Footer />
       <FloatingCta />

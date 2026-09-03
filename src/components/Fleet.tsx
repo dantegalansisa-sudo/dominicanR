@@ -3,7 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import ImagePlaceholder from './ImagePlaceholder';
-import { FLEET, FLEET_NOTE } from '../data/fleet';
+import { FEATURED_FLEET, FLEET, FLEET_NOTE, OTHER_FLEET } from '../data/fleet';
+import type { Vehicle } from '../data/fleet';
 import { EASINGS } from '../utils/easings';
 
 const MAX_PAX = 50;
@@ -44,12 +45,44 @@ const UsersIcon = () => (
   </svg>
 );
 
+function FleetItem({
+  vehicle,
+  active,
+  onPick,
+}: {
+  vehicle: Vehicle;
+  active: boolean;
+  onPick: (slug: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      className={`fleet__item${active ? ' is-active' : ''}`}
+      onClick={() => onPick(vehicle.slug)}
+    >
+      {active && (
+        <motion.span
+          layoutId="fleet-marker"
+          className="fleet__marker"
+          transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+        />
+      )}
+      <span className="fleet__item-name">{vehicle.name}</span>
+      <span className="fleet__item-pax">
+        {vehicle.minPax}–{vehicle.maxPax}
+      </span>
+    </button>
+  );
+}
+
 export default function Fleet({
   onRequest,
 }: {
   onRequest: (vehicleSlug: string) => void;
 }) {
-  const [activeSlug, setActiveSlug] = useState(FLEET[1].slug);
+  const [activeSlug, setActiveSlug] = useState(FLEET[1]!.slug);
   const active = FLEET.find((v) => v.slug === activeSlug) ?? FLEET[0];
 
   return (
@@ -71,31 +104,25 @@ export default function Fleet({
 
         <div className="fleet__layout">
           <div className="fleet__list" role="tablist" aria-label="Vehículos disponibles">
-            {FLEET.map((v) => {
-              const on = v.slug === activeSlug;
-              return (
-                <button
-                  key={v.slug}
-                  type="button"
-                  role="tab"
-                  aria-selected={on}
-                  className={`fleet__item${on ? ' is-active' : ''}`}
-                  onClick={() => setActiveSlug(v.slug)}
-                >
-                  {on && (
-                    <motion.span
-                      layoutId="fleet-marker"
-                      className="fleet__marker"
-                      transition={{ type: 'spring', stiffness: 420, damping: 36 }}
-                    />
-                  )}
-                  <span className="fleet__item-name">{v.name}</span>
-                  <span className="fleet__item-pax">
-                    {v.minPax}–{v.maxPax}
-                  </span>
-                </button>
-              );
-            })}
+            <p className="fleet__group">Principales</p>
+            {FEATURED_FLEET.map((v) => (
+              <FleetItem
+                key={v.slug}
+                vehicle={v}
+                active={v.slug === activeSlug}
+                onPick={setActiveSlug}
+              />
+            ))}
+
+            <p className="fleet__group fleet__group--rest">Resto de la flota</p>
+            {OTHER_FLEET.map((v) => (
+              <FleetItem
+                key={v.slug}
+                vehicle={v}
+                active={v.slug === activeSlug}
+                onPick={setActiveSlug}
+              />
+            ))}
           </div>
 
           <div className="fleet__stage">

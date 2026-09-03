@@ -28,6 +28,16 @@ npm run build
 npm run preview
 ```
 
+## Rutas
+
+| URL | Contenido |
+|---|---|
+| `/` | Landing completa |
+| `/excursiones` | Catálogo de las 38, con filtros por categoría |
+
+`vercel.json` reescribe todo a `index.html` **salvo `/api/*`**, para que la URL del
+catálogo funcione al recargar sin tumbar la función de contacto.
+
 ## Orden de la página
 
 Los traslados son el negocio principal y las excursiones el secundario, así que
@@ -105,15 +115,20 @@ catálogo cambia, las cifras cambian solas.
 
 ### Flota
 
-`src/data/fleet.ts` lleva los 6 vehículos que el cliente confirmó por WhatsApp, con
-modelo concreto (Hyundai Grand Starex, Toyota Hiace, Chevrolet Suburban, Toyota
-Coaster). Toda la flota se opera en blanco o negro.
+`src/data/fleet.ts` lleva los 8 vehículos del cliente con modelo concreto. Los cuatro
+marcados `featured: true` — Sedán, Miniván, Minibús y VIP Luxury — se muestran bajo
+"Principales" y el resto bajo "Resto de la flota". Toda la flota se opera en blanco
+o negro.
 
 ### Excursiones
 
 `src/data/excursions.ts` lleva las 38 excursiones reales del cliente, extraídas de
 las tres páginas de `dominicanroutes.com/excursiones`. Cada una tiene una categoría
 asignada a mano para poder filtrar; el sitio actual solo pagina.
+
+En el inicio solo salen **las seis más solicitadas** (`FEATURED_SLUGS`, en el orden
+que indicó el cliente), en retícula 3 + 3. Se descartó el carrusel porque siempre
+dejaba una tarjeta cortada por la mitad en el borde derecho.
 
 Las fotos las envía el cliente. Hasta entonces cada tarjeta muestra un marcador
 diseñado (trama diagonal, marca de línea distinta por categoría y la etiqueta

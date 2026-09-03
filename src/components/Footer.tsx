@@ -2,11 +2,11 @@ import { motion } from 'framer-motion';
 import { EASINGS } from '../utils/easings';
 
 const NAV = [
-  { label: 'Inicio', href: '#inicio' },
-  { label: 'Excursiones', href: '#excursiones' },
-  { label: 'Traslados', href: '#traslados' },
-  { label: 'Quiénes Somos', href: '#nosotros' },
-  { label: 'Contacto', href: '#contacto' },
+  { label: 'Inicio', href: '/#inicio' },
+  { label: 'Traslados', href: '/#traslados' },
+  { label: 'Excursiones', href: '/excursiones' },
+  { label: 'Quiénes Somos', href: '/#nosotros' },
+  { label: 'Contacto', href: '/#contacto' },
 ];
 
 const SOCIAL = [

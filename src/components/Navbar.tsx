@@ -3,12 +3,11 @@ import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-
 import { EASINGS } from '../utils/easings';
 
 const LINKS = [
-  { label: 'Inicio', href: '#inicio' },
-  { label: 'Traslados', href: '#traslados' },
-  { label: 'Excursiones', href: '#excursiones' },
-  { label: 'Quiénes Somos', href: '#nosotros' },
-  { label: 'Blog', href: '#blog' },
-  { label: 'Contacto', href: '#contacto' },
+  { label: 'Inicio', href: '/#inicio' },
+  { label: 'Traslados', href: '/#traslados' },
+  { label: 'Excursiones', href: '/excursiones' },
+  { label: 'Quiénes Somos', href: '/#nosotros' },
+  { label: 'Contacto', href: '/#contacto' },
 ];
 
 export default function Navbar() {
@@ -80,7 +79,7 @@ export default function Navbar() {
               ))}
             </div>
 
-            <a className="nav__cta" href="#contacto">
+            <a className="nav__cta" href="/#contacto">
               Reservar
             </a>
 
