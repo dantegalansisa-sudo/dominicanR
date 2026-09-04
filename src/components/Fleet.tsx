@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
@@ -83,7 +83,33 @@ export default function Fleet({
   onRequest: (vehicleSlug: string) => void;
 }) {
   const [activeSlug, setActiveSlug] = useState(FLEET[1]!.slug);
+  const [collapsed, setCollapsed] = useState(true);
+
+  // Below 980px the list is a horizontal scroller, never a tall column, so
+  // collapsing buys nothing and would push the toggle off-screen to the right.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const q = window.matchMedia('(max-width: 980px)');
+    const sync = () => setNarrow(q.matches);
+    sync();
+    q.addEventListener('change', sync);
+    return () => q.removeEventListener('change', sync);
+  }, []);
+
+  const showRest = narrow || !collapsed;
   const active = FLEET.find((v) => v.slug === activeSlug) ?? FLEET[0];
+
+  // Collapsing while one of the hidden vehicles is selected would leave the
+  // panel showing something with no matching row in the list, so the selection
+  // falls back to the first featured one.
+  const toggleRest = () => {
+    setCollapsed((wasCollapsed) => {
+      if (!wasCollapsed && OTHER_FLEET.some((v) => v.slug === activeSlug)) {
+        setActiveSlug(FEATURED_FLEET[0]!.slug);
+      }
+      return !wasCollapsed;
+    });
+  };
 
   return (
     <section className="section fleet" id="traslados">
@@ -114,15 +140,49 @@ export default function Fleet({
               />
             ))}
 
-            <p className="fleet__group fleet__group--rest">Resto de la flota</p>
-            {OTHER_FLEET.map((v) => (
-              <FleetItem
-                key={v.slug}
-                vehicle={v}
-                active={v.slug === activeSlug}
-                onPick={setActiveSlug}
-              />
-            ))}
+            <AnimatePresence initial={false}>
+              {showRest && (
+                <motion.div
+                  className="fleet__rest"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.38, ease: EASINGS.premium }}
+                >
+                  <p className="fleet__group fleet__group--rest">Resto de la flota</p>
+                  {OTHER_FLEET.map((v) => (
+                    <FleetItem
+                      key={v.slug}
+                      vehicle={v}
+                      active={v.slug === activeSlug}
+                      onPick={setActiveSlug}
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {!narrow && (
+              <button type="button" className="fleet__more" onClick={toggleRest}>
+              {showRest ? 'Ver menos' : `Ver el resto de la flota (${OTHER_FLEET.length})`}
+              <motion.span
+                className="fleet__more-chevron"
+                animate={{ rotate: showRest ? 180 : 0 }}
+                transition={{ duration: 0.28, ease: EASINGS.smooth }}
+                aria-hidden="true"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="m6 9 6 6 6-6"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  </svg>
+                </motion.span>
+              </button>
+            )}
           </div>
 
           <div className="fleet__stage">
