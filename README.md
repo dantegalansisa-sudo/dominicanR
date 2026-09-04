@@ -189,6 +189,7 @@ Para lograrlo hubo que separar en dos capas lo que venía horneado en un solo PN
 | Archivo | Peso | Rol |
 |---|---|---|
 | `images/logo.png` | 290 KB | Logo oficial del cliente, recortado, con transparencia |
+| `images/fleet/*.webp` | 548 KB | Los 8 vehículos, recortados a 4:3 desde las fotos del cliente |
 | `images/punta-cana-mask.png` | 44 KB | Silueta del lettering, usada como `mask-image` |
 | `images/punta-cana-poster.jpg` | 54 KB | Primer frame; se ve mientras carga el video |
 | `video/punta-cana-lg.mp4` | 1.7 MB | Loop 1600×448, escritorio |

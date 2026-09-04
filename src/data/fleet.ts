@@ -18,6 +18,8 @@ export interface Vehicle {
    * y la miniván accesible se eligen a propósito, no por conteo de cabezas.
    */
   standard: boolean;
+  /** Foto del cliente en public/images/fleet, o null si aún no llegó. */
+  photo: string | null;
   summary: string;
   features: string[];
 }
@@ -34,6 +36,7 @@ export const FLEET: Vehicle[] = [
     price: 25,
     featured: true,
     standard: true,
+    photo: '/images/fleet/sedan.webp',
     summary:
       'Para parejas o viajeros solos que quieren llegar rápido y sin compartir el auto con nadie.',
     features: ['Aire acondicionado', 'Asientos de cuero', 'Maletero para 2 maletas'],
@@ -47,6 +50,7 @@ export const FLEET: Vehicle[] = [
     price: 30,
     featured: true,
     standard: true,
+    photo: '/images/fleet/minivan.webp',
     summary:
       'El punto dulce entre espacio y precio. Familias medianas con equipaje completo.',
     features: ['Asientos reclinables', 'Climatización potente', 'Equipaje sin apretar'],
@@ -60,6 +64,7 @@ export const FLEET: Vehicle[] = [
     price: 50,
     featured: true,
     standard: true,
+    photo: '/images/fleet/minibus.webp',
     summary:
       'Grupos que no quieren dividirse en dos vehículos ni pagar de más por ello.',
     features: ['Once plazas cómodas', 'Bodega para maletas', 'Conductor con experiencia'],
@@ -73,6 +78,7 @@ export const FLEET: Vehicle[] = [
     price: 60,
     featured: true,
     standard: true,
+    photo: '/images/fleet/vip-luxury.webp',
     summary:
       'Traslado ejecutivo cuando la llegada también cuenta como parte del viaje.',
     features: ['Interior premium en cuero', 'Climatización dual', 'Conductor bilingüe'],
@@ -86,6 +92,7 @@ export const FLEET: Vehicle[] = [
     price: null,
     featured: false,
     standard: true,
+    photo: '/images/fleet/bus.webp',
     summary: 'Bodas, incentivos y grupos que se mueven juntos de principio a fin.',
     features: ['Hasta 22 pasajeros', 'Climatización central', 'Bodega de gran capacidad'],
   },
@@ -98,6 +105,7 @@ export const FLEET: Vehicle[] = [
     price: null,
     featured: false,
     standard: true,
+    photo: '/images/fleet/autobus.webp',
     summary: 'La opción para eventos corporativos y tours largos con el grupo completo.',
     features: ['Hasta 50 pasajeros', 'Asientos reclinables', 'Baño a bordo'],
   },
@@ -110,6 +118,7 @@ export const FLEET: Vehicle[] = [
     price: 350,
     featured: false,
     standard: false,
+    photo: '/images/fleet/limusina.webp',
     summary: 'Bodas, aniversarios y celebraciones donde la llegada es parte del evento.',
     features: ['Bar integrado', 'Iluminación LED y techo panorámico', 'Chofer uniformado'],
   },
@@ -122,6 +131,7 @@ export const FLEET: Vehicle[] = [
     price: 80,
     featured: false,
     standard: false,
+    photo: '/images/fleet/minivan-accesible.webp',
     summary:
       'Adaptada para silla de ruedas, con conductor capacitado en asistencia. Hasta 4 pasajeros más la silla.',
     features: [

@@ -136,7 +136,17 @@ export default function Fleet({
                 transition={{ duration: 0.42, ease: EASINGS.premium }}
               >
                 <div className="fleet__media">
-                  <ImagePlaceholder category="vehiculo" label="Foto próximamente" />
+                  {active.photo ? (
+                    <img
+                      className="fleet__photo"
+                      src={active.photo}
+                      alt={`${active.name} — ${active.model}`}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <ImagePlaceholder category="vehiculo" label="Foto próximamente" />
+                  )}
                   <span className="fleet__badge">
                     {active.price === null ? (
                       'Cotizar'
