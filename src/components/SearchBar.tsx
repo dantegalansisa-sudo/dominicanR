@@ -1,14 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import MagneticButton from './MagneticButton';
 import PlaceField from './PlaceField';
-import PassengersField, {
-  EMPTY_PARTY,
-  partyLabel,
-  partyTotal,
-  suggestVehicle,
-} from './PassengersField';
-import type { Party } from './PassengersField';
+import PassengersField from './PassengersField';
+import { EMPTY_PARTY, partyLabel } from '../data/passengers';
+import type { Party } from '../data/passengers';
 import { PICKUP_PLACES, TRANSFER_PLACES } from '../data/places';
 import { EXCURSIONS } from '../data/excursions';
 import { EASINGS } from '../utils/easings';
@@ -94,6 +91,7 @@ export default function SearchBar({
 }: {
   onSearch: (topic: string, message: string) => void;
 }) {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('Traslado');
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
@@ -103,8 +101,6 @@ export default function SearchBar({
   const [round, setRound] = useState(false);
 
   const isTransfer = tab === 'Traslado';
-  const total = partyTotal(party);
-  const vehicle = suggestVehicle(total);
 
   // ISO reads like a database row in an email; give the operator dd/mm/aaaa.
   const prettyDate = (iso: string) => {
@@ -114,30 +110,27 @@ export default function SearchBar({
   };
 
   const submit = () => {
+    // Transfers get their own page: the client asked for children and the
+    // on-board amenities to live there, not crowding the hero bar.
+    if (isTransfer) {
+      navigate('/reservar', {
+        state: { origin, destination, date, time, adults: party.adults, round },
+      });
+      return;
+    }
+
     const lines = [
-      isTransfer
-        ? `Quiero cotizar un traslado${round ? ' ida y vuelta' : ''}.`
-        : 'Quiero reservar una excursión.',
+      'Quiero reservar una excursión.',
       '',
-      `${isTransfer ? 'Origen' : 'Punto de recogida'}: ${origin || '(por confirmar)'}`,
-      `${isTransfer ? 'Destino' : 'Excursión'}: ${destination || '(por confirmar)'}`,
+      `Punto de recogida: ${origin || '(por confirmar)'}`,
+      `Excursión: ${destination || '(por confirmar)'}`,
       `Fecha: ${prettyDate(date) || '(por confirmar)'}`,
       `Hora: ${time || '(por confirmar)'}`,
       `Pasajeros: ${partyLabel(party)}`,
     ];
+    if (party.infants > 0) lines.push('Los infantes (0 a 4 años) no pagan.');
 
-    if (party.babySeats > 0) {
-      lines.push(
-        `Necesito ${party.babySeats} ${
-          party.babySeats === 1 ? 'silla' : 'sillas'
-        } de bebé.`,
-      );
-    }
-    if (isTransfer && vehicle) {
-      lines.push('', `Vehículo sugerido por la web: ${vehicle.name}.`);
-    }
-
-    onSearch(isTransfer ? 'Traslado' : 'Excursión', lines.join('\n'));
+    onSearch('Excursión', lines.join('\n'));
   };
 
   return (
@@ -216,7 +209,11 @@ export default function SearchBar({
           />
         </div>
 
-        <PassengersField value={party} onChange={setParty} />
+        <PassengersField
+          value={party}
+          onChange={setParty}
+          variant={isTransfer ? 'adults' : 'ages'}
+        />
 
         <div className="search__submit">
           <MagneticButton
@@ -253,9 +250,9 @@ export default function SearchBar({
 
         <p className="search__note">
           <ShieldIcon />
-          {party.infants > 0
-            ? 'Llevamos sillas para bebé sin costo · Cancelación gratuita'
-            : 'Confirmación por correo · Cancelación gratuita · Pago al llegar'}
+          {isTransfer
+            ? 'Niños y amenidades en el siguiente paso · Cancelación gratuita'
+            : 'Los infantes no pagan · Confirmación por correo · Cancelación gratuita'}
         </p>
       </div>
     </motion.div>

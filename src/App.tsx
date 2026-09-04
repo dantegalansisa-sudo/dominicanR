@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import FloatingCta from './components/FloatingCta';
 import ExcursionDetail from './components/ExcursionDetail';
 import ExcursionsPage from './pages/ExcursionsPage';
+import BookingPage from './pages/BookingPage';
 import type { Excursion } from './data/excursions';
 import { FLEET } from './data/fleet';
 
@@ -122,6 +123,7 @@ export default function App() {
             path="/excursiones"
             element={<ExcursionsPage onSelect={setDetail} />}
           />
+          <Route path="/reservar" element={<BookingPage />} />
         </Routes>
       </main>
       <Footer />

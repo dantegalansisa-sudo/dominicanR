@@ -1,25 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FLEET } from '../data/fleet';
-
-export interface Party {
-  adults: number;
-  children: number;
-  infants: number;
-  /** Car seats requested; never more than the number of infants. */
-  babySeats: number;
-}
-
-export const EMPTY_PARTY: Party = {
-  adults: 2,
-  children: 0,
-  infants: 0,
-  babySeats: 0,
-};
+import { AGE_BANDS, partyTotal } from '../data/passengers';
+import type { Party } from '../data/passengers';
 
 const MAX_TOTAL = Math.max(...FLEET.filter((v) => v.standard).map((v) => v.maxPax));
-
-export const partyTotal = (p: Party) => p.adults + p.children + p.infants;
 
 /**
  * Smallest standard vehicle that still fits the whole group. Only standard ones
@@ -34,27 +19,28 @@ export function suggestVehicle(total: number) {
   );
 }
 
-/** Seats are reported on their own line, so they stay out of this. */
-export function partyLabel(p: Party) {
-  const bits = [`${p.adults} ${p.adults === 1 ? 'adulto' : 'adultos'}`];
-  if (p.children) bits.push(`${p.children} ${p.children === 1 ? 'niño' : 'niños'}`);
-  if (p.infants) bits.push(`${p.infants} ${p.infants === 1 ? 'bebé' : 'bebés'}`);
-  return bits.join(', ');
-}
-
-const ROWS = [
-  { key: 'adults', label: 'Adultos', hint: '13 años o más', min: 1 },
-  { key: 'children', label: 'Niños', hint: 'De 2 a 12 años', min: 0 },
-  { key: 'infants', label: 'Bebés', hint: 'Menores de 2 años', min: 0 },
+const BANDS = [
+  { key: 'adults', ...AGE_BANDS.adults, min: 1 },
+  { key: 'children', ...AGE_BANDS.children, min: 0 },
+  { key: 'infants', ...AGE_BANDS.infants, min: 0 },
 ] as const;
+
+interface PassengersFieldProps {
+  value: Party;
+  onChange: (p: Party) => void;
+  /**
+   * `adults` shows a single stepper — transfers are priced per vehicle, so the
+   * hero bar only needs the head count and the rest is asked on the booking
+   * form. `ages` splits the party because excursions price each band apart.
+   */
+  variant?: 'adults' | 'ages';
+}
 
 export default function PassengersField({
   value,
   onChange,
-}: {
-  value: Party;
-  onChange: (p: Party) => void;
-}) {
+  variant = 'ages',
+}: PassengersFieldProps) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -72,32 +58,17 @@ export default function PassengersField({
     };
   }, [open]);
 
+  const rows = variant === 'adults' ? BANDS.slice(0, 1) : BANDS;
   const total = partyTotal(value);
   const vehicle = suggestVehicle(total);
+  const atMax = total >= MAX_TOTAL;
 
   const step = (key: keyof Party, delta: number) => {
-    const next: Party = { ...value };
-    const row = ROWS.find((r) => r.key === key);
+    if (delta > 0 && atMax) return;
+    const row = rows.find((r) => r.key === key);
     const min = row ? row.min : 0;
-
-    if (key === 'babySeats') {
-      next.babySeats = Math.min(value.infants, Math.max(0, value.babySeats + delta));
-      onChange(next);
-      return;
-    }
-
-    // Adding anyone must respect the capacity of the biggest vehicle.
-    if (delta > 0 && total >= MAX_TOTAL) return;
-
-    next[key] = Math.max(min, (value[key] as number) + delta);
-
-    // Fewer babies than seats would be nonsense, so the seats follow them down.
-    if (key === 'infants') next.babySeats = Math.min(next.babySeats, next.infants);
-
-    onChange(next);
+    onChange({ ...value, [key]: Math.max(min, value[key] + delta) });
   };
-
-  const atMax = total >= MAX_TOTAL;
 
   return (
     <div className="search__field passengers" ref={wrapRef}>
@@ -128,11 +99,11 @@ export default function PassengersField({
         <span className="passengers__count">
           {total} {total === 1 ? 'pasajero' : 'pasajeros'}
         </span>
-        {(value.children > 0 || value.infants > 0) && (
+        {variant === 'ages' && (value.children > 0 || value.infants > 0) && (
           <span className="passengers__break">
             {value.adults}A
             {value.children > 0 ? ` · ${value.children}N` : ''}
-            {value.infants > 0 ? ` · ${value.infants}B` : ''}
+            {value.infants > 0 ? ` · ${value.infants}I` : ''}
           </span>
         )}
       </button>
@@ -146,7 +117,7 @@ export default function PassengersField({
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18 }}
           >
-            {ROWS.map((row) => {
+            {rows.map((row) => {
               const n = value[row.key];
               return (
                 <div className="passengers__row" key={row.key}>
@@ -177,57 +148,29 @@ export default function PassengersField({
               );
             })}
 
-            {/* Only worth asking once there is actually a baby travelling. */}
-            <AnimatePresence>
-              {value.infants > 0 && (
-                <motion.div
-                  className="passengers__row passengers__row--seats"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <div>
-                    <p className="passengers__row-label">Sillas para bebé</p>
-                    <p className="passengers__row-hint">
-                      Las llevamos sin costo. Máximo {value.infants}.
-                    </p>
-                  </div>
-                  <div className="passengers__stepper">
-                    <button
-                      type="button"
-                      onClick={() => step('babySeats', -1)}
-                      disabled={value.babySeats <= 0}
-                      aria-label="Menos sillas de bebé"
-                    >
-                      –
-                    </button>
-                    <strong aria-live="polite">{value.babySeats}</strong>
-                    <button
-                      type="button"
-                      onClick={() => step('babySeats', 1)}
-                      disabled={value.babySeats >= value.infants}
-                      aria-label="Más sillas de bebé"
-                    >
-                      +
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             <div className="passengers__foot">
               {atMax ? (
                 <p className="passengers__note passengers__note--warn">
                   {MAX_TOTAL} es lo máximo por vehículo. Para grupos mayores
                   coordinamos varias unidades: escríbenos.
                 </p>
-              ) : vehicle ? (
+              ) : variant === 'adults' ? (
                 <p className="passengers__note">
-                  Para {total} {total === 1 ? 'pasajero' : 'pasajeros'} sugerimos{' '}
-                  <strong>{vehicle.name}</strong> ({vehicle.model}).
+                  {vehicle ? (
+                    <>
+                      Sugerimos <strong>{vehicle.name}</strong>. Los niños y las
+                      amenidades se piden en el siguiente paso.
+                    </>
+                  ) : (
+                    'Los niños y las amenidades se piden en el siguiente paso.'
+                  )}
                 </p>
-              ) : null}
+              ) : (
+                <p className="passengers__note">
+                  Los <strong>infantes no pagan</strong>. Niños y adultos tienen
+                  tarifas distintas.
+                </p>
+              )}
 
               <button
                 type="button"

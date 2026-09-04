@@ -34,6 +34,7 @@ npm run preview
 |---|---|
 | `/` | Landing completa |
 | `/excursiones` | Catálogo de las 38, con filtros por categoría |
+| `/reservar` | Formulario de traslado: niños, amenidades y datos de contacto |
 
 `vercel.json` reescribe todo a `index.html` **salvo `/api/*`**, para que la URL del
 catálogo funcione al recargar sin tumbar la función de contacto.
@@ -52,11 +53,19 @@ por código — "bavaro" encuentra Bávaro, "puj" encuentra Punta Cana — pero 
 obliga**: lo que el visitante escriba vale, porque muchas recogidas son un hotel
 o una dirección concreta que no está en la lista.
 
-Pasajeros se desglosa en adultos, niños y bebés, con estas reglas:
+El desglose de pasajeros depende de la pestaña, porque el precio se calcula
+distinto:
+
+- **Traslado** se cobra por vehículo, así que la barra solo pide **adultos**.
+  Los niños y las amenidades se piden en `/reservar`, para no recargar el hero.
+- **Excursiones** se cobra por persona y por tramo de edad, así que ahí sí se
+  desglosa: **adultos 11+**, **niños 5–10**, **infantes 0–4 que no pagan**.
+  Los tramos son los que definió el cliente y se muestran literalmente, porque
+  son los que después se cotizan.
+
+Reglas del panel:
 
 - Siempre al menos **un adulto**: un menor no viaja solo.
-- La fila de **sillas para bebé** solo aparece si hay bebés, y nunca puede superar
-  su número. Si se quitan bebés, las sillas bajan con ellos.
 - El total no pasa de 50, la capacidad del vehículo más grande. Al llegar ahí el
   panel propone coordinar varias unidades en vez de bloquear en seco.
 - Se **sugiere vehículo** por el total, pero solo entre los `standard`. La miniván

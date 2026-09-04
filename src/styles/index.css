@@ -2973,3 +2973,304 @@ ul {
     aspect-ratio: 16 / 9;
   }
 }
+
+/* ============================================================
+   BOOKING PAGE — /reservar
+   ============================================================ */
+
+.booking-page {
+  background: var(--cream);
+  padding-top: calc(var(--nav-h) + 48px);
+  padding-bottom: 110px;
+}
+
+.booking-page__head {
+  max-width: 620px;
+  margin-bottom: 38px;
+}
+
+.booking-page__head .eyebrow {
+  margin-top: 26px;
+}
+
+.booking-page__title {
+  margin-top: 12px;
+  font-size: clamp(32px, 4.4vw, 54px);
+}
+
+.booking-page__sub {
+  margin-top: 14px;
+  color: var(--ink-soft);
+}
+
+.booking-form {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 26px;
+  align-items: start;
+}
+
+.booking-form__main {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.bcard {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 26px 28px 28px;
+}
+
+.bcard--sticky {
+  position: sticky;
+  top: calc(var(--nav-h) + 20px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--navy-deep);
+  border-color: transparent;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.bcard__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  margin-bottom: 18px;
+}
+
+.bcard--sticky .bcard__title {
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.bcard__lead {
+  margin: -10px 0 18px;
+  font-size: 14.5px;
+  color: var(--ink-soft);
+}
+
+.bcard__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.bcard__full {
+  grid-column: 1 / -1;
+}
+
+.bcard__return {
+  margin-top: 20px;
+}
+
+.bcard__hint {
+  margin-top: 16px;
+}
+
+.bcard__notes {
+  margin-top: 22px;
+}
+
+.bcard__fine {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+/* the booking page reuses the contact form's field styling on a white card */
+.bcard .form__field input,
+.bcard .form__field textarea {
+  background: var(--cream);
+}
+
+.bcard--sticky .form__field > span {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.bcard--sticky .form__field input {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--white);
+}
+
+.bcard--sticky .form__field input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.bcard--sticky .form__field input:focus {
+  border-color: var(--coral);
+  box-shadow: none;
+}
+
+/* the place combobox sits on a white card here, not the glass rail */
+.bcard .place .search__label,
+.bcard .form__field > span {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.bcard .place input {
+  width: 100%;
+  background: var(--cream);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 13px 15px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.25s ease;
+}
+
+.bcard .place input:focus {
+  border-color: var(--coral);
+}
+
+.bcard .place {
+  gap: 8px;
+}
+
+/* ---------- amenities ---------- */
+
+.amenities {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.amenity {
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 15px 16px;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.amenity.is-on {
+  border-color: var(--coral);
+  background: rgba(var(--coral-rgb), 0.05);
+}
+
+.amenity__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.amenity__box {
+  width: 21px;
+  height: 21px;
+  border-radius: 6px;
+  border: 1.5px solid var(--line);
+  background: var(--white);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--white);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.amenity.is-on .amenity__box {
+  background: var(--coral);
+  border-color: var(--coral);
+}
+
+.amenity__label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.amenity__note {
+  display: block;
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.amenity__count {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.amenity__count .passengers__stepper {
+  padding-top: 14px;
+}
+
+.amenity__unit {
+  padding-top: 14px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ---------- summary ---------- */
+
+.summary {
+  display: grid;
+  gap: 12px;
+  margin: 6px 0 4px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.summary div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.summary dt {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.summary dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--white);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1040px) {
+  .booking-form {
+    grid-template-columns: 1fr;
+  }
+  .bcard--sticky {
+    position: static;
+  }
+}
+
+@media (max-width: 620px) {
+  .bcard {
+    padding: 22px 20px 24px;
+  }
+  .bcard__grid,
+  .amenities {
+    grid-template-columns: 1fr;
+  }
+}
