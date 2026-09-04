@@ -198,7 +198,13 @@ Para lograrlo hubo que separar en dos capas lo que venía horneado en un solo PN
 | Archivo | Peso | Rol |
 |---|---|---|
 | `images/logo.png` | 290 KB | Logo oficial del cliente, recortado, con transparencia |
-| `images/fleet/*.webp` | 548 KB | Los 8 vehículos, recortados a 4:3 desde las fotos del cliente |
+| `images/fleet/*.webp` | ~930 KB | Los 8 vehículos, sin recortar |
+
+Las fotos de la flota **no se recortan**. Se muestran en dos capas: una copia
+recortada y desenfocada rellena el marco, y encima va la foto completa con
+`object-fit: contain`. Así el vehículo se ve entero sea cual sea la proporción
+de la caja — en escritorio es casi cuadrada y en móvil 16:9 — sin que ninguna
+foto pierda un pedazo del auto.
 | `images/punta-cana-mask.png` | 44 KB | Silueta del lettering, usada como `mask-image` |
 | `images/punta-cana-poster.jpg` | 54 KB | Primer frame; se ve mientras carga el video |
 | `video/punta-cana-lg.mp4` | 1.7 MB | Loop 1600×448, escritorio |

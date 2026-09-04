@@ -137,13 +137,27 @@ export default function Fleet({
               >
                 <div className="fleet__media">
                   {active.photo ? (
-                    <img
-                      className="fleet__photo"
-                      src={active.photo}
-                      alt={`${active.name} — ${active.model}`}
-                      loading="lazy"
-                      decoding="async"
-                    />
+                    /* Dos capas: la de atrás rellena el marco recortada y
+                       desenfocada, la de arriba muestra el vehículo entero sin
+                       cortar. Así ninguna foto pierde un pedazo del auto por
+                       mucho que cambie la proporción de la caja. */
+                    <>
+                      <img
+                        className="fleet__photo-bg"
+                        src={active.photo}
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <img
+                        className="fleet__photo"
+                        src={active.photo}
+                        alt={`${active.name} — ${active.model}`}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </>
                   ) : (
                     <ImagePlaceholder category="vehiculo" label="Foto próximamente" />
                   )}
