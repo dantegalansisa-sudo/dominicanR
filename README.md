@@ -198,7 +198,7 @@ Para lograrlo hubo que separar en dos capas lo que venía horneado en un solo PN
 | Archivo | Peso | Rol |
 |---|---|---|
 | `images/logo.png` | 290 KB | Logo oficial del cliente, recortado, con transparencia |
-| `images/fleet/*.webp` | ~930 KB | Los 8 vehículos, sin recortar |
+| `images/fleet/*.webp` | ~1.1 MB | Los 8 vehículos, sin recortar |
 
 Las fotos de la flota **no se recortan**. Se muestran en dos capas: una copia
 recortada y desenfocada rellena el marco, y encima va la foto completa con
