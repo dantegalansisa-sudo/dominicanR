@@ -84,6 +84,23 @@ visitante estaba viendo (vehículo y modelo, o excursión y duración) y lo llev
 hasta ahí. WhatsApp queda como canal secundario, en enlaces de texto, porque el
 cliente prefiere recibir las solicitudes por correo.
 
+## Adicionales del traslado
+
+Precios que fijó el cliente, en `src/data/passengers.ts`. Todos en USD:
+
+| Adicional | Precio |
+|---|---|
+| Baby seat / Car seat / Booster seat | $5 c/u |
+| Cervezas frías | $5 c/u |
+| Agua embotellada | $1 c/u |
+| Parada adicional 15 min | $15 |
+| Parada adicional 30 min | $25 |
+| Parada adicional 1 hora | $35 |
+
+El total se calcula en vivo y viaja en el correo desglosado línea por línea,
+con la aclaración de que **el traslado se cotiza aparte** — el total mostrado es
+solo de adicionales, no del viaje.
+
 ## Formulario de contacto
 
 El formulario envía a la bandeja del cliente mediante una Vercel Function

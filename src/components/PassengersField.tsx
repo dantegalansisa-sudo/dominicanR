@@ -158,11 +158,11 @@ export default function PassengersField({
                 <p className="passengers__note">
                   {vehicle ? (
                     <>
-                      Sugerimos <strong>{vehicle.name}</strong>. Los niños y las
-                      amenidades se piden en el siguiente paso.
+                      Sugerimos <strong>{vehicle.name}</strong>. Los niños y los
+                      adicionales se piden en el siguiente paso.
                     </>
                   ) : (
-                    'Los niños y las amenidades se piden en el siguiente paso.'
+                    'Los niños y los adicionales se piden en el siguiente paso.'
                   )}
                 </p>
               ) : (

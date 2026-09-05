@@ -251,7 +251,7 @@ export default function SearchBar({
         <p className="search__note">
           <ShieldIcon />
           {isTransfer
-            ? 'Niños y amenidades en el siguiente paso · Cancelación gratuita'
+            ? 'Niños y adicionales en el siguiente paso · Cancelación gratuita'
             : 'Los infantes no pagan · Confirmación por correo · Cancelación gratuita'}
         </p>
       </div>

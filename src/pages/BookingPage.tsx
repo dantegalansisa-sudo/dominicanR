@@ -5,8 +5,16 @@ import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import { suggestVehicle } from '../components/PassengersField';
 import { TRANSFER_PLACES } from '../data/places';
-import { AMENITIES, TRANSFER_BANDS, amenityQty } from '../data/passengers';
-import type { AmenityId, Amenities } from '../data/passengers';
+import {
+  DRINKS,
+  EMPTY_EXTRAS,
+  SEATS,
+  STOPS,
+  TRANSFER_BANDS,
+  extrasLines,
+  extrasTotal,
+} from '../data/passengers';
+import type { Extras, SeatId, DrinkId } from '../data/passengers';
 
 /** Lo que el buscador del hero deja al navegar hasta aquí. */
 export interface BookingSeed {
@@ -101,7 +109,7 @@ export default function BookingPage() {
   const [round, setRound] = useState(Boolean(seed.round));
   const [adults, setAdults] = useState(seed.adults ?? 2);
   const [children, setChildren] = useState(0);
-  const [amenities, setAmenities] = useState<Amenities>({});
+  const [extras, setExtras] = useState<Extras>(EMPTY_EXTRAS);
   const [flight, setFlight] = useState('');
   const [notes, setNotes] = useState('');
   const [name, setName] = useState('');
@@ -118,24 +126,26 @@ export default function BookingPage() {
   const total = adults + children;
   const vehicle = suggestVehicle(total);
 
-  const toggle = (id: AmenityId) =>
-    setAmenities((a) => {
-      const next = { ...a };
-      if (id in next) delete next[id];
-      else next[id] = 1;
-      return next;
-    });
+  const setSeat = (id: SeatId, n: number) =>
+    setExtras((e) => ({ ...e, seats: { ...e.seats, [id]: Math.max(0, Math.min(6, n)) } }));
 
-  const setCount = (id: AmenityId, n: number) =>
-    setAmenities((a) => ({ ...a, [id]: Math.max(1, Math.min(30, n)) }));
+  const setDrink = (id: DrinkId, n: number) =>
+    setExtras((e) => ({
+      ...e,
+      drinks: { ...e.drinks, [id]: Math.max(0, Math.min(40, n)) },
+    }));
+
+  // Clicking the selected block again clears it — otherwise there is no way to
+  // undo a stop once you have picked one.
+  const pickStop = (id: (typeof STOPS)[number]['id']) =>
+    setExtras((e) => ({ ...e, stop: e.stop === id ? null : id }));
+
+  const extraLines = extrasLines(extras);
+  const extrasSum = extrasTotal(extras);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status === 'sending') return;
-
-    const picked = AMENITIES.filter((a) => a.id in amenities).map(
-      (a) => `  · ${a.label}: ${amenityQty(a, amenities[a.id] ?? 1)}`,
-    );
 
     const blocks = [
       [`Solicitud de traslado${round ? ' ida y vuelta' : ''}.`],
@@ -152,7 +162,13 @@ export default function BookingPage() {
         }`,
         ...(vehicle ? [`Vehículo sugerido por la web: ${vehicle.name}.`] : []),
       ],
-      picked.length ? ['Amenidades solicitadas:', ...picked] : ['Sin amenidades adicionales.'],
+      extraLines.length
+        ? [
+            'Adicionales solicitados:',
+            ...extraLines.map((l) => `  · ${l}`),
+            `  Total en adicionales: $${extrasSum} USD (el traslado se cotiza aparte)`,
+          ]
+        : ['Sin adicionales.'],
       ...(notes ? [[`Notas: ${notes}`]] : []),
     ];
 
@@ -305,57 +321,97 @@ export default function BookingPage() {
             </section>
 
             <section className="bcard">
-              <h2 className="bcard__title">Amenidades</h2>
+              <h2 className="bcard__title">Adicionales</h2>
               <p className="bcard__lead">
-                Marca lo que quieras a bordo. Lo confirmamos en la cotización.
+                Todo opcional y en dólares. Lo sumamos a la cotización del
+                traslado.
               </p>
 
-              <div className="amenities">
-                {AMENITIES.map((a) => {
-                  const on = a.id in amenities;
-                  return (
-                    <div key={a.id} className={`amenity${on ? ' is-on' : ''}`}>
-                      <button
-                        type="button"
-                        className="amenity__toggle"
-                        onClick={() => toggle(a.id)}
-                        aria-pressed={on}
-                      >
-                        <span className="amenity__box" aria-hidden="true">
-                          {on && <Ico d="M20 6 9 17l-5-5" size={13} />}
-                        </span>
-                        <span>
-                          <span className="amenity__label">{a.label}</span>
-                          {'note' in a && a.note && (
-                            <span className="amenity__note">{a.note}</span>
-                          )}
-                        </span>
-                      </button>
-
-                      <AnimatePresence>
-                        {on && (
-                          <motion.div
-                            className="amenity__count"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.22 }}
-                          >
-                            <Stepper
-                              value={amenities[a.id] ?? 1}
-                              min={1}
-                              max={30}
-                              onChange={(n) => setCount(a.id, n)}
-                              label={a.unit}
-                            />
-                            <span className="amenity__unit">{a.unit}</span>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+              <div className="extras">
+                <div className="extras__group">
+                  <p className="extras__group-title">Sillas para niños</p>
+                  {SEATS.map((seat) => (
+                    <div className="extras__row" key={seat.id}>
+                      <div>
+                        <p className="passengers__row-label">{seat.label}</p>
+                        <p className="passengers__row-hint">${seat.price} c/u</p>
+                      </div>
+                      <Stepper
+                        value={extras.seats[seat.id]}
+                        min={0}
+                        max={6}
+                        onChange={(n) => setSeat(seat.id, n)}
+                        label={seat.label.toLowerCase()}
+                      />
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+
+                <div className="extras__group">
+                  <p className="extras__group-title">A bordo</p>
+                  {DRINKS.map((drink) => (
+                    <div className="extras__row" key={drink.id}>
+                      <div>
+                        <p className="passengers__row-label">{drink.label}</p>
+                        <p className="passengers__row-hint">${drink.price} c/u</p>
+                      </div>
+                      <Stepper
+                        value={extras.drinks[drink.id]}
+                        min={0}
+                        max={40}
+                        onChange={(n) => setDrink(drink.id, n)}
+                        label={drink.unit}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="extras__group extras__group--wide">
+                  <p className="extras__group-title">Paradas adicionales</p>
+                  <p className="extras__group-hint">
+                    Supermercado, farmacia, cajero… se cobra por tiempo de espera.
+                  </p>
+                  <div className="stops">
+                    {STOPS.map((stop) => {
+                      const on = extras.stop === stop.id;
+                      return (
+                        <button
+                          key={stop.id}
+                          type="button"
+                          className={`stop${on ? ' is-on' : ''}`}
+                          onClick={() => pickStop(stop.id)}
+                          aria-pressed={on}
+                        >
+                          {on && (
+                            <motion.span
+                              layoutId="stop-pill"
+                              className="stop__pill"
+                              transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                            />
+                          )}
+                          <span className="stop__time">{stop.label}</span>
+                          <span className="stop__price">${stop.price}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
+
+              <AnimatePresence>
+                {extrasSum > 0 && (
+                  <motion.p
+                    className="extras__total"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <span>Total en adicionales</span>
+                    <strong>${extrasSum} USD</strong>
+                  </motion.p>
+                )}
+              </AnimatePresence>
 
               <label className="form__field bcard__notes">
                 <span>Algo más que debamos saber</span>
@@ -427,13 +483,13 @@ export default function BookingPage() {
                       : ''}
                   </dd>
                 </div>
-                {Object.keys(amenities).length > 0 && (
+                {extraLines.length > 0 && (
                   <div>
-                    <dt>Amenidades</dt>
+                    <dt>Adicionales</dt>
                     <dd>
-                      {AMENITIES.filter((a) => a.id in amenities)
-                        .map((a) => `${amenities[a.id]} ${a.unit}`)
-                        .join(' · ')}
+                      {extraLines.join(' · ')}
+                      <br />
+                      <strong>${extrasSum} USD</strong>
                     </dd>
                   </div>
                 )}
