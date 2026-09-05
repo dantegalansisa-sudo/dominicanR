@@ -5,8 +5,8 @@
 export interface Vehicle {
   slug: string;
   name: string;
-  /** Modelo concreto que opera el cliente. */
-  model: string;
+  /** Tipo de vehículo, sin marca: la web no compromete un modelo concreto. */
+  type: string;
   minPax: number;
   maxPax: number;
   /** null = se cotiza según ruta y grupo. */
@@ -30,7 +30,7 @@ export const FLEET: Vehicle[] = [
   {
     slug: 'sedan',
     name: 'Sedán',
-    model: 'Hyundai, Nissan o Toyota',
+    type: 'Automóvil ejecutivo',
     minPax: 1,
     maxPax: 2,
     price: 25,
@@ -44,7 +44,7 @@ export const FLEET: Vehicle[] = [
   {
     slug: 'minivan',
     name: 'Miniván',
-    model: 'Hyundai Grand Starex',
+    type: 'Van familiar',
     minPax: 1,
     maxPax: 6,
     price: 30,
@@ -58,7 +58,7 @@ export const FLEET: Vehicle[] = [
   {
     slug: 'minibus',
     name: 'Minibús',
-    model: 'Toyota Hiace',
+    type: 'Van de grupo',
     minPax: 1,
     maxPax: 11,
     price: 50,
@@ -72,7 +72,7 @@ export const FLEET: Vehicle[] = [
   {
     slug: 'vip-luxury',
     name: 'VIP Luxury',
-    model: 'Chevrolet Suburban',
+    type: 'SUV premium',
     minPax: 1,
     maxPax: 6,
     price: 60,
@@ -86,7 +86,7 @@ export const FLEET: Vehicle[] = [
   {
     slug: 'bus',
     name: 'Bus',
-    model: 'Toyota Coaster',
+    type: 'Bus turístico',
     minPax: 1,
     maxPax: 22,
     price: null,
@@ -99,7 +99,7 @@ export const FLEET: Vehicle[] = [
   {
     slug: 'autobus',
     name: 'Autobús',
-    model: 'Autobús turístico',
+    type: 'Autobús de gran capacidad',
     minPax: 1,
     maxPax: 50,
     price: null,
@@ -112,7 +112,7 @@ export const FLEET: Vehicle[] = [
   {
     slug: 'limusina',
     name: 'Limusina',
-    model: 'Limusina de lujo',
+    type: 'Vehículo para eventos',
     minPax: 1,
     maxPax: 6,
     price: 350,
@@ -125,7 +125,7 @@ export const FLEET: Vehicle[] = [
   {
     slug: 'minivan-accesible',
     name: 'Miniván Accesible',
-    model: 'Miniván adaptada',
+    type: 'Van adaptada',
     minPax: 1,
     maxPax: 4,
     price: 80,

@@ -38,15 +38,24 @@ export function partyLabel(p: Party, withInfants = true) {
  * Adicionales del traslado, con el precio que fijó el cliente. Todos en USD y
  * por unidad, salvo las paradas, que se cobran por bloque de tiempo.
  */
+/**
+ * El público es extranjero, así que nada de "c/u": se escribe el precio en el
+ * formato que un visitante de cualquier idioma reconoce.
+ */
+export const usd = (n: number) => `US$${n}`;
+
 export const SEATS = [
-  { id: 'baby', label: 'Baby seat', price: 5 },
-  { id: 'car', label: 'Car seat', price: 5 },
-  { id: 'booster', label: 'Booster seat', price: 5 },
+  { id: 'baby', label: 'Baby seat', price: 10 },
+  { id: 'car', label: 'Car seat', price: 10 },
+  { id: 'booster', label: 'Booster seat', price: 10 },
 ] as const;
 
+/** De menor a mayor precio, que es como se lee una carta. */
 export const DRINKS = [
-  { id: 'cerveza', label: 'Cervezas frías', price: 5, unit: 'cervezas', unitOne: 'cerveza' },
-  { id: 'agua', label: 'Agua embotellada', price: 1, unit: 'botellas', unitOne: 'botella' },
+  { id: 'agua', label: 'Agua embotellada', price: 1 },
+  { id: 'cerveza', label: 'Cerveza fría', price: 5 },
+  { id: 'sixpack', label: 'Six pack Presidente fría', price: 25 },
+  { id: 'ron', label: 'Ron Brugal', price: 50 },
 ] as const;
 
 /** El precio por minuto baja con el bloque, así que conviene decirlo. */
@@ -68,9 +77,10 @@ export interface Extras {
 
 export const EMPTY_EXTRAS: Extras = {
   seats: { baby: 0, car: 0, booster: 0 },
-  drinks: { cerveza: 0, agua: 0 },
+  drinks: { agua: 0, cerveza: 0, sixpack: 0, ron: 0 },
   stop: null,
 };
+
 
 export function extrasTotal(e: Extras) {
   const seats = SEATS.reduce((sum, s) => sum + s.price * e.seats[s.id], 0);
@@ -84,14 +94,14 @@ export function extrasLines(e: Extras) {
   const out: string[] = [];
   for (const s of SEATS) {
     if (e.seats[s.id] > 0)
-      out.push(`${s.label} x${e.seats[s.id]} — $${s.price * e.seats[s.id]}`);
+      out.push(`${s.label} x${e.seats[s.id]} — ${usd(s.price * e.seats[s.id])}`);
   }
   for (const d of DRINKS) {
     if (e.drinks[d.id] > 0)
-      out.push(`${d.label} x${e.drinks[d.id]} — $${d.price * e.drinks[d.id]}`);
+      out.push(`${d.label} x${e.drinks[d.id]} — ${usd(d.price * e.drinks[d.id])}`);
   }
   const stop = STOPS.find((s) => s.id === e.stop);
-  if (stop) out.push(`Paradas adicionales, ${stop.label} — $${stop.price}`);
+  if (stop) out.push(`Paradas adicionales, ${stop.label} — ${usd(stop.price)}`);
   return out;
 }
 

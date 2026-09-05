@@ -90,12 +90,17 @@ Precios que fijó el cliente, en `src/data/passengers.ts`. Todos en USD:
 
 | Adicional | Precio |
 |---|---|
-| Baby seat / Car seat / Booster seat | $5 c/u |
-| Cervezas frías | $5 c/u |
-| Agua embotellada | $1 c/u |
-| Parada adicional 15 min | $15 |
-| Parada adicional 30 min | $25 |
-| Parada adicional 1 hora | $35 |
+| Baby seat / Car seat / Booster seat | US$10 |
+| Agua embotellada | US$1 |
+| Cerveza fría | US$5 |
+| Six pack Presidente fría | US$25 |
+| Ron Brugal | US$50 |
+| Parada adicional 15 min | US$15 |
+| Parada adicional 30 min | US$25 |
+| Parada adicional 1 hora | US$35 |
+
+Se escriben como `US$10`, no como `$10 c/u`: el público es extranjero y esa
+abreviatura no se entiende fuera del español.
 
 El total se calcula en vivo y viaja en el correo desglosado línea por línea,
 con la aclaración de que **el traslado se cotiza aparte** — el total mostrado es
@@ -164,7 +169,10 @@ catálogo cambia, las cifras cambian solas.
 
 ### Flota
 
-`src/data/fleet.ts` lleva los 8 vehículos del cliente con modelo concreto. Los cuatro
+`src/data/fleet.ts` lleva los 8 vehículos del cliente. El campo `type` describe
+la **categoría, nunca la marca** — "SUV premium", no "Chevrolet Suburban" — para
+que la web no comprometa un modelo concreto que ese día podría no estar
+disponible. Los cuatro
 marcados `featured: true` — Sedán, Miniván, Minibús y VIP Luxury — se muestran bajo
 "Principales" y el resto bajo "Resto de la flota". Toda la flota se opera en blanco
 o negro.

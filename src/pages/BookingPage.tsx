@@ -13,6 +13,7 @@ import {
   TRANSFER_BANDS,
   extrasLines,
   extrasTotal,
+  usd,
 } from '../data/passengers';
 import type { Extras, SeatId, DrinkId } from '../data/passengers';
 
@@ -166,7 +167,7 @@ export default function BookingPage() {
         ? [
             'Adicionales solicitados:',
             ...extraLines.map((l) => `  · ${l}`),
-            `  Total en adicionales: $${extrasSum} USD (el traslado se cotiza aparte)`,
+            `  Total en adicionales: ${usd(extrasSum)} (el traslado se cotiza aparte)`,
           ]
         : ['Sin adicionales.'],
       ...(notes ? [[`Notas: ${notes}`]] : []),
@@ -315,7 +316,7 @@ export default function BookingPage() {
               {vehicle && (
                 <p className="passengers__note bcard__hint">
                   Para {total} {total === 1 ? 'pasajero' : 'pasajeros'} sugerimos{' '}
-                  <strong>{vehicle.name}</strong> ({vehicle.model}).
+                  <strong>{vehicle.name}</strong> ({vehicle.type}).
                 </p>
               )}
             </section>
@@ -332,10 +333,8 @@ export default function BookingPage() {
                   <p className="extras__group-title">Sillas para niños</p>
                   {SEATS.map((seat) => (
                     <div className="extras__row" key={seat.id}>
-                      <div>
-                        <p className="passengers__row-label">{seat.label}</p>
-                        <p className="passengers__row-hint">${seat.price} c/u</p>
-                      </div>
+                      <p className="extras__name">{seat.label}</p>
+                      <p className="extras__price">{usd(seat.price)}</p>
                       <Stepper
                         value={extras.seats[seat.id]}
                         min={0}
@@ -351,16 +350,14 @@ export default function BookingPage() {
                   <p className="extras__group-title">A bordo</p>
                   {DRINKS.map((drink) => (
                     <div className="extras__row" key={drink.id}>
-                      <div>
-                        <p className="passengers__row-label">{drink.label}</p>
-                        <p className="passengers__row-hint">${drink.price} c/u</p>
-                      </div>
+                      <p className="extras__name">{drink.label}</p>
+                      <p className="extras__price">{usd(drink.price)}</p>
                       <Stepper
                         value={extras.drinks[drink.id]}
                         min={0}
                         max={40}
                         onChange={(n) => setDrink(drink.id, n)}
-                        label={drink.unit}
+                        label={drink.label.toLowerCase()}
                       />
                     </div>
                   ))}
@@ -390,7 +387,7 @@ export default function BookingPage() {
                             />
                           )}
                           <span className="stop__time">{stop.label}</span>
-                          <span className="stop__price">${stop.price}</span>
+                          <span className="stop__price">{usd(stop.price)}</span>
                         </button>
                       );
                     })}
@@ -408,7 +405,7 @@ export default function BookingPage() {
                     transition={{ duration: 0.25 }}
                   >
                     <span>Total en adicionales</span>
-                    <strong>${extrasSum} USD</strong>
+                    <strong>{usd(extrasSum)}</strong>
                   </motion.p>
                 )}
               </AnimatePresence>
@@ -489,7 +486,7 @@ export default function BookingPage() {
                     <dd>
                       {extraLines.join(' · ')}
                       <br />
-                      <strong>${extrasSum} USD</strong>
+                      <strong>{usd(extrasSum)}</strong>
                     </dd>
                   </div>
                 )}

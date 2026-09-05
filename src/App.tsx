@@ -86,7 +86,7 @@ export default function App() {
       requestQuote(
         'Traslado',
         v
-          ? `Quiero cotizar un traslado en ${v.name} (${v.model}), para hasta ${v.maxPax} pasajeros.\n\nOrigen:\nDestino:\nFecha y hora:`
+          ? `Quiero cotizar un traslado en ${v.name} (${v.type}), para hasta ${v.maxPax} pasajeros.\n\nOrigen:\nDestino:\nFecha y hora:`
           : 'Quiero cotizar un traslado.',
       );
     },

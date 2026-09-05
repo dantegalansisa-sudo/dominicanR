@@ -213,7 +213,7 @@ export default function Fleet({
                       <img
                         className="fleet__photo"
                         src={active.photo}
-                        alt={`${active.name} — ${active.model}`}
+                        alt={`${active.name} — ${active.type}`}
                         loading="lazy"
                         decoding="async"
                       />
@@ -234,7 +234,7 @@ export default function Fleet({
 
                 <div className="fleet__info">
                   <h3 className="fleet__name">{active.name}</h3>
-                  <p className="fleet__model">{active.model}</p>
+                  <p className="fleet__model">{active.type}</p>
 
                   <div className="fleet__capacity">
                     <span className="fleet__capacity-label">
