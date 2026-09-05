@@ -197,27 +197,13 @@ export default function Fleet({
               >
                 <div className="fleet__media">
                   {active.photo ? (
-                    /* Dos capas: la de atrás rellena el marco recortada y
-                       desenfocada, la de arriba muestra el vehículo entero sin
-                       cortar. Así ninguna foto pierde un pedazo del auto por
-                       mucho que cambie la proporción de la caja. */
-                    <>
-                      <img
-                        className="fleet__photo-bg"
-                        src={active.photo}
-                        alt=""
-                        aria-hidden="true"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <img
-                        className="fleet__photo"
-                        src={active.photo}
-                        alt={`${active.name} — ${active.type}`}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </>
+                    <img
+                      className="fleet__photo"
+                      src={active.photo}
+                      alt={`${active.name} — ${active.type}`}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <ImagePlaceholder category="vehiculo" label="Foto próximamente" />
                   )}
@@ -233,47 +219,51 @@ export default function Fleet({
                 </div>
 
                 <div className="fleet__info">
-                  <h3 className="fleet__name">{active.name}</h3>
-                  <p className="fleet__model">{active.type}</p>
+                  <div className="fleet__head-block">
+                    <h3 className="fleet__name">{active.name}</h3>
+                    <p className="fleet__model">{active.type}</p>
 
-                  <div className="fleet__capacity">
-                    <span className="fleet__capacity-label">
-                      <UsersIcon />
-                      {active.minPax}–{active.maxPax} pasajeros
-                    </span>
-                    <span className="fleet__capacity-track">
-                      <motion.span
-                        className="fleet__capacity-bar"
-                        initial={{ scaleX: 0 }}
-                        animate={{ scaleX: active.maxPax / MAX_PAX }}
-                        transition={{ duration: 0.7, ease: EASINGS.premium }}
-                      />
-                    </span>
+                    <div className="fleet__capacity">
+                      <span className="fleet__capacity-label">
+                        <UsersIcon />
+                        {active.minPax}–{active.maxPax} pasajeros
+                      </span>
+                      <span className="fleet__capacity-track">
+                        <motion.span
+                          className="fleet__capacity-bar"
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: active.maxPax / MAX_PAX }}
+                          transition={{ duration: 0.7, ease: EASINGS.premium }}
+                        />
+                      </span>
+                    </div>
+
+                    <p className="fleet__summary">{active.summary}</p>
                   </div>
 
-                  <p className="fleet__summary">{active.summary}</p>
+                  <div className="fleet__side-block">
+                    <ul className="fleet__features">
+                      {active.features.map((f, i) => (
+                        <motion.li
+                          key={f}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.12 + i * 0.07, duration: 0.4 }}
+                        >
+                          {f}
+                        </motion.li>
+                      ))}
+                    </ul>
 
-                  <ul className="fleet__features">
-                    {active.features.map((f, i) => (
-                      <motion.li
-                        key={f}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.12 + i * 0.07, duration: 0.4 }}
+                    <div className="fleet__cta">
+                      <MagneticButton
+                        className="btn btn--primary"
+                        onClick={() => onRequest(active.slug)}
                       >
-                        {f}
-                      </motion.li>
-                    ))}
-                  </ul>
-
-                  <div className="fleet__cta">
-                    <MagneticButton
-                      className="btn btn--primary"
-                      onClick={() => onRequest(active.slug)}
-                    >
-                      Pedir este traslado
-                      <ArrowIcon />
-                    </MagneticButton>
+                        Pedir este traslado
+                        <ArrowIcon />
+                      </MagneticButton>
+                    </div>
                   </div>
                 </div>
               </motion.div>

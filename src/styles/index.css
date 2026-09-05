@@ -1402,8 +1402,6 @@ ul {
 }
 
 .fleet__panel {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -1414,10 +1412,23 @@ ul {
   position: relative;
 }
 
+/* El marco lleva la misma proporción a la que están recortadas las fotos, así
+   que llenan el hueco sin bandas y sin que object-fit recorte nada. */
+.fleet__media {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+.fleet__photo,
+.fleet__media .ph {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .fleet__media .ph {
   aspect-ratio: auto;
-  height: 100%;
-  min-height: 320px;
 }
 
 .fleet__badge {
@@ -1440,9 +1451,23 @@ ul {
 }
 
 .fleet__info {
-  padding: 34px 34px 32px;
+  padding: 30px 34px 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 40px;
+  align-items: start;
+}
+
+.fleet__head-block {
+  grid-column: 1;
+}
+
+.fleet__side-block {
+  grid-column: 2;
+  grid-row: 1 / span 3;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .fleet__name {
@@ -1524,7 +1549,7 @@ ul {
 
 .fleet__cta {
   margin-top: auto;
-  padding-top: 26px;
+  padding-top: 22px;
 }
 
 @media (max-width: 980px) {
@@ -1561,15 +1586,14 @@ ul {
     border-bottom: 2px solid var(--coral);
     background: none;
   }
-  .fleet__panel {
-    grid-template-columns: 1fr;
-  }
-  .fleet__media .ph {
-    min-height: 0;
-    aspect-ratio: 16 / 9;
-  }
   .fleet__info {
-    padding: 26px 22px 24px;
+    grid-template-columns: 1fr;
+    padding: 24px 22px 24px;
+  }
+  .fleet__head-block,
+  .fleet__side-block {
+    grid-column: 1;
+    grid-row: auto;
   }
 }
 
@@ -2959,37 +2983,6 @@ ul {
   }
 }
 
-.fleet__media {
-  overflow: hidden;
-}
-
-/* backdrop: cropped and blurred, only there to fill the frame */
-.fleet__photo-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(26px) saturate(0.75) brightness(0.94);
-  transform: scale(1.18);
-}
-
-/* the vehicle itself: contain, never cropped, whatever the box shape */
-.fleet__photo {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 320px;
-  object-fit: contain;
-  display: block;
-}
-
-@media (max-width: 980px) {
-  .fleet__photo {
-    min-height: 0;
-    aspect-ratio: 16 / 9;
-  }
-}
 
 /* ============================================================
    BOOKING PAGE — /reservar

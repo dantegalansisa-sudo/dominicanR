@@ -225,11 +225,15 @@ Para lograrlo hubo que separar en dos capas lo que venía horneado en un solo PN
 | `images/logo.png` | 290 KB | Logo oficial del cliente, recortado, con transparencia |
 | `images/fleet/*.webp` | ~1.1 MB | Los 8 vehículos, sin recortar |
 
-Las fotos de la flota **no se recortan**. Se muestran en dos capas: una copia
-recortada y desenfocada rellena el marco, y encima va la foto completa con
-`object-fit: contain`. Así el vehículo se ve entero sea cual sea la proporción
-de la caja — en escritorio es casi cuadrada y en móvil 16:9 — sin que ninguna
-foto pierda un pedazo del auto.
+Las ocho fotos están recortadas a **16:10 exactos**, y el marco del panel lleva
+`aspect-ratio: 16 / 10`. Al coincidir, `object-fit: cover` no recorta nada y no
+quedan bandas: la foto llena el hueco justo. Verificado vehículo por vehículo
+que el recorte a 16:10 solo se come fondo, nunca el auto.
+
+Por eso el panel apila la foto arriba a todo el ancho y los datos debajo en dos
+columnas. Con la foto en una columna lateral el marco salía casi cuadrado y no
+había forma de llenarlo con fotos apaisadas sin recortar el vehículo o dejar
+bandas.
 | `images/punta-cana-mask.png` | 44 KB | Silueta del lettering, usada como `mask-image` |
 | `images/punta-cana-poster.jpg` | 54 KB | Primer frame; se ve mientras carga el video |
 | `video/punta-cana-lg.mp4` | 1.7 MB | Loop 1600×448, escritorio |
