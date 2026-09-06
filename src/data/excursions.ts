@@ -25,6 +25,8 @@ export interface Excursion {
   reviews: string;
   duration: string;
   description: string;
+  /** Ruta de la foto, o null si el cliente aun no la ha enviado. */
+  photo: string | null;
 }
 
 /** Las seis más solicitadas, en el orden que indicó el cliente. */
@@ -47,6 +49,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,250+",
     duration: "8 horas",
     description: "Paraíso tropical con playas de arena blanca y aguas cristalinas turquesas.",
+    photo: "/images/excursions/isla-saona-clasica.webp",
   },
   {
     slug: "scape-park",
@@ -57,6 +60,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,340+",
     duration: "6 horas",
     description: "Nada en cenotes cristalinos, vuela en tirolesas sobre la selva y explora cuevas naturales en este parque ecológico.",
+    photo: "/images/excursions/scape-park.webp",
   },
   {
     slug: "montana-redonda-playa-esmeralda",
@@ -67,6 +71,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "2,450+",
     duration: "5 o 6 horas",
     description: "Vistas panorámicas 360° desde la montaña con columpios fotogénicos y playa.",
+    photo: "/images/excursions/montana-redonda-playa-esmeralda.webp",
   },
   {
     slug: "parasailing-aventuras-aire",
@@ -77,6 +82,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,875+",
     duration: "2 horas",
     description: "Vuela sobre el mar Caribe en paracaídas disfrutando vistas panorámicas espectaculares.",
+    photo: "/images/excursions/parasailing-aventuras-aire.webp",
   },
   {
     slug: "buggy-adventure",
@@ -87,6 +93,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "2,100+",
     duration: "4 horas",
     description: "Conduce por caminos todoterreno y descubre paisajes naturales únicos.",
+    photo: "/images/excursions/buggy-adventure.webp",
   },
   {
     slug: "excursion-los-haitises",
@@ -97,6 +104,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "540+",
     duration: "10 horas",
     description: "Manglares, cuevas con petroglifos taínos y paisajes cinematográficos.",
+    photo: "/images/excursions/excursion-los-haitises.webp",
   },
   {
     slug: "coco-bongo",
@@ -107,6 +115,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "3,200+",
     duration: "5 horas",
     description: "Show espectacular con acrobacias, imitadores de artistas y barra libre en el mejor club nocturno.",
+    photo: "/images/excursions/coco-bongo.webp",
   },
   {
     slug: "zipline-adventure",
@@ -117,6 +126,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,560+",
     duration: "4 horas",
     description: "Vuela sobre la selva tropical en 8 líneas de tirolesa extrema.",
+    photo: "/images/excursions/zipline-adventure.webp",
   },
   {
     slug: "isla-saona-vip",
@@ -127,6 +137,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "890+",
     duration: "8 horas",
     description: "Experiencia VIP exclusiva en Isla Saona con servicio premium, almuerzo de langosta y acceso a zonas privadas.",
+    photo: "/images/excursions/isla-saona-vip.webp",
   },
   {
     slug: "combo-zipline-buggy",
@@ -137,6 +148,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,340+",
     duration: "6 horas",
     description: "Combina tirolesa extrema, buggy y paseo a caballo en una aventura completa.",
+    photo: "/images/excursions/combo-zipline-buggy.webp",
   },
   {
     slug: "samana-ballenas-jorobadas",
@@ -147,6 +159,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "980+",
     duration: "12 horas",
     description: "Observa de cerca las majestuosas ballenas jorobadas en su hábitat natural y visita la paradisíaca playa de Cayo Levantado.",
+    photo: "/images/excursions/samana-ballenas-jorobadas.webp",
   },
   {
     slug: "isla-saona-exclusiva",
@@ -157,6 +170,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,560+",
     duration: "8 horas",
     description: "Escapa de las multitudes y disfruta de Isla Saona en un tour exclusivo con zonas privadas y servicio VIP.",
+    photo: "/images/excursions/isla-saona-exclusiva.webp",
   },
   {
     slug: "isla-catalina",
@@ -167,6 +181,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "765+",
     duration: "8 horas",
     description: "Isla paradisíaca con arrecifes vírgenes perfectos para snorkel y playas de ensueño.",
+    photo: "/images/excursions/isla-catalina.webp",
   },
   {
     slug: "party-boat",
@@ -177,6 +192,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,680+",
     duration: "4 horas",
     description: "Fiesta caribeña en catamarán con DJ, barra libre y snorkel.",
+    photo: "/images/excursions/party-boat.webp",
   },
   {
     slug: "jet-ski-punta-cana",
@@ -187,6 +203,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,120+",
     duration: "4 horas",
     description: "Adrenalina pura navegando en jet ski por las aguas cristalinas del Caribe.",
+    photo: "/images/excursions/jet-ski-punta-cana.webp",
   },
   {
     slug: "speed-boat",
@@ -197,6 +214,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "980+",
     duration: "4 horas",
     description: "Navegación rápida visitando playas secretas y snorkel en arrecifes vírgenes.",
+    photo: "/images/excursions/speed-boat.webp",
   },
   {
     slug: "dolphin-explorer",
@@ -207,6 +225,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "2,340+",
     duration: "3 horas",
     description: "Nada con delfines y disfruta de una experiencia educativa única e inolvidable.",
+    photo: "/images/excursions/dolphin-explorer.webp",
   },
   {
     slug: "isla-catalina-con-buceo",
@@ -217,6 +236,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "650+",
     duration: "8 horas",
     description: "Sumérgete en los vibrantes arrecifes de coral de Isla Catalina con equipo profesional de buceo y explora la vida marina.",
+    photo: "/images/excursions/isla-catalina-con-buceo.webp",
   },
   {
     slug: "monkey-land-con-zipline",
@@ -227,6 +247,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,180+",
     duration: "6 horas",
     description: "Combina la emoción de las tirolesas con la interacción única con monos ardilla en su hábitat natural.",
+    photo: "/images/excursions/monkey-land-con-zipline.webp",
   },
   {
     slug: "domitai-park-full-power",
@@ -237,6 +258,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "920+",
     duration: "6 horas",
     description: "Experimenta adrenalina extrema con tirolesas de alta velocidad y desafiantes puentes tibetanos en plena naturaleza.",
+    photo: "/images/excursions/domitai-park-full-power.webp",
   },
   {
     slug: "excursion-samana",
@@ -247,6 +269,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "680+",
     duration: "12 horas",
     description: "Descubre la belleza natural de Samaná con visita a Cayo Levantado y cascada El Limón.",
+    photo: "/images/excursions/excursion-samana.webp",
   },
   {
     slug: "excursion-altos-chavon",
@@ -257,6 +280,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "890+",
     duration: "5 horas",
     description: "Villa mediterránea del siglo XVI con vistas espectaculares al río Chavón.",
+    photo: "/images/excursions/excursion-altos-chavon.webp",
   },
   {
     slug: "monkey-land",
@@ -267,6 +291,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,240+",
     duration: "5 horas",
     description: "Interactúa con monos ardilla en su hábitat natural y disfruta de jardines botánicos.",
+    photo: "/images/excursions/monkey-land.webp",
   },
   {
     slug: "bahia-aguilas-vip",
@@ -277,6 +302,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "450+",
     duration: "2 Dias",
     description: "Experiencia exclusiva en la playa más hermosa del Caribe con servicio premium y almuerzo gourmet.",
+    photo: "/images/excursions/bahia-aguilas-vip.webp",
   },
   {
     slug: "seaquarium-experience",
@@ -287,6 +313,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,150+",
     duration: "4 horas",
     description: "Disfruta de shows interactivos con delfines, leones marinos y explora fascinantes acuarios con vida marina del Caribe.",
+    photo: "/images/excursions/seaquarium-experience.webp",
   },
   {
     slug: "safari-bavaro-runner",
@@ -297,6 +324,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "780+",
     duration: "4 horas",
     description: "Conduce un buggy todoterreno por el campo dominicano, visita plantaciones locales y disfruta de la playa Macao.",
+    photo: "/images/excursions/safari-bavaro-runner.webp",
   },
   {
     slug: "imagine-punta-cana",
@@ -307,6 +335,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "2,850+",
     duration: "5 horas",
     description: "Discoteca única dentro de una cueva natural con 3 ambientes musicales, luces espectaculares y barra libre. La experiencia nocturna más impresionante de Punta Cana.",
+    photo: "/images/excursions/imagine-punta-cana.webp",
   },
   {
     slug: "atv-adventure",
@@ -317,6 +346,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,580+",
     duration: "4 horas",
     description: "Aventura extrema en ATV por terrenos variados visitando plantaciones y Playa Macao.",
+    photo: "/images/excursions/atv-adventure.webp",
   },
   {
     slug: "paseo-caballo-playa",
@@ -327,6 +357,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "930+",
     duration: "1 a 3 horas",
     description: "Paseo romántico a caballo por la playa al atardecer.",
+    photo: "/images/excursions/paseo-caballo-playa.webp",
   },
   {
     slug: "pesca-deportiva",
@@ -337,6 +368,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "580+",
     duration: "5 horas",
     description: "Pesca de altura en el Caribe capturando marlín, dorado y atún con equipo profesional.",
+    photo: "/images/excursions/pesca-deportiva.webp",
   },
   {
     slug: "samana-vip",
@@ -347,6 +379,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "820+",
     duration: "2 Dias",
     description: "Tour de lujo a Samaná con catamarán premium, almuerzo gourmet y acceso exclusivo a Cayo Levantado.",
+    photo: "/images/excursions/samana-vip.webp",
   },
   {
     slug: "caribbean-pirates",
@@ -357,6 +390,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "890+",
     duration: "4 horas",
     description: "Vive una aventura pirata en un barco temático con show en vivo, snorkel y diversión para toda la familia.",
+    photo: "/images/excursions/caribbean-pirates.webp",
   },
   {
     slug: "city-tour-santo-domingo",
@@ -367,6 +401,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "920+",
     duration: "10 horas",
     description: "Explora la primera ciudad colonial de América con guía historiador visitando la Zona Colonial.",
+    photo: "/images/excursions/city-tour-santo-domingo.webp",
   },
   {
     slug: "scuba-doo",
@@ -377,6 +412,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "720+",
     duration: "3 horas",
     description: "Explora el mundo submarino en scooter acuático sin necesidad de certificación de buceo.",
+    photo: "/images/excursions/scuba-doo.webp",
   },
   {
     slug: "la-hacienda-park",
@@ -387,6 +423,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "620+",
     duration: "5 horas",
     description: "Parque de aventuras con tirolesas, puentes colgantes y circuitos emocionantes para todas las edades.",
+    photo: "/images/excursions/la-hacienda-park.webp",
   },
   {
     slug: "city-tour-higuey",
@@ -397,6 +434,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "780+",
     duration: "4 o 5 horas",
     description: "Visita la Basílica de Higüey y conoce la cultura local dominicana.",
+    photo: "/images/excursions/city-tour-higuey.webp",
   },
   {
     slug: "shopping-artesanal",
@@ -407,6 +445,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "420+",
     duration: "4 horas",
     description: "Visita mercados locales con artesanías, larimar, ámbar y productos típicos dominicanos.",
+    photo: "/images/excursions/shopping-artesanal.webp",
   },
   {
     slug: "city-tour-punta-cana",
@@ -417,6 +456,7 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "650+",
     duration: "5 o 6 horas",
     description: "Recorre los lugares emblemáticos de Punta Cana y sus zonas comerciales.",
+    photo: "/images/excursions/city-tour-punta-cana.webp",
   },
 ];
 

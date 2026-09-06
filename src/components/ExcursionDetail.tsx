@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import ImagePlaceholder from './ImagePlaceholder';
+import ExcursionPhoto from './ExcursionPhoto';
 import MagneticButton from './MagneticButton';
 import { CATEGORIES } from '../data/excursions';
 import type { Excursion } from '../data/excursions';
@@ -106,7 +106,7 @@ export default function ExcursionDetail({
 
             <div className="sheet__scroll">
               <div className="sheet__media">
-                <ImagePlaceholder category={item.category} />
+                <ExcursionPhoto item={item} eager />
               </div>
 
               <div className="sheet__body">

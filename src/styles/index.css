@@ -1181,6 +1181,20 @@ ul {
 
 /* ---------- image placeholder ---------- */
 
+/* La foto real de la excursion. Comparte encuadre con el marcador .ph al que
+   sustituye, para que cambiar una por otro no mueva nada de sitio. */
+.exc-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  background: var(--cream);
+}
+
+.sheet__media .exc-photo {
+  aspect-ratio: 16 / 10;
+}
+
 .ph {
   position: relative;
   aspect-ratio: 3 / 2;

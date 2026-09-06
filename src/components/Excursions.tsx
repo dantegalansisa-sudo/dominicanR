@@ -38,7 +38,7 @@ export default function Excursions({
           viewport={{ once: true, amount: 0.1 }}
         >
           {FEATURED_EXCURSIONS.map((item, i) => (
-            <ExcursionCard key={item.slug} item={item} index={i} onSelect={onSelect} />
+            <ExcursionCard key={item.slug} item={item} index={i} onSelect={onSelect} eager />
           ))}
         </motion.div>
 

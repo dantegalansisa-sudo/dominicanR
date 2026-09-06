@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import MagneticButton from './MagneticButton';
-import ImagePlaceholder from './ImagePlaceholder';
+import ExcursionPhoto from './ExcursionPhoto';
 import type { Excursion } from '../data/excursions';
 import { EASINGS } from '../utils/easings';
 
@@ -93,15 +93,17 @@ export default function ExcursionCard({
   item,
   index,
   onSelect,
+  eager = false,
 }: {
   item: Excursion;
   index: number;
   onSelect: (e: Excursion) => void;
+  eager?: boolean;
 }) {
   return (
     <motion.article className="exc-card" variants={cardVariants} custom={index}>
       <div className="exc-card__media">
-        <ImagePlaceholder category={item.category} />
+        <ExcursionPhoto item={item} eager={eager} />
         <div className="exc-card__price">
           <span className="exc-card__price-from">Desde</span>
           <strong>{item.price === null ? 'Consultar' : `$${item.price}`}</strong>
