@@ -225,10 +225,10 @@ Para lograrlo hubo que separar en dos capas lo que venía horneado en un solo PN
 | `images/logo.png` | 290 KB | Logo oficial del cliente, recortado, con transparencia |
 | `images/fleet/*.webp` | ~1.1 MB | Los 8 vehículos, sin recortar |
 
-Las ocho fotos están recortadas a **16:10 exactos**, y el marco del panel lleva
-`aspect-ratio: 16 / 10`. Al coincidir, `object-fit: cover` no recorta nada y no
+Las ocho fotos están recortadas a **2:1 exactos**, y el marco del panel lleva
+`aspect-ratio: 2 / 1`. Al coincidir, `object-fit: cover` no recorta nada y no
 quedan bandas: la foto llena el hueco justo. Verificado vehículo por vehículo
-que el recorte a 16:10 solo se come fondo, nunca el auto.
+que el recorte a 2:1 solo se come fondo, nunca el auto.
 
 Por eso el panel apila la foto arriba a todo el ancho y los datos debajo en dos
 columnas. Con la foto en una columna lateral el marco salía casi cuadrado y no

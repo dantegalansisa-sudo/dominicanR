@@ -1408,14 +1408,11 @@ ul {
   overflow: hidden;
 }
 
-.fleet__media {
-  position: relative;
-}
-
 /* El marco lleva la misma proporción a la que están recortadas las fotos, así
    que llenan el hueco sin bandas y sin que object-fit recorte nada. */
 .fleet__media {
-  aspect-ratio: 16 / 10;
+  position: relative;
+  aspect-ratio: 2 / 1;
   overflow: hidden;
 }
 
