@@ -1,4 +1,8 @@
-import { handleContact } from './_contact.ts';
+// La extension es .js a proposito: el proyecto es ESM con nodenext y
+// TypeScript no reescribe el especificador al compilar. Con './_x.ts' el
+// modulo no carga en Vercel y la funcion devuelve 500 antes de ejecutar
+// nada. Con .js, tsc resuelve el .ts y el runtime encuentra el .js.
+import { handleContact } from './_contact.js';
 
 // Vercel Function using the Web-standard signature, so no @vercel/node types
 // or SDK are needed. Deployed automatically from the api/ directory.

@@ -1,4 +1,8 @@
-import { handlePlaces } from './_places.ts';
+// La extension es .js a proposito: el proyecto es ESM con nodenext y
+// TypeScript no reescribe el especificador al compilar. Con './_x.ts' el
+// modulo no carga en Vercel y la funcion devuelve 500 antes de ejecutar
+// nada. Con .js, tsc resuelve el .ts y el runtime encuentra el .js.
+import { handlePlaces } from './_places.js';
 
 // Vercel Function con la firma web estándar, igual que api/contact.ts.
 // Una sola ruta atiende autocompletado y detalle: se distinguen por `op`.
