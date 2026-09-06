@@ -4,6 +4,7 @@ import ImagePlaceholder from './ImagePlaceholder';
 import MagneticButton from './MagneticButton';
 import { CATEGORIES } from '../data/excursions';
 import type { Excursion } from '../data/excursions';
+import type { Party } from '../data/passengers';
 import { EASINGS } from '../utils/easings';
 
 const WHATSAPP = 'https://wa.me/18292191573';
@@ -38,7 +39,7 @@ export default function ExcursionDetail({
 }: {
   item: Excursion | null;
   onClose: () => void;
-  onReserve: (e: Excursion) => void;
+  onReserve: (e: Excursion, seed: { date: string; party: Party }) => void;
 }) {
   const [pax, setPax] = useState(2);
   const [date, setDate] = useState('');
@@ -62,7 +63,6 @@ export default function ExcursionDetail({
     ? (CATEGORIES.find((c) => c.id === item.category)?.label ?? '')
     : '';
 
-  const total = item?.price != null ? item.price * pax : null;
 
   const waHref = item
     ? `${WHATSAPP}?text=${encodeURIComponent(
@@ -182,17 +182,27 @@ export default function ExcursionDetail({
               </div>
 
               <div className="sheet__total">
-                <span>{total === null ? 'Precio' : 'Total estimado'}</span>
+                <span>{item.price === null ? 'Precio' : 'Desde, por adulto'}</span>
                 <strong>
-                  {total === null ? 'A cotizar' : `$${total.toLocaleString('es-DO')}`}
+                  {item.price === null ? 'A cotizar' : `$${item.price}`}
                 </strong>
               </div>
+
+              <p className="sheet__ages">
+                Las edades se afinan en el siguiente paso. Los{' '}
+                <strong>infantes de 0 a 4 años no pagan</strong>.
+              </p>
 
               <MagneticButton
                 className="btn btn--primary btn--block"
                 block
                 magnetStrength={0.16}
-                onClick={() => onReserve(item)}
+                onClick={() =>
+                  onReserve(item, {
+                    date,
+                    party: { adults: pax, children: 0, infants: 0 },
+                  })
+                }
               >
                 Solicitar esta reserva
                 <Ico d="M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5" />

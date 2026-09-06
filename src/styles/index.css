@@ -1815,6 +1815,20 @@ ul {
   font-size: 17px;
 }
 
+/* Sustituye al total calculado: con tramos de edad, multiplicar precio por
+   pasajeros daria una cifra falsa. */
+.sheet__ages {
+  margin: -6px 0 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.sheet__ages strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .sheet__total {
   display: flex;
   align-items: baseline;

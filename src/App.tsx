@@ -13,7 +13,9 @@ import FloatingCta from './components/FloatingCta';
 import ExcursionDetail from './components/ExcursionDetail';
 import ExcursionsPage from './pages/ExcursionsPage';
 import BookingPage from './pages/BookingPage';
+import ExcursionBookingPage from './pages/ExcursionBookingPage';
 import type { Excursion } from './data/excursions';
+import type { Party } from './data/passengers';
 import { FLEET } from './data/fleet';
 
 /** What a CTA hands to the contact form when it sends the visitor there. */
@@ -28,12 +30,10 @@ function Home({
   prefill,
   onSelect,
   onRequestTransfer,
-  onSearch,
 }: {
   prefill: Prefill | null;
   onSelect: (e: Excursion) => void;
   onRequestTransfer: (slug: string) => void;
-  onSearch: (topic: string, message: string) => void;
 }) {
   useEffect(() => {
     document.title = 'Dominican Routes — Traslados y Excursiones en Punta Cana';
@@ -41,7 +41,7 @@ function Home({
 
   return (
     <>
-      <Hero onSearch={onSearch} />
+      <Hero />
       <TrustBar />
       <Fleet onRequest={onRequestTransfer} />
       <Excursions onSelect={onSelect} />
@@ -93,14 +93,17 @@ export default function App() {
     [requestQuote],
   );
 
+  // Antes esto precargaba el formulario de contacto con un texto suelto. Las
+  // excursiones tienen ahora su propia pagina, igual que los traslados, para
+  // poder pedir los tramos de edad de los que depende el precio.
   const requestExcursion = useCallback(
-    (e: Excursion) => {
-      requestQuote(
-        'Excursión',
-        `Quiero reservar "${e.name}" (${e.duration}).\n\nPersonas:\nFecha preferida:\nHotel de recogida:`,
-      );
+    (e: Excursion, seed: { date: string; party: Party }) => {
+      setDetail(null);
+      navigate('/reservar-excursion', {
+        state: { slug: e.slug, date: seed.date, party: seed.party },
+      });
     },
-    [requestQuote],
+    [navigate],
   );
 
   return (
@@ -115,7 +118,6 @@ export default function App() {
                 prefill={prefill}
                 onSelect={setDetail}
                 onRequestTransfer={requestTransfer}
-                onSearch={requestQuote}
               />
             }
           />
@@ -124,6 +126,7 @@ export default function App() {
             element={<ExcursionsPage onSelect={setDetail} />}
           />
           <Route path="/reservar" element={<BookingPage />} />
+          <Route path="/reservar-excursion" element={<ExcursionBookingPage />} />
         </Routes>
       </main>
       <Footer />

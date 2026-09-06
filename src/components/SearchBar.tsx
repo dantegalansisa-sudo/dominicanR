@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import MagneticButton from './MagneticButton';
 import PlaceField from './PlaceField';
 import PassengersField from './PassengersField';
-import { EMPTY_PARTY, partyLabel } from '../data/passengers';
+import { EMPTY_PARTY } from '../data/passengers';
 import type { Party } from '../data/passengers';
 import { PICKUP_PLACES, TRANSFER_PLACES, emptyPlace } from '../data/places';
 import type { PlaceValue } from '../data/places';
@@ -87,11 +87,7 @@ const ArrowIcon = () => (
  * everything to the contact form, which is where the business actually wants
  * the request to land.
  */
-export default function SearchBar({
-  onSearch,
-}: {
-  onSearch: (topic: string, message: string) => void;
-}) {
+export default function SearchBar() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('Traslado');
   const [origin, setOrigin] = useState<PlaceValue>(emptyPlace());
@@ -103,13 +99,6 @@ export default function SearchBar({
 
   const isTransfer = tab === 'Traslado';
 
-  // ISO reads like a database row in an email; give the operator dd/mm/aaaa.
-  const prettyDate = (iso: string) => {
-    if (!iso) return '';
-    const [y, m, d] = iso.split('-');
-    return d && m && y ? `${d}/${m}/${y}` : iso;
-  };
-
   const submit = () => {
     // Transfers get their own page: the client asked for children and the
     // on-board amenities to live there, not crowding the hero bar.
@@ -120,18 +109,15 @@ export default function SearchBar({
       return;
     }
 
-    const lines = [
-      'Quiero reservar una excursión.',
-      '',
-      `Punto de recogida: ${origin.text || '(por confirmar)'}`,
-      `Excursión: ${destination.text || '(por confirmar)'}`,
-      `Fecha: ${prettyDate(date) || '(por confirmar)'}`,
-      `Hora: ${time || '(por confirmar)'}`,
-      `Pasajeros: ${partyLabel(party)}`,
-    ];
-    if (party.infants > 0) lines.push('Los infantes (0 a 4 años) no pagan.');
-
-    onSearch('Excursión', lines.join('\n'));
+    const excursion = EXCURSIONS.find((e) => e.name === destination.text.trim());
+    navigate('/reservar-excursion', {
+      state: {
+        slug: excursion?.slug,
+        date,
+        party,
+        pickup: origin,
+      },
+    });
   };
 
   return (
