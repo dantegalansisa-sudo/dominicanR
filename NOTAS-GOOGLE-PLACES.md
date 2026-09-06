@@ -279,3 +279,50 @@ configurar la variable.
 3. Cuotas diarias y alerta de presupuesto en Google Cloud.
 4. Resend: `RESEND_API_KEY`, `CONTACT_TO`, `CONTACT_FROM`, y probar el
    formulario ya desplegado.
+
+---
+
+## 10. Fallo encontrado al comprobar produccion (2026-09-06)
+
+Al verificar el despliegue, **las dos** funciones devolvian 500 con
+`FUNCTION_INVOCATION_FAILED`: `/api/places` y tambien `/api/contact`, que es
+anterior a este trabajo. Es decir, **el formulario de contacto nunca habia
+funcionado en produccion**, y no por falta de la clave de Resend.
+
+### Como se localizo
+
+`GET /api/places` fallaba igual que el POST. Nuestro `GET` exportado devuelve un
+405 en JSON, asi que si ni eso sale, el modulo no llega a cargarse: el problema
+no estaba en la logica sino en la importacion.
+
+### Causa
+
+El proyecto es ESM (`"type": "module"`) con `module: "nodenext"` en
+`tsconfig.node.json`. **TypeScript no reescribe los especificadores de
+importacion al compilar.** Con `import ... from './_contact.ts'`, el fichero
+compilado sigue apuntando a un `.ts` que en ejecucion no existe, y el modulo
+revienta antes de correr nada.
+
+`allowImportingTsExtensions: true` hacia que `tsc` lo aceptase sin protestar, asi
+que el build pasaba limpio y el fallo solo aparecia en produccion.
+
+### Arreglo
+
+Escribir la extension `.js` en el especificador:
+
+```ts
+import { handlePlaces } from './_places.js';
+```
+
+Es el patron canonico de nodenext: `tsc` resuelve el `.ts` al comprobar tipos y
+Node encuentra el `.js` al ejecutar. Va anotado en ambos ficheros para que nadie
+lo "arregle" quitando la extension.
+
+Ojo: `vite.config.ts` **si** importa con `.ts` (`./api/_contact.ts`) y debe
+seguir asi, porque ese fichero lo procesa Vite, no Node.
+
+### Leccion
+
+Que `npm run build` pase no dice nada sobre si las funciones de Vercel arrancan.
+Hay que probar la ruta desplegada. Un `GET` a un endpoint que exporta `GET`
+distingue en un solo intento si falla el modulo o el manejador.
