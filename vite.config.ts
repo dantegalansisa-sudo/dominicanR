@@ -1,20 +1,27 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import type { Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { handleContact } from './api/_contact.ts'
+import { handlePlaces } from './api/_places.ts'
 
-// The Vite dev server does not serve the api/ directory, so wire the same
-// handler in as middleware. Local submissions exercise the real validation and
-// the real Resend call — only the transport differs from production.
-function contactApi(): Plugin {
+type Handler = (payload: unknown) => Promise<{ status: number; body: unknown }>
+
+// El servidor de desarrollo de Vite no sirve el directorio api/, así que
+// montamos los mismos manejadores como middleware. En local se ejerce la
+// validación real y la llamada real a Google o a Resend: solo cambia el
+// transporte respecto a producción.
+function jsonApi(route: string, handle: Handler): Plugin {
   return {
-    name: 'contact-api-dev',
+    name: `dev-api${route.replace(/\//g, '-')}`,
     configureServer(server) {
-      server.middlewares.use('/api/contact', (req, res) => {
-        if (req.method !== 'POST') {
-          res.statusCode = 405
+      server.middlewares.use(route, (req, res) => {
+        const send = (status: number, body: unknown) => {
+          res.statusCode = status
           res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify({ ok: false, error: 'Método no permitido.' }))
+          res.end(JSON.stringify(body))
+        }
+        if (req.method !== 'POST') {
+          send(405, { ok: false, error: 'Método no permitido.' })
           return
         }
         let raw = ''
@@ -27,15 +34,11 @@ function contactApi(): Plugin {
           try {
             payload = JSON.parse(raw || '{}')
           } catch {
-            res.statusCode = 400
-            res.setHeader('Content-Type', 'application/json')
-            res.end(JSON.stringify({ ok: false, error: 'Solicitud inválida.' }))
+            send(400, { ok: false, error: 'Solicitud inválida.' })
             return
           }
-          const { status, body } = await handleContact(payload)
-          res.statusCode = status
-          res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify(body))
+          const { status, body } = await handle(payload)
+          send(status, body)
         })
       })
     },
@@ -43,6 +46,20 @@ function contactApi(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), contactApi()],
+export default defineConfig(({ mode }) => {
+  // Las claves de servidor no llevan prefijo VITE_ a propósito: así Vite nunca
+  // las mete en el bundle. Pero entonces tampoco las carga sola, y los
+  // manejadores las leen de process.env, así que las pasamos aquí a mano.
+  const env = loadEnv(mode, process.cwd(), '')
+  for (const k of ['GOOGLE_PLACES_API_KEY', 'RESEND_API_KEY', 'CONTACT_TO', 'CONTACT_FROM']) {
+    if (env[k]) process.env[k] = env[k]
+  }
+
+  return {
+    plugins: [
+      react(),
+      jsonApi('/api/contact', handleContact),
+      jsonApi('/api/places', handlePlaces),
+    ],
+  }
 })

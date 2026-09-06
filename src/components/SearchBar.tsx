@@ -6,7 +6,8 @@ import PlaceField from './PlaceField';
 import PassengersField from './PassengersField';
 import { EMPTY_PARTY, partyLabel } from '../data/passengers';
 import type { Party } from '../data/passengers';
-import { PICKUP_PLACES, TRANSFER_PLACES } from '../data/places';
+import { PICKUP_PLACES, TRANSFER_PLACES, emptyPlace } from '../data/places';
+import type { PlaceValue } from '../data/places';
 import { EXCURSIONS } from '../data/excursions';
 import { EASINGS } from '../utils/easings';
 
@@ -93,8 +94,8 @@ export default function SearchBar({
 }) {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('Traslado');
-  const [origin, setOrigin] = useState('');
-  const [destination, setDestination] = useState('');
+  const [origin, setOrigin] = useState<PlaceValue>(emptyPlace());
+  const [destination, setDestination] = useState<PlaceValue>(emptyPlace());
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [party, setParty] = useState<Party>(EMPTY_PARTY);
@@ -122,8 +123,8 @@ export default function SearchBar({
     const lines = [
       'Quiero reservar una excursión.',
       '',
-      `Punto de recogida: ${origin || '(por confirmar)'}`,
-      `Excursión: ${destination || '(por confirmar)'}`,
+      `Punto de recogida: ${origin.text || '(por confirmar)'}`,
+      `Excursión: ${destination.text || '(por confirmar)'}`,
       `Fecha: ${prettyDate(date) || '(por confirmar)'}`,
       `Hora: ${time || '(por confirmar)'}`,
       `Pasajeros: ${partyLabel(party)}`,
@@ -171,6 +172,7 @@ export default function SearchBar({
           groups={isTransfer ? TRANSFER_PLACES : PICKUP_PLACES}
           value={origin}
           onChange={setOrigin}
+          google
         />
 
         <PlaceField
@@ -181,6 +183,7 @@ export default function SearchBar({
           groups={isTransfer ? TRANSFER_PLACES : EXCURSION_PLACES}
           value={destination}
           onChange={setDestination}
+          google={isTransfer}
         />
 
         <div className="search__field">

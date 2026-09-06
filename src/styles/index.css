@@ -2819,6 +2819,72 @@ ul {
   color: var(--coral);
 }
 
+/* ---------- resultados de Google dentro del combobox ---------- */
+
+.place__group-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.place__spinner {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(var(--coral-rgb), 0.25);
+  border-top-color: var(--coral);
+  animation: place-spin 0.7s linear infinite;
+}
+
+@keyframes place-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .place__spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* Dos lineas: el nombre del sitio manda, la direccion desambigua entre los
+   cinco hoteles que empiezan igual. */
+.place__option--rich {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.place__main {
+  display: block;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.place__secondary {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+
+/* El estado seleccionado tine el nombre, no la direccion. */
+.place__option--rich[aria-selected='true'] .place__secondary {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* Google exige mostrar la atribucion cuando sus resultados salen fuera de un
+   mapa suyo. No es decorativa: quitarla incumple sus terminos. */
+.place__attrib {
+  padding: 7px 10px 3px;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  opacity: 0.75;
+}
+
 /* ---------- passengers popover ---------- */
 
 .passengers {

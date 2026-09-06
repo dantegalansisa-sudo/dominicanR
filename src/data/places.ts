@@ -3,6 +3,38 @@ export interface PlaceGroup {
   items: string[];
 }
 
+/**
+ * Un lugar tal y como lo maneja el formulario. `text` es lo que ve y escribe el
+ * visitante; el resto solo aparece cuando eligió un resultado de Google, y es
+ * lo que convierte "Hotel Riu, calle X" en un punto al que el conductor puede
+ * llegar. Escribir libremente sigue siendo válido: entonces solo hay texto.
+ */
+export interface PlaceValue {
+  text: string;
+  placeId?: string;
+  lat?: number;
+  lng?: number;
+  address?: string;
+}
+
+export const emptyPlace = (text = ''): PlaceValue => ({ text });
+
+/** Enlace que abre el punto exacto en Google Maps, para el correo al operador. */
+export function placeMapsUrl(p: PlaceValue): string | null {
+  if (p.placeId) {
+    return (
+      'https://www.google.com/maps/search/?api=1&query=' +
+      encodeURIComponent(p.address || p.text) +
+      '&query_place_id=' +
+      p.placeId
+    );
+  }
+  if (typeof p.lat === 'number' && typeof p.lng === 'number') {
+    return 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng;
+  }
+  return null;
+}
+
 /** Aeropuertos internacionales de República Dominicana, por volumen turístico. */
 export const AIRPORTS = [
   'Aeropuerto de Punta Cana (PUJ)',

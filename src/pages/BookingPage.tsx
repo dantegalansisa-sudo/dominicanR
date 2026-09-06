@@ -4,7 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import { suggestVehicle } from '../components/PassengersField';
-import { TRANSFER_PLACES } from '../data/places';
+import { TRANSFER_PLACES, emptyPlace, placeMapsUrl } from '../data/places';
+import type { PlaceValue } from '../data/places';
 import {
   DRINKS,
   EMPTY_EXTRAS,
@@ -19,8 +20,8 @@ import type { Extras, SeatId, DrinkId } from '../data/passengers';
 
 /** Lo que el buscador del hero deja al navegar hasta aquí. */
 export interface BookingSeed {
-  origin?: string;
-  destination?: string;
+  origin?: PlaceValue;
+  destination?: PlaceValue;
   date?: string;
   time?: string;
   adults?: number;
@@ -103,8 +104,10 @@ function Stepper({
 export default function BookingPage() {
   const seed = (useLocation().state ?? {}) as BookingSeed;
 
-  const [origin, setOrigin] = useState(seed.origin ?? '');
-  const [destination, setDestination] = useState(seed.destination ?? '');
+  const [origin, setOrigin] = useState<PlaceValue>(seed.origin ?? emptyPlace());
+  const [destination, setDestination] = useState<PlaceValue>(
+    seed.destination ?? emptyPlace(),
+  );
   const [date, setDate] = useState(seed.date ?? '');
   const [time, setTime] = useState(seed.time ?? '');
   const [round, setRound] = useState(Boolean(seed.round));
@@ -144,6 +147,9 @@ export default function BookingPage() {
   const extraLines = extrasLines(extras);
   const extrasSum = extrasTotal(extras);
 
+  const originMap = placeMapsUrl(origin);
+  const destMap = placeMapsUrl(destination);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status === 'sending') return;
@@ -151,8 +157,12 @@ export default function BookingPage() {
     const blocks = [
       [`Solicitud de traslado${round ? ' ida y vuelta' : ''}.`],
       [
-        `Origen: ${origin || '(por confirmar)'}`,
-        `Destino: ${destination || '(por confirmar)'}`,
+        `Origen: ${origin.text || '(por confirmar)'}`,
+        ...(origin.address ? [`  Dirección: ${origin.address}`] : []),
+        ...(originMap ? [`  Ubicación exacta: ${originMap}`] : []),
+        `Destino: ${destination.text || '(por confirmar)'}`,
+        ...(destination.address ? [`  Dirección: ${destination.address}`] : []),
+        ...(destMap ? [`  Ubicación exacta: ${destMap}`] : []),
         `Fecha: ${prettyDate(date) || '(por confirmar)'}`,
         `Hora: ${time || '(por confirmar)'}`,
         ...(flight ? [`Vuelo: ${flight}`] : []),
@@ -238,6 +248,7 @@ export default function BookingPage() {
                   groups={TRANSFER_PLACES}
                   value={origin}
                   onChange={setOrigin}
+                  google
                 />
                 <PlaceField
                   id="bk-dest"
@@ -247,6 +258,7 @@ export default function BookingPage() {
                   groups={TRANSFER_PLACES}
                   value={destination}
                   onChange={setDestination}
+                  google
                 />
                 <label className="form__field">
                   <span>Fecha</span>
@@ -461,7 +473,7 @@ export default function BookingPage() {
                 <div>
                   <dt>Ruta</dt>
                   <dd>
-                    {origin || '—'} → {destination || '—'}
+                    {origin.text || '—'} → {destination.text || '—'}
                     {round ? ' (ida y vuelta)' : ''}
                   </dd>
                 </div>
