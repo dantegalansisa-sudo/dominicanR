@@ -79,7 +79,9 @@ export default function Navbar() {
               ))}
             </div>
 
-            <a className="nav__cta" href="/#contacto">
+            {/* Dice "Reservar", asi que lleva a la reserva de verdad y no al
+                formulario de contacto generico. */}
+            <a className="nav__cta" href="/reservar">
               Reservar
             </a>
 

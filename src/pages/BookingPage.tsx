@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import { suggestVehicle } from '../components/PassengersField';
+import { FLEET } from '../data/fleet';
 import { TRANSFER_PLACES, emptyPlace, placeMapsUrl } from '../data/places';
 import type { PlaceValue } from '../data/places';
 import {
@@ -26,6 +27,8 @@ export interface BookingSeed {
   time?: string;
   adults?: number;
   round?: boolean;
+  /** Slug del vehiculo, cuando se llega desde una tarjeta de la flota. */
+  vehicle?: string;
 }
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
@@ -112,6 +115,7 @@ export default function BookingPage() {
   const [time, setTime] = useState(seed.time ?? '');
   const [round, setRound] = useState(Boolean(seed.round));
   const [adults, setAdults] = useState(seed.adults ?? 2);
+  const [vehicleSlug, setVehicleSlug] = useState<string | null>(seed.vehicle ?? null);
   const [children, setChildren] = useState(0);
   const [extras, setExtras] = useState<Extras>(EMPTY_EXTRAS);
   const [flight, setFlight] = useState('');
@@ -128,7 +132,9 @@ export default function BookingPage() {
   }, []);
 
   const total = adults + children;
-  const vehicle = suggestVehicle(total);
+  const chosen = vehicleSlug ? (FLEET.find((v) => v.slug === vehicleSlug) ?? null) : null;
+  const vehicle = chosen ?? suggestVehicle(total);
+  const overCapacity = chosen != null && total > chosen.maxPax;
 
   const setSeat = (id: SeatId, n: number) =>
     setExtras((e) => ({ ...e, seats: { ...e.seats, [id]: Math.max(0, Math.min(6, n)) } }));
@@ -171,7 +177,16 @@ export default function BookingPage() {
         `Pasajeros: ${adults} ${adults === 1 ? 'adulto' : 'adultos'}${
           children ? `, ${children} ${children === 1 ? 'niño' : 'niños'}` : ''
         }`,
-        ...(vehicle ? [`Vehículo sugerido por la web: ${vehicle.name}.`] : []),
+        ...(chosen
+          ? [`Vehículo elegido por el cliente: ${chosen.name} (${chosen.type}).`]
+          : vehicle
+            ? [`Vehículo sugerido por la web: ${vehicle.name}.`]
+            : []),
+        ...(overCapacity
+          ? [
+              `AVISO: ${total} pasajeros superan los ${chosen.maxPax} de ese vehículo.`,
+            ]
+          : []),
       ],
       extraLines.length
         ? [
@@ -325,10 +340,31 @@ export default function BookingPage() {
                   </div>
                 );
               })}
-              {vehicle && (
+              {chosen ? (
                 <p className="passengers__note bcard__hint">
-                  Para {total} {total === 1 ? 'pasajero' : 'pasajeros'} sugerimos{' '}
-                  <strong>{vehicle.name}</strong> ({vehicle.type}).
+                  Elegiste <strong>{chosen.name}</strong> ({chosen.type}), hasta{' '}
+                  {chosen.maxPax} pasajeros.{' '}
+                  <button
+                    type="button"
+                    className="bcard__swap"
+                    onClick={() => setVehicleSlug(null)}
+                  >
+                    Que lo elija la web
+                  </button>
+                </p>
+              ) : (
+                vehicle && (
+                  <p className="passengers__note bcard__hint">
+                    Para {total} {total === 1 ? 'pasajero' : 'pasajeros'} sugerimos{' '}
+                    <strong>{vehicle.name}</strong> ({vehicle.type}).
+                  </p>
+                )
+              )}
+
+              {overCapacity && (
+                <p className="passengers__note passengers__note--warn bcard__hint">
+                  Ese vehículo admite {chosen.maxPax}. Para {total} haría falta
+                  otro o una segunda unidad: lo coordinamos contigo.
                 </p>
               )}
             </section>
@@ -483,6 +519,15 @@ export default function BookingPage() {
                     {prettyDate(date) || '—'} {time && `· ${time}`}
                   </dd>
                 </div>
+                {vehicle && (
+                  <div>
+                    <dt>Vehículo</dt>
+                    <dd>
+                      {vehicle.name}
+                      {!chosen && ' (sugerido)'}
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt>Pasajeros</dt>
                   <dd>

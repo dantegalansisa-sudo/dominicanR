@@ -115,7 +115,7 @@ export default function Footer() {
         <span>© {new Date().getFullYear()} Dominican Routes</span>
         <span>
           Diseñado por{' '}
-          <a href="https://nexixstudio.com" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.nexixstudio.com" target="_blank" rel="noopener noreferrer">
             NEXIX Tech Studio
           </a>
         </span>

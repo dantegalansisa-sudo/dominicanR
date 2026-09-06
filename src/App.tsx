@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
@@ -16,22 +16,11 @@ import BookingPage from './pages/BookingPage';
 import ExcursionBookingPage from './pages/ExcursionBookingPage';
 import type { Excursion } from './data/excursions';
 import type { Party } from './data/passengers';
-import { FLEET } from './data/fleet';
-
-/** What a CTA hands to the contact form when it sends the visitor there. */
-export interface Prefill {
-  topic: string;
-  message: string;
-  /** Changes on every request so repeating the same one still re-applies. */
-  nonce: number;
-}
 
 function Home({
-  prefill,
   onSelect,
   onRequestTransfer,
 }: {
-  prefill: Prefill | null;
   onSelect: (e: Excursion) => void;
   onRequestTransfer: (slug: string) => void;
 }) {
@@ -47,50 +36,20 @@ function Home({
       <Excursions onSelect={onSelect} />
       <WhyUs />
       <CtaBand />
-      <Contact prefill={prefill} />
+      <Contact />
     </>
   );
 }
 
 export default function App() {
   const [detail, setDetail] = useState<Excursion | null>(null);
-  const [prefill, setPrefill] = useState<Prefill | null>(null);
-  const location = useLocation();
   const navigate = useNavigate();
-
-  // Every "reservar" across the site lands here: fill the form with the
-  // context the visitor was looking at, then take them to it. From the
-  // catalogue page that means routing home first.
-  const requestQuote = useCallback(
-    (topic: string, message: string) => {
-      setPrefill({ topic, message, nonce: Date.now() });
-      setDetail(null);
-      if (location.pathname !== '/') {
-        navigate('/');
-        // wait for the home route to mount before looking for the form
-        window.setTimeout(() => {
-          document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
-        }, 80);
-      } else {
-        requestAnimationFrame(() => {
-          document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
-        });
-      }
-    },
-    [location.pathname, navigate],
-  );
 
   const requestTransfer = useCallback(
     (vehicleSlug: string) => {
-      const v = FLEET.find((x) => x.slug === vehicleSlug);
-      requestQuote(
-        'Traslado',
-        v
-          ? `Quiero cotizar un traslado en ${v.name} (${v.type}), para hasta ${v.maxPax} pasajeros.\n\nOrigen:\nDestino:\nFecha y hora:`
-          : 'Quiero cotizar un traslado.',
-      );
+      navigate('/reservar', { state: { vehicle: vehicleSlug } });
     },
-    [requestQuote],
+    [navigate],
   );
 
   // Antes esto precargaba el formulario de contacto con un texto suelto. Las
@@ -115,7 +74,6 @@ export default function App() {
             path="/"
             element={
               <Home
-                prefill={prefill}
                 onSelect={setDetail}
                 onRequestTransfer={requestTransfer}
               />

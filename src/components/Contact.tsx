@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import { EASINGS } from '../utils/easings';
-import type { Prefill } from '../App';
 
 const TOPICS = ['Traslado', 'Excursión', 'Grupo o evento', 'Otro'] as const;
 
@@ -46,28 +45,11 @@ const DETAILS = [
   },
 ];
 
-export default function Contact({ prefill }: { prefill: Prefill | null }) {
+export default function Contact() {
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
   const [topic, setTopic] = useState<string>(TOPICS[0]);
   const formRef = useRef<HTMLFormElement>(null);
-
-  // A CTA elsewhere on the page sent the visitor here with context. Drop it
-  // into the form so they only have to fill in what we cannot know.
-  useEffect(() => {
-    if (!prefill) return;
-    setStatus('idle');
-    setError('');
-    if (TOPICS.includes(prefill.topic as (typeof TOPICS)[number])) {
-      setTopic(prefill.topic);
-    }
-    const form = formRef.current;
-    if (!form) return;
-    const area = form.elements.namedItem('message') as HTMLTextAreaElement | null;
-    if (area) area.value = prefill.message;
-    const name = form.elements.namedItem('name') as HTMLInputElement | null;
-    if (name && !name.value) window.setTimeout(() => name.focus(), 650);
-  }, [prefill]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
