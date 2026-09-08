@@ -3242,26 +3242,25 @@ ul {
   gap: 10px;
   width: calc(100% - 36px);
   margin: 18px 18px 4px;
-  padding: 13px 16px;
-  border: 1.5px solid var(--coral);
+  padding: 13px 18px;
+  border: 0;
   border-radius: 999px;
-  background: rgba(var(--coral-rgb), 0.07);
+  background: var(--coral);
   /* La columna mide 250px: en una sola linea o el chevron se descuelga. */
   white-space: nowrap;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--coral);
+  color: var(--white);
   cursor: pointer;
+  box-shadow: 0 8px 20px rgba(var(--coral-rgb), 0.24);
   transition:
     background-color 0.25s ease,
-    color 0.25s ease,
     box-shadow 0.25s ease;
 }
 
 .fleet__more:hover {
-  background: var(--coral);
-  color: var(--white);
-  box-shadow: 0 8px 20px rgba(var(--coral-rgb), 0.28);
+  background: #d4562f;
+  box-shadow: 0 12px 28px rgba(var(--coral-rgb), 0.34);
 }
 
 .fleet__more:focus-visible {
@@ -3277,6 +3276,9 @@ ul {
   .fleet__rest {
     display: flex;
     align-items: stretch;
+    /* Sin esto se encoge a cero: overflow hidden anula su ancho minimo
+       automatico y la tira ya desborda, asi que el navegador lo colapsa. */
+    flex-shrink: 0;
   }
   /* En la tira horizontal va como una pastilla mas, al final de los vehiculos.
      La propia pastilla separa, asi que sobra la linea divisoria. */

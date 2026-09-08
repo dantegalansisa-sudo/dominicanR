@@ -146,7 +146,7 @@ export default function Fleet({
             </AnimatePresence>
 
             <button type="button" className="fleet__more" onClick={toggleRest}>
-              {showRest ? 'Ver menos' : `Ver ${OTHER_FLEET.length} vehículos más`}
+              {showRest ? 'Ver menos flota' : 'Ver más flota'}
               <motion.span
                 className="fleet__more-chevron"
                 animate={{ rotate: showRest ? 180 : 0 }}
