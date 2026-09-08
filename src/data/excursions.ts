@@ -64,7 +64,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,340+",
     duration: "6 horas",
     description: "Nada en cenotes cristalinos, vuela en tirolesas sobre la selva y explora cuevas naturales en este parque ecológico.",
-    photos: ["/images/excursions/scape-park.webp"],
+    photos: [
+      "/images/excursions/scape-park.webp",
+      "/images/excursions/scape-park-2.webp",
+      "/images/excursions/scape-park-3.webp",
+    ],
   },
   {
     slug: "montana-redonda-playa-esmeralda",
@@ -202,7 +206,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,560+",
     duration: "8 horas",
     description: "Escapa de las multitudes y disfruta de Isla Saona en un tour exclusivo con zonas privadas y servicio VIP.",
-    photos: ["/images/excursions/isla-saona-exclusiva.webp"],
+    photos: [
+      "/images/excursions/isla-saona-exclusiva.webp",
+      "/images/excursions/isla-saona-exclusiva-2.webp",
+      "/images/excursions/isla-saona-exclusiva-3.webp",
+    ],
   },
   {
     slug: "isla-catalina",
@@ -302,7 +310,10 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,180+",
     duration: "6 horas",
     description: "Combina la emoción de las tirolesas con la interacción única con monos ardilla en su hábitat natural.",
-    photos: ["/images/excursions/monkey-land-con-zipline.webp"],
+    photos: [
+      "/images/excursions/monkey-land-con-zipline.webp",
+      "/images/excursions/monkey-land-con-zipline-2.webp",
+    ],
   },
   {
     slug: "domitai-park-full-power",
@@ -313,7 +324,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "920+",
     duration: "6 horas",
     description: "Experimenta adrenalina extrema con tirolesas de alta velocidad y desafiantes puentes tibetanos en plena naturaleza.",
-    photos: ["/images/excursions/domitai-park-full-power.webp"],
+    photos: [
+      "/images/excursions/domitai-park-full-power.webp",
+      "/images/excursions/domitai-park-full-power-2.webp",
+      "/images/excursions/domitai-park-full-power-3.webp",
+    ],
   },
   {
     slug: "excursion-samana",
@@ -395,7 +410,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "780+",
     duration: "4 horas",
     description: "Conduce un buggy todoterreno por el campo dominicano, visita plantaciones locales y disfruta de la playa Macao.",
-    photos: ["/images/excursions/safari-bavaro-runner.webp"],
+    photos: [
+      "/images/excursions/safari-bavaro-runner.webp",
+      "/images/excursions/safari-bavaro-runner-2.webp",
+      "/images/excursions/safari-bavaro-runner-3.webp",
+    ],
   },
   {
     slug: "imagine-punta-cana",
@@ -406,7 +425,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "2,850+",
     duration: "5 horas",
     description: "Discoteca única dentro de una cueva natural con 3 ambientes musicales, luces espectaculares y barra libre. La experiencia nocturna más impresionante de Punta Cana.",
-    photos: ["/images/excursions/imagine-punta-cana.webp"],
+    photos: [
+      "/images/excursions/imagine-punta-cana.webp",
+      "/images/excursions/imagine-punta-cana-2.webp",
+      "/images/excursions/imagine-punta-cana-3.webp",
+    ],
   },
   {
     slug: "atv-adventure",
@@ -477,7 +500,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "890+",
     duration: "4 horas",
     description: "Vive una aventura pirata en un barco temático con show en vivo, snorkel y diversión para toda la familia.",
-    photos: ["/images/excursions/caribbean-pirates.webp"],
+    photos: [
+      "/images/excursions/caribbean-pirates.webp",
+      "/images/excursions/caribbean-pirates-2.webp",
+      "/images/excursions/caribbean-pirates-3.webp",
+    ],
   },
   {
     slug: "city-tour-santo-domingo",
@@ -521,6 +548,7 @@ export const EXCURSIONS: Excursion[] = [
     photos: [
       "/images/excursions/la-hacienda-park.webp",
       "/images/excursions/la-hacienda-park-2.webp",
+      "/images/excursions/la-hacienda-park-3.webp",
     ],
   },
   {
