@@ -2129,10 +2129,8 @@ ul {
 .footer__brand img {
   height: 44px;
   width: auto;
-  /* the logo is drawn for light backgrounds; lift it off the navy */
-  background: var(--white);
-  border-radius: 10px;
-  padding: 8px 12px;
+  /* Version propia para fondo oscuro: no lleva recuadro porque no lo necesita.
+     La del navbar sigue siendo la de fondo claro. */
 }
 
 .footer__tagline {

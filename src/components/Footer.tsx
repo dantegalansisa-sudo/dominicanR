@@ -41,7 +41,12 @@ export default function Footer() {
       >
         {[
           <div key="brand" className="footer__brand">
-            <img src="/images/logo.png" alt="Dominican Routes" width={1066} height={385} />
+            <img
+              src="/images/logo-dark.png"
+              alt="Dominican Routes"
+              width={700}
+              height={215}
+            />
             <p className="footer__tagline">Tu aventura comienza aquí.</p>
           </div>,
 

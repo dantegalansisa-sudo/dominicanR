@@ -43,7 +43,7 @@ export default function Navbar() {
         transition={{ duration: 0.35, ease: EASINGS.smooth }}
       >
         <div className="container nav__inner">
-          <a href="#inicio" className="nav__brand" aria-label="Dominican Routes — inicio">
+          <a href="/#inicio" className="nav__brand" aria-label="Dominican Routes — inicio">
             <img
               src="/images/logo.png"
               alt="Dominican Routes"

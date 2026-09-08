@@ -53,7 +53,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,250+",
     duration: "8 horas",
     description: "Paraíso tropical con playas de arena blanca y aguas cristalinas turquesas.",
-    photos: ["/images/excursions/isla-saona-clasica.webp"],
+    photos: [
+      "/images/excursions/isla-saona-clasica.webp",
+      "/images/excursions/isla-saona-clasica-2.webp",
+      "/images/excursions/isla-saona-clasica-3.webp",
+    ],
   },
   {
     slug: "scape-park",
@@ -169,7 +173,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "890+",
     duration: "8 horas",
     description: "Experiencia VIP exclusiva en Isla Saona con servicio premium, almuerzo de langosta y acceso a zonas privadas.",
-    photos: ["/images/excursions/isla-saona-vip.webp"],
+    photos: [
+      "/images/excursions/isla-saona-vip.webp",
+      "/images/excursions/isla-saona-vip-2.webp",
+      "/images/excursions/isla-saona-vip-3.webp",
+    ],
   },
   {
     slug: "combo-zipline-buggy",
