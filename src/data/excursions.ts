@@ -90,7 +90,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,875+",
     duration: "2 horas",
     description: "Vuela sobre el mar Caribe en paracaídas disfrutando vistas panorámicas espectaculares.",
-    photos: ["/images/excursions/parasailing-aventuras-aire.webp"],
+    photos: [
+      "/images/excursions/parasailing-aventuras-aire.webp",
+      "/images/excursions/parasailing-aventuras-aire-2.webp",
+      "/images/excursions/parasailing-aventuras-aire-3.webp",
+    ],
   },
   {
     slug: "buggy-adventure",
@@ -146,7 +150,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,560+",
     duration: "4 horas",
     description: "Vuela sobre la selva tropical en 8 líneas de tirolesa extrema.",
-    photos: ["/images/excursions/zipline-adventure.webp"],
+    photos: [
+      "/images/excursions/zipline-adventure.webp",
+      "/images/excursions/zipline-adventure-2.webp",
+      "/images/excursions/zipline-adventure-3.webp",
+    ],
   },
   {
     slug: "isla-saona-vip",
@@ -208,6 +216,7 @@ export const EXCURSIONS: Excursion[] = [
     photos: [
       "/images/excursions/isla-catalina.webp",
       "/images/excursions/isla-catalina-2.webp",
+      "/images/excursions/isla-catalina-3.webp",
     ],
   },
   {
@@ -234,7 +243,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,120+",
     duration: "4 horas",
     description: "Adrenalina pura navegando en jet ski por las aguas cristalinas del Caribe.",
-    photos: ["/images/excursions/jet-ski-punta-cana.webp"],
+    photos: [
+      "/images/excursions/jet-ski-punta-cana.webp",
+      "/images/excursions/jet-ski-punta-cana-2.webp",
+      "/images/excursions/jet-ski-punta-cana-3.webp",
+    ],
   },
   {
     slug: "speed-boat",
@@ -245,7 +258,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "980+",
     duration: "4 horas",
     description: "Navegación rápida visitando playas secretas y snorkel en arrecifes vírgenes.",
-    photos: ["/images/excursions/speed-boat.webp"],
+    photos: [
+      "/images/excursions/speed-boat.webp",
+      "/images/excursions/speed-boat-2.webp",
+      "/images/excursions/speed-boat-3.webp",
+    ],
   },
   {
     slug: "dolphin-explorer",
@@ -256,7 +273,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "2,340+",
     duration: "3 horas",
     description: "Nada con delfines y disfruta de una experiencia educativa única e inolvidable.",
-    photos: ["/images/excursions/dolphin-explorer.webp"],
+    photos: [
+      "/images/excursions/dolphin-explorer.webp",
+      "/images/excursions/dolphin-explorer-2.webp",
+      "/images/excursions/dolphin-explorer-3.webp",
+    ],
   },
   {
     slug: "isla-catalina-con-buceo",
@@ -267,7 +288,10 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "650+",
     duration: "8 horas",
     description: "Sumérgete en los vibrantes arrecifes de coral de Isla Catalina con equipo profesional de buceo y explora la vida marina.",
-    photos: ["/images/excursions/isla-catalina-con-buceo.webp"],
+    photos: [
+      "/images/excursions/isla-catalina-con-buceo.webp",
+      "/images/excursions/isla-catalina-con-buceo-2.webp",
+    ],
   },
   {
     slug: "monkey-land-con-zipline",
@@ -330,7 +354,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "1,240+",
     duration: "5 horas",
     description: "Interactúa con monos ardilla en su hábitat natural y disfruta de jardines botánicos.",
-    photos: ["/images/excursions/monkey-land.webp"],
+    photos: [
+      "/images/excursions/monkey-land.webp",
+      "/images/excursions/monkey-land-2.webp",
+      "/images/excursions/monkey-land-3.webp",
+    ],
   },
   {
     slug: "bahia-aguilas-vip",
@@ -341,7 +369,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "450+",
     duration: "2 Dias",
     description: "Experiencia exclusiva en la playa más hermosa del Caribe con servicio premium y almuerzo gourmet.",
-    photos: ["/images/excursions/bahia-aguilas-vip.webp"],
+    photos: [
+      "/images/excursions/bahia-aguilas-vip.webp",
+      "/images/excursions/bahia-aguilas-vip-2.webp",
+      "/images/excursions/bahia-aguilas-vip-3.webp",
+    ],
   },
   {
     slug: "seaquarium-experience",
@@ -400,7 +432,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "930+",
     duration: "1 a 3 horas",
     description: "Paseo romántico a caballo por la playa al atardecer.",
-    photos: ["/images/excursions/paseo-caballo-playa.webp"],
+    photos: [
+      "/images/excursions/paseo-caballo-playa.webp",
+      "/images/excursions/paseo-caballo-playa-2.webp",
+      "/images/excursions/paseo-caballo-playa-3.webp",
+    ],
   },
   {
     slug: "pesca-deportiva",
@@ -411,7 +447,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "580+",
     duration: "5 horas",
     description: "Pesca de altura en el Caribe capturando marlín, dorado y atún con equipo profesional.",
-    photos: ["/images/excursions/pesca-deportiva.webp"],
+    photos: [
+      "/images/excursions/pesca-deportiva.webp",
+      "/images/excursions/pesca-deportiva-2.webp",
+      "/images/excursions/pesca-deportiva-3.webp",
+    ],
   },
   {
     slug: "samana-vip",
@@ -422,7 +462,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "820+",
     duration: "2 Dias",
     description: "Tour de lujo a Samaná con catamarán premium, almuerzo gourmet y acceso exclusivo a Cayo Levantado.",
-    photos: ["/images/excursions/samana-vip.webp"],
+    photos: [
+      "/images/excursions/samana-vip.webp",
+      "/images/excursions/samana-vip-2.webp",
+      "/images/excursions/samana-vip-3.webp",
+    ],
   },
   {
     slug: "caribbean-pirates",
@@ -459,7 +503,11 @@ export const EXCURSIONS: Excursion[] = [
     reviews: "720+",
     duration: "3 horas",
     description: "Explora el mundo submarino en scooter acuático sin necesidad de certificación de buceo.",
-    photos: ["/images/excursions/scuba-doo.webp"],
+    photos: [
+      "/images/excursions/scuba-doo.webp",
+      "/images/excursions/scuba-doo-2.webp",
+      "/images/excursions/scuba-doo-3.webp",
+    ],
   },
   {
     slug: "la-hacienda-park",
@@ -502,6 +550,7 @@ export const EXCURSIONS: Excursion[] = [
     photos: [
       "/images/excursions/shopping-artesanal.webp",
       "/images/excursions/shopping-artesanal-2.webp",
+      "/images/excursions/shopping-artesanal-3.webp",
     ],
   },
   {
