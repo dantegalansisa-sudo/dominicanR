@@ -17,12 +17,13 @@ export default function ExcursionPhoto({
   item: Excursion;
   eager?: boolean;
 }) {
-  if (!item.photo) return <ImagePlaceholder category={item.category} />;
+  const cover = item.photos[0];
+  if (!cover) return <ImagePlaceholder category={item.category} />;
 
   return (
     <img
       className="exc-photo"
-      src={item.photo}
+      src={cover}
       alt={item.name}
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"

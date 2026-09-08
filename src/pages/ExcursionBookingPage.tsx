@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
+import ExcursionCarousel from '../components/ExcursionCarousel';
 import { CATEGORIES, EXCURSIONS } from '../data/excursions';
 import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal } from '../data/passengers';
 import type { Party } from '../data/passengers';
@@ -186,6 +187,14 @@ export default function ExcursionBookingPage() {
         <form className="booking-form" onSubmit={submit} noValidate>
           <div className="booking-form__main">
             <section className="bcard">
+              {/* La galeria va arriba del todo: es lo que confirma al visitante
+                  que esta reservando lo que creia. */}
+              {excursion && excursion.photos.length > 0 && (
+                <figure className="bcard__figure">
+                  <ExcursionCarousel item={excursion} />
+                </figure>
+              )}
+
               <h2 className="bcard__title">La excursión</h2>
 
               <div className="bcard__grid">
