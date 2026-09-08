@@ -15,7 +15,6 @@ import ExcursionsPage from './pages/ExcursionsPage';
 import BookingPage from './pages/BookingPage';
 import ExcursionBookingPage from './pages/ExcursionBookingPage';
 import type { Excursion } from './data/excursions';
-import type { Party } from './data/passengers';
 
 function Home({
   onSelect,
@@ -56,11 +55,9 @@ export default function App() {
   // excursiones tienen ahora su propia pagina, igual que los traslados, para
   // poder pedir los tramos de edad de los que depende el precio.
   const requestExcursion = useCallback(
-    (e: Excursion, seed: { date: string; party: Party }) => {
+    (e: Excursion) => {
       setDetail(null);
-      navigate('/reservar-excursion', {
-        state: { slug: e.slug, date: seed.date, party: seed.party },
-      });
+      navigate('/reservar-excursion', { state: { slug: e.slug } });
     },
     [navigate],
   );

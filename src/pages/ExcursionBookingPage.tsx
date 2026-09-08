@@ -129,7 +129,7 @@ export default function ExcursionBookingPage() {
         `Punto de recogida: ${pickup.text || '(por confirmar)'}`,
         ...(pickup.address ? [`  Dirección: ${pickup.address}`] : []),
         ...(pickupMap ? [`  Ubicación exacta: ${pickupMap}`] : []),
-        ...(room ? [`Hotel y habitación: ${room}`] : []),
+        ...(room ? [`Número de habitación: ${room}`] : []),
       ],
       [
         `Pasajeros: ${partyLabel(party)}`,
@@ -210,21 +210,12 @@ export default function ExcursionBookingPage() {
                   />
                 </div>
 
-                <label className="form__field">
+                <label className="form__field bcard__full">
                   <span>Fecha</span>
                   <input
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                  />
-                </label>
-
-                <label className="form__field">
-                  <span>Hotel y habitación (opcional)</span>
-                  <input
-                    value={room}
-                    onChange={(e) => setRoom(e.target.value)}
-                    placeholder="Para saber dónde buscarte"
                   />
                 </label>
 
@@ -240,6 +231,15 @@ export default function ExcursionBookingPage() {
                     google
                   />
                 </div>
+
+                <label className="form__field bcard__full">
+                  <span>Número de habitación (opcional)</span>
+                  <input
+                    value={room}
+                    onChange={(e) => setRoom(e.target.value)}
+                    placeholder="Para saber dónde buscarte"
+                  />
+                </label>
               </div>
 
               {excursion && (

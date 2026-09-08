@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import ExcursionPhoto from './ExcursionPhoto';
+import ExcursionCarousel from './ExcursionCarousel';
 import MagneticButton from './MagneticButton';
 import { CATEGORIES } from '../data/excursions';
 import type { Excursion } from '../data/excursions';
-import type { Party } from '../data/passengers';
 import { EASINGS } from '../utils/easings';
 
 const WHATSAPP = 'https://wa.me/18292191573';
@@ -39,10 +38,8 @@ export default function ExcursionDetail({
 }: {
   item: Excursion | null;
   onClose: () => void;
-  onReserve: (e: Excursion, seed: { date: string; party: Party }) => void;
+  onReserve: (e: Excursion) => void;
 }) {
-  const [pax, setPax] = useState(2);
-  const [date, setDate] = useState('');
 
   // Lock the page behind the panel and wire up Escape.
   useEffect(() => {
@@ -66,9 +63,7 @@ export default function ExcursionDetail({
 
   const waHref = item
     ? `${WHATSAPP}?text=${encodeURIComponent(
-        `Hola, quiero reservar "${item.name}" para ${pax} ${
-          pax === 1 ? 'persona' : 'personas'
-        }${date ? ` el ${date}` : ''}.`,
+        `Hola, quiero información sobre "${item.name}".`,
       )}`
     : WHATSAPP;
 
@@ -106,7 +101,7 @@ export default function ExcursionDetail({
 
             <div className="sheet__scroll">
               <div className="sheet__media">
-                <ExcursionPhoto item={item} eager />
+                <ExcursionCarousel item={item} />
               </div>
 
               <div className="sheet__body">
@@ -125,6 +120,10 @@ export default function ExcursionDetail({
                   <span className="sheet__fact">
                     <Ico d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                     Punta Cana
+                  </span>
+                  <span className="sheet__fact sheet__fact--price">
+                    <Ico d="M12 3v18M16.5 7.2c-.8-1.1-2.4-1.8-4.2-1.8-2.4 0-4 1.2-4 3s1.6 2.6 4 3.1c2.6.6 4.4 1.4 4.4 3.3 0 2-1.9 3.2-4.4 3.2-2 0-3.7-.8-4.5-2" />
+                    {item.price === null ? 'A cotizar' : `Desde $${item.price} por adulto`}
                   </span>
                 </div>
 
@@ -147,62 +146,11 @@ export default function ExcursionDetail({
             </div>
 
             <div className="sheet__foot">
-              <div className="sheet__booking">
-                <label className="sheet__field">
-                  <span>Fecha</span>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                  />
-                </label>
-
-                <div className="sheet__field">
-                  <span>Pasajeros</span>
-                  <div className="sheet__stepper">
-                    <button
-                      type="button"
-                      onClick={() => setPax((p) => Math.max(1, p - 1))}
-                      disabled={pax <= 1}
-                      aria-label="Quitar pasajero"
-                    >
-                      –
-                    </button>
-                    <strong aria-live="polite">{pax}</strong>
-                    <button
-                      type="button"
-                      onClick={() => setPax((p) => Math.min(30, p + 1))}
-                      disabled={pax >= 30}
-                      aria-label="Agregar pasajero"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="sheet__total">
-                <span>{item.price === null ? 'Precio' : 'Desde, por adulto'}</span>
-                <strong>
-                  {item.price === null ? 'A cotizar' : `$${item.price}`}
-                </strong>
-              </div>
-
-              <p className="sheet__ages">
-                Las edades se afinan en el siguiente paso. Los{' '}
-                <strong>infantes de 0 a 4 años no pagan</strong>.
-              </p>
-
               <MagneticButton
                 className="btn btn--primary btn--block"
                 block
                 magnetStrength={0.16}
-                onClick={() =>
-                  onReserve(item, {
-                    date,
-                    party: { adults: pax, children: 0, infants: 0 },
-                  })
-                }
+                onClick={() => onReserve(item)}
               >
                 Solicitar esta reserva
                 <Ico d="M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5" />

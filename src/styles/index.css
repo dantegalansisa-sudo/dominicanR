@@ -1332,34 +1332,6 @@ ul {
   color: var(--coral);
 }
 
-.fleet__note {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
-  color: var(--ink-soft);
-  flex-shrink: 0;
-  padding-bottom: 6px;
-}
-
-.fleet__swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  flex-shrink: 0;
-}
-
-.fleet__swatch--white {
-  background: var(--white);
-}
-
-.fleet__swatch--black {
-  background: var(--navy-deep);
-  border-color: var(--navy-deep);
-  margin-left: -14px;
-}
-
 .fleet__layout {
   display: grid;
   grid-template-columns: 250px minmax(0, 660px);
@@ -1827,20 +1799,6 @@ ul {
 .sheet__stepper strong {
   font-family: var(--font-display);
   font-size: 17px;
-}
-
-/* Sustituye al total calculado: con tramos de edad, multiplicar precio por
-   pasajeros daria una cifra falsa. */
-.sheet__ages {
-  margin: -6px 0 14px;
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--ink-soft);
-}
-
-.sheet__ages strong {
-  color: var(--ink);
-  font-weight: 600;
 }
 
 .sheet__total {

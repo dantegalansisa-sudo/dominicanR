@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import ImagePlaceholder from './ImagePlaceholder';
-import { FEATURED_FLEET, FLEET, FLEET_NOTE, OTHER_FLEET } from '../data/fleet';
+import { FEATURED_FLEET, FLEET, OTHER_FLEET } from '../data/fleet';
 import type { Vehicle } from '../data/fleet';
 import { EASINGS } from '../utils/easings';
 
@@ -85,18 +85,7 @@ export default function Fleet({
   const [activeSlug, setActiveSlug] = useState(FLEET[1]!.slug);
   const [collapsed, setCollapsed] = useState(true);
 
-  // Below 980px the list is a horizontal scroller, never a tall column, so
-  // collapsing buys nothing and would push the toggle off-screen to the right.
-  const [narrow, setNarrow] = useState(false);
-  useEffect(() => {
-    const q = window.matchMedia('(max-width: 980px)');
-    const sync = () => setNarrow(q.matches);
-    sync();
-    q.addEventListener('change', sync);
-    return () => q.removeEventListener('change', sync);
-  }, []);
-
-  const showRest = narrow || !collapsed;
+  const showRest = !collapsed;
   const active = FLEET.find((v) => v.slug === activeSlug) ?? FLEET[0];
 
   // Collapsing while one of the hidden vehicles is selected would leave the
@@ -121,16 +110,10 @@ export default function Fleet({
               {['Un', 'vehículo', 'para', <em key="cada">cada viaje</em>]}
             </RevealText>
           </div>
-          <p className="fleet__note">
-            <span className="fleet__swatch fleet__swatch--white" />
-            <span className="fleet__swatch fleet__swatch--black" />
-            {FLEET_NOTE}
-          </p>
         </div>
 
         <div className="fleet__layout">
           <div className="fleet__list" role="tablist" aria-label="Vehículos disponibles">
-            <p className="fleet__group">Principales</p>
             {FEATURED_FLEET.map((v) => (
               <FleetItem
                 key={v.slug}
@@ -162,8 +145,7 @@ export default function Fleet({
               )}
             </AnimatePresence>
 
-            {!narrow && (
-              <button type="button" className="fleet__more" onClick={toggleRest}>
+            <button type="button" className="fleet__more" onClick={toggleRest}>
               {showRest ? 'Ver menos' : `Ver el resto de la flota (${OTHER_FLEET.length})`}
               <motion.span
                 className="fleet__more-chevron"
@@ -181,8 +163,7 @@ export default function Fleet({
                   />
                   </svg>
                 </motion.span>
-              </button>
-            )}
+            </button>
           </div>
 
           <div className="fleet__stage">

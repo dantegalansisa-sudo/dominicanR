@@ -24,8 +24,6 @@ export interface Vehicle {
   features: string[];
 }
 
-export const FLEET_NOTE = 'Toda la flota se opera en blanco o negro.';
-
 export const FLEET: Vehicle[] = [
   {
     slug: 'sedan',
