@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import ExcursionCarousel from '../components/ExcursionCarousel';
-import { CATEGORIES, EXCURSIONS } from '../data/excursions';
+import { ALWAYS_INCLUDED, CATEGORIES, EXCURSIONS } from '../data/excursions';
 import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal } from '../data/passengers';
 import type { Party } from '../data/passengers';
 import { PICKUP_PLACES, emptyPlace, placeMapsUrl } from '../data/places';
@@ -66,6 +66,10 @@ const Ico = ({
 const ARROW = 'M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5';
 const PIN = 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z';
 const COMPASS = 'M20.5 12a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0Zm-5-3.5-2 5.5-5.5 2 2-5.5 5.5-2Z';
+const CLOCK = 'M12 7.5V12l3 1.8M20.5 12a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0Z';
+const STAR = 'm12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8L12 3Z';
+const COIN =
+  'M12 3v18M16.5 7.2c-.8-1.1-2.4-1.8-4.2-1.8-2.4 0-4 1.2-4 3s1.6 2.6 4 3.1c2.6.6 4.4 1.4 4.4 3.3 0 2-1.9 3.2-4.4 3.2-2 0-3.7-.8-4.5-2';
 
 const prettyDate = (iso: string) => {
   if (!iso) return '';
@@ -176,7 +180,12 @@ export default function ExcursionBookingPage() {
             <Ico d={ARROW} flip />
             Ver todas las excursiones
           </Link>
-          <p className="eyebrow">Paso 2 de 2</p>
+          <p className="eyebrow">
+            {excursion
+              ? (CATEGORIES.find((c) => c.id === excursion.category)?.label ??
+                'Excursiones')
+              : 'Excursiones'}
+          </p>
           <h1 className="h1 booking-page__title">Completa tu excursión</h1>
           <p className="booking-page__sub">
             Confirmamos por correo con el precio cerrado, normalmente el mismo
@@ -195,7 +204,43 @@ export default function ExcursionBookingPage() {
                 </figure>
               )}
 
-              <h2 className="bcard__title">La excursión</h2>
+              <h2 className="bcard__title">
+                {excursion ? excursion.name : 'La excursión'}
+              </h2>
+
+              {excursion && (
+                <div className="exdetail">
+                  <div className="exdetail__facts">
+                    <span className="exdetail__fact">
+                      <Ico d={CLOCK} size={15} />
+                      {excursion.duration}
+                    </span>
+                    <span className="exdetail__fact">
+                      <Ico d={STAR} size={15} />
+                      {excursion.rating.toFixed(1)} · {excursion.reviews} reseñas
+                    </span>
+                    <span className="exdetail__fact">
+                      <Ico d={PIN} size={15} />
+                      Punta Cana
+                    </span>
+                    <span className="exdetail__fact">
+                      <Ico d={COIN} size={15} />
+                      {excursion.price === null
+                        ? 'A cotizar'
+                        : `Desde $${excursion.price} por adulto`}
+                    </span>
+                  </div>
+
+                  <p className="exdetail__desc">{excursion.description}</p>
+
+                  <h3 className="exdetail__sub">Lo que siempre está incluido</h3>
+                  <ul className="exdetail__list">
+                    {ALWAYS_INCLUDED.map((g) => (
+                      <li key={g}>{g}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               <div className="bcard__grid">
                 <div className="bcard__full">
@@ -241,13 +286,6 @@ export default function ExcursionBookingPage() {
                   />
                 </label>
               </div>
-
-              {excursion && (
-                <p className="passengers__note bcard__hint">
-                  <strong>{excursion.name}</strong> · {excursion.duration} ·{' '}
-                  {excursion.rating.toFixed(1)} con {excursion.reviews} reseñas.
-                </p>
-              )}
             </section>
 
             <section className="bcard">

@@ -33,6 +33,17 @@ export interface Excursion {
   photos: string[];
 }
 
+/**
+ * Lo que el cliente garantiza en todas sus excursiones. Vivia dentro del panel
+ * lateral; al desaparecer ese panel pasa aqui, que es donde le corresponde.
+ */
+export const ALWAYS_INCLUDED = [
+  'Confirmación por correo el mismo día',
+  'Cancelación gratuita hasta 24 horas antes',
+  'Guía profesional certificado',
+  'Recogida y regreso a tu hotel incluidos',
+];
+
 /** Las seis más solicitadas, en el orden que indicó el cliente. */
 export const FEATURED_SLUGS = [
   'isla-saona-clasica',

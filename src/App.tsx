@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -10,7 +10,6 @@ import CtaBand from './components/CtaBand';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import FloatingCta from './components/FloatingCta';
-import ExcursionDetail from './components/ExcursionDetail';
 import ExcursionsPage from './pages/ExcursionsPage';
 import BookingPage from './pages/BookingPage';
 import ExcursionBookingPage from './pages/ExcursionBookingPage';
@@ -41,7 +40,6 @@ function Home({
 }
 
 export default function App() {
-  const [detail, setDetail] = useState<Excursion | null>(null);
   const navigate = useNavigate();
 
   const requestTransfer = useCallback(
@@ -56,7 +54,6 @@ export default function App() {
   // poder pedir los tramos de edad de los que depende el precio.
   const requestExcursion = useCallback(
     (e: Excursion) => {
-      setDetail(null);
       navigate('/reservar-excursion', { state: { slug: e.slug } });
     },
     [navigate],
@@ -71,14 +68,14 @@ export default function App() {
             path="/"
             element={
               <Home
-                onSelect={setDetail}
+                onSelect={requestExcursion}
                 onRequestTransfer={requestTransfer}
               />
             }
           />
           <Route
             path="/excursiones"
-            element={<ExcursionsPage onSelect={setDetail} />}
+            element={<ExcursionsPage onSelect={requestExcursion} />}
           />
           <Route path="/reservar" element={<BookingPage />} />
           <Route path="/reservar-excursion" element={<ExcursionBookingPage />} />
@@ -86,11 +83,6 @@ export default function App() {
       </main>
       <Footer />
       <FloatingCta />
-      <ExcursionDetail
-        item={detail}
-        onClose={() => setDetail(null)}
-        onReserve={requestExcursion}
-      />
     </>
   );
 }

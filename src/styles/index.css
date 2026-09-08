@@ -1191,10 +1191,6 @@ ul {
   background: var(--cream);
 }
 
-.sheet__media .exc-photo {
-  aspect-ratio: 16 / 10;
-}
-
 .ph {
   position: relative;
   aspect-ratio: 3 / 2;
@@ -1585,82 +1581,23 @@ ul {
    EXCURSION SHEET — slide-in detail
    ============================================================ */
 
-.sheet__scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 940;
-  background: rgba(11, 30, 51, 0.5);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+/* Ficha de la excursion dentro del formulario. Antes vivia en un panel
+   lateral; al desaparecer, su contenido pasa aqui y se separa de los campos
+   con una linea, para que no parezca parte del formulario. */
+.exdetail {
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
 }
 
-.sheet {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 950;
-  width: min(520px, 100vw);
-  background: var(--white);
-  display: flex;
-  flex-direction: column;
-  box-shadow: -24px 0 70px rgba(11, 30, 51, 0.22);
-}
-
-.sheet__close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 2;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--white);
-  color: var(--ink);
-  border: 1px solid var(--line);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition:
-    background-color 0.25s ease,
-    color 0.25s ease;
-}
-
-.sheet__close:hover {
-  background: var(--navy-deep);
-  color: var(--white);
-}
-
-.sheet__scroll {
-  flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.sheet__media .ph {
-  aspect-ratio: 16 / 10;
-}
-
-.sheet__body {
-  padding: 26px 30px 30px;
-}
-
-.sheet__title {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: clamp(26px, 4vw, 34px);
-  line-height: 1.15;
-  margin-top: 10px;
-}
-
-.sheet__facts {
+.exdetail__facts {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 18px;
 }
 
-.sheet__fact {
+.exdetail__fact {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1672,39 +1609,39 @@ ul {
   padding: 7px 14px;
 }
 
-.sheet__fact svg {
+.exdetail__fact svg {
   color: var(--coral);
 }
 
-.sheet__desc {
+.exdetail__desc {
   margin-top: 20px;
   font-size: 16px;
   line-height: 1.65;
   color: var(--ink-soft);
 }
 
-.sheet__sub {
+.exdetail__sub {
   margin-top: 28px;
   font-family: var(--font-display);
   font-weight: 500;
   font-size: 20px;
 }
 
-.sheet__list {
+.exdetail__list {
   margin-top: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.sheet__list li {
+.exdetail__list li {
   position: relative;
   padding-left: 18px;
   font-size: 15px;
   color: var(--ink);
 }
 
-.sheet__list li::before {
+.exdetail__list li::before {
   content: '';
   position: absolute;
   left: 0;
@@ -1713,119 +1650,6 @@ ul {
   height: 6px;
   border-radius: 50%;
   background: var(--sea);
-}
-
-.sheet__foot {
-  border-top: 1px solid var(--line);
-  padding: 20px 30px 24px;
-  background: var(--white);
-}
-
-.sheet__booking {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.sheet__field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  min-width: 0;
-}
-
-.sheet__field > span {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-
-.sheet__field input {
-  height: 46px;
-  border: 1.5px solid transparent;
-  background: var(--cream);
-  border-radius: 12px;
-  padding: 0 12px;
-  font-family: var(--font-body);
-  font-size: 14.5px;
-  font-weight: 500;
-  color: var(--ink);
-  outline: none;
-  width: 100%;
-  transition: border-color 0.25s ease;
-}
-
-.sheet__field input:focus {
-  border-color: var(--coral);
-}
-
-.sheet__stepper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 46px;
-  background: var(--cream);
-  border-radius: 12px;
-  padding: 0 8px;
-}
-
-.sheet__stepper button {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--white);
-  border: 1px solid var(--line);
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    background-color 0.22s ease,
-    color 0.22s ease;
-}
-
-.sheet__stepper button:hover:not(:disabled) {
-  background: var(--coral);
-  border-color: var(--coral);
-  color: var(--white);
-}
-
-.sheet__stepper button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.sheet__stepper strong {
-  font-family: var(--font-display);
-  font-size: 17px;
-}
-
-.sheet__total {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin: 18px 0 14px;
-}
-
-.sheet__total span {
-  font-size: 13.5px;
-  color: var(--ink-soft);
-}
-
-.sheet__total strong {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 26px;
-}
-
-@media (max-width: 560px) {
-  .sheet__body {
-    padding: 22px 20px 26px;
-  }
-  .sheet__foot {
-    padding: 16px 20px 20px;
-  }
 }
 
 /* ============================================================
@@ -2610,20 +2434,6 @@ ul {
 
 .cta-card__alt a:hover {
   color: var(--coral-soft);
-}
-
-.sheet__alt {
-  margin-top: 14px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-.sheet__alt a {
-  color: var(--sea);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 /* the fixed CTA must not sit on top of the form's own submit button */
