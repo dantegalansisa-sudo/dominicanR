@@ -3232,24 +3232,41 @@ ul {
   overflow: hidden;
 }
 
+/* Pastilla perfilada, no un enlace de texto: es la unica via para llegar a la
+   mitad de la flota y antes se confundia con el pie de la lista. Perfilada y no
+   solida para no competir con "Pedir este traslado", que es la accion final. */
 .fleet__more {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
-  width: 100%;
-  margin-top: 14px;
-  padding: 13px 18px;
-  border-top: 1px solid var(--line);
+  width: calc(100% - 36px);
+  margin: 18px 18px 4px;
+  padding: 13px 16px;
+  border: 1.5px solid var(--coral);
+  border-radius: 999px;
+  background: rgba(var(--coral-rgb), 0.07);
+  /* La columna mide 250px: en una sola linea o el chevron se descuelga. */
+  white-space: nowrap;
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--ink-soft);
+  color: var(--coral);
   cursor: pointer;
-  transition: color 0.25s ease;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .fleet__more:hover {
-  color: var(--coral);
+  background: var(--coral);
+  color: var(--white);
+  box-shadow: 0 8px 20px rgba(var(--coral-rgb), 0.28);
+}
+
+.fleet__more:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 2px;
 }
 
 .fleet__more-chevron {
@@ -3261,13 +3278,14 @@ ul {
     display: flex;
     align-items: stretch;
   }
+  /* En la tira horizontal va como una pastilla mas, al final de los vehiculos.
+     La propia pastilla separa, asi que sobra la linea divisoria. */
   .fleet__more {
     width: auto;
     flex-shrink: 0;
-    margin-top: 0;
-    padding: 0 4px 0 18px;
-    border-top: none;
-    border-left: 1px solid var(--line);
+    align-self: center;
+    margin: 0 4px 0 14px;
+    padding: 10px 18px;
     white-space: nowrap;
   }
 }
