@@ -15,6 +15,12 @@ export interface PlaceValue {
   lat?: number;
   lng?: number;
   address?: string;
+  /**
+   * El visitante lo eligió de la lista, no lo está tecleando. Lo usa la
+   * tarificación: calcular la ruta cuesta dinero en cada llamada, y mientras
+   * alguien escribe "bavaro" letra a letra el destino todavía no existe.
+   */
+  chosen?: boolean;
 }
 
 export const emptyPlace = (text = ''): PlaceValue => ({ text });

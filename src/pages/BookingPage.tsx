@@ -6,6 +6,8 @@ import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
 import { suggestVehicle } from '../components/PassengersField';
 import { FLEET } from '../data/fleet';
+import { quote } from '../data/pricing';
+import { fetchDistance } from '../utils/googlePlaces';
 import { TRANSFER_PLACES, emptyPlace, placeMapsUrl } from '../data/places';
 import type { PlaceValue } from '../data/places';
 import {
@@ -136,17 +138,53 @@ export default function BookingPage() {
   const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
+  const [km, setKm] = useState<number | null>(null);
+  const [pricing, setPricing] = useState<'idle' | 'loading' | 'ready' | 'none'>('idle');
 
   useEffect(() => {
     window.scrollTo(0, 0);
     document.title = 'Reservar traslado — Dominican Routes';
   }, []);
 
+  // Solo cuentan los extremos ya elegidos: cada consulta de ruta se factura, y
+  // tecleando "bavaro" letra a letra se dispararian seis.
+  const originId = origin.chosen ? (origin.placeId ?? origin.text.trim()) : '';
+  const destId = destination.chosen ? (destination.placeId ?? destination.text.trim()) : '';
+
+  useEffect(() => {
+    if (!originId || !destId) {
+      setKm(null);
+      setPricing('idle');
+      return;
+    }
+    const ctrl = new AbortController();
+    setPricing('loading');
+    const t = setTimeout(() => {
+      fetchDistance(origin, destination, ctrl.signal).then((r) => {
+        setKm(r.km);
+        setPricing(r.km == null ? 'none' : 'ready');
+      });
+    }, 350);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+    // Depende de la identidad de cada extremo, no del objeto: reescribir el
+    // texto sin cambiar de lugar no debe disparar otra llamada facturable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [originId, destId]);
+
+  /** El regreso recorre lo mismo otra vez, asi que cuenta doble. */
+  const billableKm = km == null ? null : round ? km * 2 : km;
+
   const total = partyTotal(party);
   const chosen = vehicleSlug ? (FLEET.find((v) => v.slug === vehicleSlug) ?? null) : null;
   const suggested = suggestVehicle(total);
   const vehicle = chosen ?? suggested;
   const overCapacity = vehicle != null && total > vehicle.maxPax;
+  const priceFor = (slug: string) =>
+    quote(billableKm, slug, origin.text, destination.text);
+  const chosenQuote = vehicle ? priceFor(vehicle.slug) : null;
 
   const setSeat = (id: SeatId, n: number) =>
     setExtras((e) => ({ ...e, seats: { ...e.seats, [id]: Math.max(0, Math.min(6, n)) } }));
@@ -212,6 +250,19 @@ export default function BookingPage() {
               `AVISO: ${total} pasajeros superan los ${vehicle.maxPax} de ese vehículo.`,
             ]
           : []),
+        ...(km != null
+          ? [`Distancia: ${km} km${round ? ` (ida y vuelta: ${billableKm} km)` : ''}`]
+          : []),
+        ...(chosenQuote
+          ? [
+              `Precio calculado: US$${chosenQuote.total}`,
+              ...(chosenQuote.surcharge
+                ? [
+                    `  Base US$${chosenQuote.base} + recargo US$${chosenQuote.surcharge.amount} (${chosenQuote.surcharge.label})`,
+                  ]
+                : [`  Sin recargo de ruta.`]),
+            ]
+          : ['Precio: a cotizar.']),
       ],
       extraLines.length
         ? [
@@ -425,9 +476,21 @@ export default function BookingPage() {
                 aunque seáis pocos.
               </p>
 
+              {pricing === 'loading' && (
+                <p className="passengers__note bcard__hint">Calculando la ruta…</p>
+              )}
+              {pricing === 'ready' && km != null && (
+                <p className="passengers__note bcard__hint">
+                  {km} km por carretera
+                  {round && ` · ida y vuelta, ${billableKm} km en total`}. Los
+                  precios ya incluyen el recorrido.
+                </p>
+              )}
+
               <div className="vpick">
                 {FLEET.map((v) => {
                   const on = vehicle?.slug === v.slug;
+                  const q = priceFor(v.slug);
                   return (
                     <button
                       key={v.slug}
@@ -446,7 +509,13 @@ export default function BookingPage() {
                         <span className="vpick__type">{v.type}</span>
                         <span className="vpick__pax">
                           {v.minPax}–{v.maxPax} pasajeros
-                          {v.price !== null && ` · desde $${v.price}`}
+                        </span>
+                        <span className="vpick__price">
+                          {q
+                            ? `US$${q.total}`
+                            : v.price !== null
+                              ? `desde $${v.price}`
+                              : 'A cotizar'}
                         </span>
                       </span>
                       {suggested?.slug === v.slug && !chosen && (
@@ -628,6 +697,23 @@ export default function BookingPage() {
                     <dd>
                       {vehicle.name}
                       {!chosen && ' (sugerido)'}
+                    </dd>
+                  </div>
+                )}
+                {chosenQuote && (
+                  <div>
+                    <dt>Precio</dt>
+                    <dd>
+                      US${chosenQuote.total}
+                      {chosenQuote.surcharge && (
+                        <>
+                          <br />
+                          <span className="summary__fine">
+                            US${chosenQuote.base} + US${chosenQuote.surcharge.amount}{' '}
+                            {chosenQuote.surcharge.label}
+                          </span>
+                        </>
+                      )}
                     </dd>
                   </div>
                 )}

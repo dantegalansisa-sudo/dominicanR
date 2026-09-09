@@ -127,6 +127,59 @@ async function details(
   };
 }
 
+/**
+ * Kilometros de carretera entre dos puntos, para tarificar el traslado. Con
+ * place_id no hace falta geocodificar el texto, que ademas seria otra llamada.
+ */
+async function distance(
+  key: string,
+  origin: Record<string, unknown>,
+  destination: Record<string, unknown>,
+): Promise<PlacesResult> {
+  const point = (v: Record<string, unknown>) => {
+    const placeId = str(v.placeId);
+    if (placeId) return { placeId };
+    const text = str(v.text);
+    return text ? { address: text } : null;
+  };
+  const o = point(origin);
+  const d = point(destination);
+  if (!o || !d) return fail(400, 'Faltan el origen o el destino.');
+
+  const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+    method: 'POST',
+    headers: {
+      'X-Goog-Api-Key': key,
+      'Content-Type': 'application/json',
+      'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration',
+    },
+    body: JSON.stringify({ origin: o, destination: d, travelMode: 'DRIVE' }),
+  });
+
+  if (!res.ok) return fail(502, 'No pudimos calcular la distancia.');
+
+  const data = (await res.json()) as {
+    routes?: { distanceMeters?: number; duration?: string }[];
+  };
+  const route = data.routes?.[0];
+  // Sin ruta por carretera no hay tarifa: son islas o puntos inalcanzables en
+  // coche, y conviene que la web lo diga en vez de inventar un precio.
+  if (!route?.distanceMeters) {
+    return { status: 200, body: { ok: true, km: null, reason: 'sin-ruta' } };
+  }
+
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      km: Math.round((route.distanceMeters / 1000) * 10) / 10,
+      minutes: route.duration
+        ? Math.round(parseInt(route.duration, 10) / 60)
+        : null,
+    },
+  };
+}
+
 export async function handlePlaces(payload: unknown): Promise<PlacesResult> {
   const key = process.env.GOOGLE_PLACES_API_KEY;
   // Sin key la web sigue funcionando con la lista fija de aeropuertos y zonas,
@@ -141,6 +194,12 @@ export async function handlePlaces(payload: unknown): Promise<PlacesResult> {
       return autocomplete(key, str(p.input), session);
     case 'details':
       return details(key, str(p.placeId), session);
+    case 'distance':
+      return distance(
+        key,
+        (p.origin ?? {}) as Record<string, unknown>,
+        (p.destination ?? {}) as Record<string, unknown>,
+      );
     default:
       return fail(400, 'Operación no válida.');
   }

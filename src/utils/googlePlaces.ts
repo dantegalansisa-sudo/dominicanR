@@ -69,3 +69,32 @@ export async function fetchPlace(
     return { text: fallbackText, placeId };
   }
 }
+
+export interface DistanceResult {
+  km: number | null;
+  minutes: number | null;
+}
+
+/** Kilómetros de carretera entre dos puntos, para tarificar el traslado. */
+export async function fetchDistance(
+  origin: PlaceValue,
+  destination: PlaceValue,
+  signal?: AbortSignal,
+): Promise<DistanceResult> {
+  try {
+    const body = await call(
+      {
+        op: 'distance',
+        origin: { placeId: origin.placeId, text: origin.text },
+        destination: { placeId: destination.placeId, text: destination.text },
+      },
+      signal,
+    );
+    return {
+      km: (body.km as number | null) ?? null,
+      minutes: (body.minutes as number | null) ?? null,
+    };
+  } catch {
+    return { km: null, minutes: null };
+  }
+}

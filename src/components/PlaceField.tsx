@@ -124,7 +124,7 @@ export default function PlaceField({
   };
 
   const pickStatic = (text: string) => {
-    onChange({ text });
+    onChange({ text, chosen: true });
     close();
   };
 
@@ -132,12 +132,12 @@ export default function PlaceField({
     const text = s.main;
     // Se pinta el texto ya, sin esperar a la red: el campo nunca se queda vacío
     // mientras llegan las coordenadas.
-    onChange({ text, placeId: s.placeId });
+    onChange({ text, placeId: s.placeId, chosen: true });
     close();
     setRemote([]);
     const token = session.current;
     session.current = newSessionToken();
-    fetchPlace(s.placeId, token, text).then(onChange);
+    fetchPlace(s.placeId, token, text).then((v) => onChange({ ...v, chosen: true }));
   };
 
   const pick = (e: Entry) =>
