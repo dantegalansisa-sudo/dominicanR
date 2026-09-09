@@ -128,7 +128,11 @@ export default function ExcursionBookingPage() {
     if (adultsOnly) setParty((p) => ({ ...p, children: 0, infants: 0 }));
   }, [adultsOnly]);
 
-  const bands = adultsOnly ? BANDS.slice(0, 1) : BANDS;
+  // Con barra libre el tramo de adultos no es el del catalogo, que empieza a
+  // los 11: decir "solo para mayores" y debajo "11 anos o mas" se contradice.
+  const bands = adultsOnly
+    ? [{ ...BANDS[0], hint: '18 años o más' }]
+    : BANDS;
   const total = partyTotal(party);
   const atMax = total >= MAX_PARTY;
   const pickupMap = placeMapsUrl(pickup);

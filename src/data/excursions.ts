@@ -95,6 +95,7 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/isla-saona-clasica.webp",
       "/images/excursions/isla-saona-clasica-2.webp",
       "/images/excursions/isla-saona-clasica-3.webp",
+      "/images/excursions/isla-saona-clasica-4.webp",
     ],
   },
   {
@@ -186,6 +187,7 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/coco-bongo.webp",
       "/images/excursions/coco-bongo-2.webp",
       "/images/excursions/coco-bongo-3.webp",
+      "/images/excursions/coco-bongo-4.webp",
     ],
     adultsOnly: true,
     tickets: [
@@ -240,6 +242,8 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/isla-saona-vip.webp",
       "/images/excursions/isla-saona-vip-2.webp",
       "/images/excursions/isla-saona-vip-3.webp",
+      "/images/excursions/isla-saona-vip-4.webp",
+      "/images/excursions/isla-saona-vip-5.webp",
     ],
   },
   {
@@ -281,6 +285,7 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/isla-saona-exclusiva.webp",
       "/images/excursions/isla-saona-exclusiva-2.webp",
       "/images/excursions/isla-saona-exclusiva-3.webp",
+      "/images/excursions/isla-saona-exclusiva-4.webp",
     ],
   },
   {
@@ -296,6 +301,7 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/isla-catalina.webp",
       "/images/excursions/isla-catalina-2.webp",
       "/images/excursions/isla-catalina-3.webp",
+      "/images/excursions/isla-catalina-4.webp",
     ],
   },
   {
@@ -621,6 +627,8 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/city-tour-santo-domingo.webp",
       "/images/excursions/city-tour-santo-domingo-2.webp",
       "/images/excursions/city-tour-santo-domingo-3.webp",
+      "/images/excursions/city-tour-santo-domingo-4.webp",
+      "/images/excursions/city-tour-santo-domingo-5.webp",
     ],
   },
   {
@@ -666,6 +674,8 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/city-tour-higuey.webp",
       "/images/excursions/city-tour-higuey-2.webp",
       "/images/excursions/city-tour-higuey-3.webp",
+      "/images/excursions/city-tour-higuey-4.webp",
+      "/images/excursions/city-tour-higuey-5.webp",
     ],
   },
   {
