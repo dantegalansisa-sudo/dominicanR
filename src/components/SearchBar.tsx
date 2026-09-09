@@ -95,7 +95,6 @@ export default function SearchBar() {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [party, setParty] = useState<Party>(EMPTY_PARTY);
-  const [round, setRound] = useState(false);
 
   const isTransfer = tab === 'Traslado';
 
@@ -104,7 +103,7 @@ export default function SearchBar() {
     // on-board amenities to live there, not crowding the hero bar.
     if (isTransfer) {
       navigate('/reservar', {
-        state: { origin, destination, date, time, adults: party.adults, round },
+        state: { origin, destination, date, time, party },
       });
       return;
     }
@@ -180,6 +179,7 @@ export default function SearchBar() {
           <input
             id="sb-date"
             type="date"
+            className={date ? undefined : 'is-empty'}
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
@@ -193,6 +193,7 @@ export default function SearchBar() {
           <input
             id="sb-time"
             type="time"
+            className={time ? undefined : 'is-empty'}
             value={time}
             onChange={(e) => setTime(e.target.value)}
           />
@@ -201,7 +202,7 @@ export default function SearchBar() {
         <PassengersField
           value={party}
           onChange={setParty}
-          variant={isTransfer ? 'adults' : 'ages'}
+          variant={isTransfer ? 'transfer' : 'ages'}
         />
 
         <div className="search__submit">
@@ -216,27 +217,7 @@ export default function SearchBar() {
         </div>
       </div>
 
-      <div className="search__foot">
-        {isTransfer ? (
-          <button
-            type="button"
-            className="search__return"
-            onClick={() => setRound((v) => !v)}
-            aria-pressed={round}
-          >
-            <span className={`switch${round ? ' is-on' : ''}`}>
-              <motion.span
-                className="switch__knob"
-                layout
-                transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-              />
-            </span>
-            Agregar regreso
-          </button>
-        ) : (
-          <span />
-        )}
-
+      <div className="search__foot search__foot--single">
         <p className="search__note">
           <ShieldIcon />
           {isTransfer

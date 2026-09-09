@@ -695,6 +695,40 @@ ul {
   font-weight: 400;
 }
 
+/* Fecha y hora: el campo ya traia nuestro icono en la etiqueta y el navegador
+   pintaba otro calendario dentro, asi que se veian dos. Se estira el indicador
+   nativo invisible sobre toda la casilla: desaparece el icono duplicado y de
+   paso se abre el selector pulsando en cualquier punto, como en origen y
+   destino, que abren su lista al enfocarlos. */
+.search__field input[type='date'],
+.search__field input[type='time'] {
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+/* Vacio, el formato que pinta el navegador hace de marcador de posicion, asi
+   que va en el mismo gris que el de origen y destino. */
+.search__field input.is-empty::-webkit-datetime-edit {
+  color: #a89e92;
+}
+
+.search__field input[type='date']::-webkit-calendar-picker-indicator,
+.search__field input[type='time']::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Sin el toggle de regreso, la nota se queda sola y ya no necesita repartirse. */
+.search__foot--single {
+  justify-content: flex-end;
+}
+
 /* passenger stepper lives inline in the bar */
 
 
@@ -2521,36 +2555,9 @@ ul {
 
 /* ---------- fleet: featured first, rest below ---------- */
 
-.fleet__group {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--coral);
-  padding: 0 18px 10px;
-}
-
-.fleet__group--rest {
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-  color: var(--ink-soft);
-}
-
 @media (max-width: 980px) {
   .fleet__list {
     align-items: stretch;
-  }
-  .fleet__group {
-    align-self: center;
-    padding: 0 14px 0 4px;
-    white-space: nowrap;
-  }
-  .fleet__group--rest {
-    margin-top: 0;
-    padding: 0 14px 0 18px;
-    border-top: none;
-    border-left: 1px solid var(--line);
   }
 }
 
@@ -2935,21 +2942,14 @@ ul {
   margin-top: 20px;
 }
 
-/* Deshacer la eleccion de vehiculo sin salir de la pagina. */
-.bcard__swap {
-  border: 0;
-  background: none;
-  padding: 0;
-  font: inherit;
-  color: var(--coral);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
+/* El bloque de regreso se despliega bajo el interruptor; overflow hidden para
+   que la animacion de altura no deje asomar los campos. */
+.bcard__return-when {
+  overflow: hidden;
 }
 
-.bcard__swap:hover {
-  color: var(--ink);
+.bcard__return-when .bcard__grid {
+  padding-top: 18px;
 }
 
 .bcard__hint {
@@ -3152,6 +3152,99 @@ ul {
   }
 }
 
+/* ---------- selector de vehiculo en el formulario ---------- */
+
+.vpick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.vpick__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+  cursor: pointer;
+  transition:
+    border-color 0.22s ease,
+    background-color 0.22s ease;
+}
+
+.vpick__item:hover {
+  border-color: rgba(var(--coral-rgb), 0.5);
+}
+
+.vpick__item.is-on {
+  border-color: var(--coral);
+  background: rgba(var(--coral-rgb), 0.05);
+}
+
+.vpick__media {
+  flex-shrink: 0;
+  width: 84px;
+  aspect-ratio: 2 / 1;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--cream);
+}
+
+.vpick__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vpick__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.vpick__name {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+
+.vpick__type {
+  font-size: 12.5px;
+  color: var(--sea);
+}
+
+.vpick__pax {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* Etiqueta, no candado: marca la que encaja por plazas y nada mas. */
+.vpick__tag {
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  background: var(--coral);
+  color: var(--white);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+@media (max-width: 620px) {
+  .vpick {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- amenities ---------- */
 
 
@@ -3228,10 +3321,6 @@ ul {
   }
 }
 
-.fleet__rest {
-  overflow: hidden;
-}
-
 /* Pastilla perfilada, no un enlace de texto: es la unica via para llegar a la
    mitad de la flota y antes se confundia con el pie de la lista. Perfilada y no
    solida para no competir con "Pedir este traslado", que es la accion final. */
@@ -3273,13 +3362,6 @@ ul {
 }
 
 @media (max-width: 980px) {
-  .fleet__rest {
-    display: flex;
-    align-items: stretch;
-    /* Sin esto se encoge a cero: overflow hidden anula su ancho minimo
-       automatico y la tira ya desborda, asi que el navegador lo colapsa. */
-    flex-shrink: 0;
-  }
   /* En la tira horizontal va como una pastilla mas, al final de los vehiculos.
      La propia pastilla separa, asi que sobra la linea divisoria. */
   .fleet__more {

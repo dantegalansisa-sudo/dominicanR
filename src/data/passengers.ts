@@ -9,10 +9,15 @@ export const AGE_BANDS = {
   infants: { label: 'Infantes', hint: 'De 0 a 4 años · no pagan' },
 } as const;
 
-/** En traslados el precio es por vehículo, así que solo importa la capacidad. */
+/**
+ * En traslados el precio es por vehículo, así que la edad no cambia el importe:
+ * solo cuenta cuánta gente sube. Por eso van sin rangos de edad, al contrario
+ * que en excursiones, donde cada tramo tiene su tarifa.
+ */
 export const TRANSFER_BANDS = {
-  adults: { label: 'Adultos', hint: 'Ocupan una plaza' },
-  children: { label: 'Niños', hint: 'Menores de 11 años' },
+  adults: { label: 'Adultos', hint: '' },
+  children: { label: 'Niños', hint: '' },
+  infants: { label: 'Infantes', hint: '' },
 } as const;
 
 export interface Party {
@@ -53,9 +58,9 @@ export const SEATS = [
 /** De menor a mayor precio, que es como se lee una carta. */
 export const DRINKS = [
   { id: 'agua', label: 'Agua embotellada', price: 1 },
-  { id: 'cerveza', label: 'Cerveza fría', price: 5 },
-  { id: 'sixpack', label: 'Six pack Presidente fría', price: 25 },
-  { id: 'ron', label: 'Ron Brugal', price: 50 },
+  { id: 'cerveza', label: 'Cerveza Presidente', price: 5 },
+  { id: 'sixpack', label: 'Six pack Cerveza Presidente', price: 25 },
+  { id: 'ron', label: 'Ron Brugal o Barceló', price: 50 },
 ] as const;
 
 /** El precio por minuto baja con el bloque, así que conviene decirlo. */

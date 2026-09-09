@@ -12,12 +12,15 @@ import {
   EMPTY_EXTRAS,
   SEATS,
   STOPS,
+  EMPTY_PARTY,
   TRANSFER_BANDS,
+  partyLabel,
+  partyTotal,
   extrasLines,
   extrasTotal,
   usd,
 } from '../data/passengers';
-import type { Extras, SeatId, DrinkId } from '../data/passengers';
+import type { Extras, SeatId, DrinkId, Party } from '../data/passengers';
 
 /** Lo que el buscador del hero deja al navegar hasta aquí. */
 export interface BookingSeed {
@@ -25,7 +28,8 @@ export interface BookingSeed {
   destination?: PlaceValue;
   date?: string;
   time?: string;
-  adults?: number;
+  /** El buscador ya reparte el grupo en los tres tramos. */
+  party?: Party;
   round?: boolean;
   /** Slug del vehiculo, cuando se llega desde una tarjeta de la flota. */
   vehicle?: string;
@@ -114,9 +118,10 @@ export default function BookingPage() {
   const [date, setDate] = useState(seed.date ?? '');
   const [time, setTime] = useState(seed.time ?? '');
   const [round, setRound] = useState(Boolean(seed.round));
-  const [adults, setAdults] = useState(seed.adults ?? 2);
+  const [returnDate, setReturnDate] = useState('');
+  const [returnTime, setReturnTime] = useState('');
+  const [party, setParty] = useState<Party>(seed.party ?? EMPTY_PARTY);
   const [vehicleSlug, setVehicleSlug] = useState<string | null>(seed.vehicle ?? null);
-  const [children, setChildren] = useState(0);
   const [extras, setExtras] = useState<Extras>(EMPTY_EXTRAS);
   const [flight, setFlight] = useState('');
   const [notes, setNotes] = useState('');
@@ -131,10 +136,11 @@ export default function BookingPage() {
     document.title = 'Reservar traslado — Dominican Routes';
   }, []);
 
-  const total = adults + children;
+  const total = partyTotal(party);
   const chosen = vehicleSlug ? (FLEET.find((v) => v.slug === vehicleSlug) ?? null) : null;
-  const vehicle = chosen ?? suggestVehicle(total);
-  const overCapacity = chosen != null && total > chosen.maxPax;
+  const suggested = suggestVehicle(total);
+  const vehicle = chosen ?? suggested;
+  const overCapacity = vehicle != null && total > vehicle.maxPax;
 
   const setSeat = (id: SeatId, n: number) =>
     setExtras((e) => ({ ...e, seats: { ...e.seats, [id]: Math.max(0, Math.min(6, n)) } }));
@@ -160,6 +166,14 @@ export default function BookingPage() {
     e.preventDefault();
     if (status === 'sending') return;
 
+    // El formulario lleva noValidate, asi que `required` no lo aplica el
+    // navegador: hay que comprobarlo aqui o el telefono se colaria vacio.
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      setStatus('error');
+      setError('Completa tu nombre, tu correo y tu teléfono.');
+      return;
+    }
+
     const blocks = [
       [`Solicitud de traslado${round ? ' ida y vuelta' : ''}.`],
       [
@@ -172,19 +186,24 @@ export default function BookingPage() {
         `Fecha: ${prettyDate(date) || '(por confirmar)'}`,
         `Hora: ${time || '(por confirmar)'}`,
         ...(flight ? [`Vuelo: ${flight}`] : []),
+        ...(round
+          ? [
+              `Regreso: ${prettyDate(returnDate) || '(fecha por confirmar)'}${
+                returnTime ? ` a las ${returnTime}` : ''
+              }`,
+            ]
+          : []),
       ],
       [
-        `Pasajeros: ${adults} ${adults === 1 ? 'adulto' : 'adultos'}${
-          children ? `, ${children} ${children === 1 ? 'niño' : 'niños'}` : ''
-        }`,
+        `Pasajeros: ${partyLabel(party)}`,
         ...(chosen
           ? [`Vehículo elegido por el cliente: ${chosen.name} (${chosen.type}).`]
           : vehicle
-            ? [`Vehículo sugerido por la web: ${vehicle.name}.`]
+            ? [`Vehículo sugerido por la web: ${vehicle.name} (${vehicle.type}).`]
             : []),
-        ...(overCapacity
+        ...(overCapacity && vehicle
           ? [
-              `AVISO: ${total} pasajeros superan los ${chosen.maxPax} de ese vehículo.`,
+              `AVISO: ${total} pasajeros superan los ${vehicle.maxPax} de ese vehículo.`,
             ]
           : []),
       ],
@@ -316,54 +335,106 @@ export default function BookingPage() {
                 </span>
                 Necesito el regreso también
               </button>
+
+              <AnimatePresence initial={false}>
+                {round && (
+                  <motion.div
+                    className="bcard__return-when"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.32 }}
+                  >
+                    <div className="bcard__grid">
+                      <label className="form__field">
+                        <span>Fecha del regreso</span>
+                        <input
+                          type="date"
+                          value={returnDate}
+                          onChange={(e) => setReturnDate(e.target.value)}
+                        />
+                      </label>
+                      <label className="form__field">
+                        <span>Hora del regreso</span>
+                        <input
+                          type="time"
+                          value={returnTime}
+                          onChange={(e) => setReturnTime(e.target.value)}
+                        />
+                      </label>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </section>
 
             <section className="bcard">
               <h2 className="bcard__title">Quiénes viajan</h2>
-              {(['adults', 'children'] as const).map((key) => {
+              {(['adults', 'children', 'infants'] as const).map((key) => {
                 const band = TRANSFER_BANDS[key];
-                const value = key === 'adults' ? adults : children;
-                const setter = key === 'adults' ? setAdults : setChildren;
                 return (
                   <div className="passengers__row" key={key}>
                     <div>
                       <p className="passengers__row-label">{band.label}</p>
-                      <p className="passengers__row-hint">{band.hint}</p>
+                      {band.hint && (
+                        <p className="passengers__row-hint">{band.hint}</p>
+                      )}
                     </div>
                     <Stepper
-                      value={value}
+                      value={party[key]}
                       min={key === 'adults' ? 1 : 0}
                       max={50}
-                      onChange={setter}
+                      onChange={(n) => setParty((p) => ({ ...p, [key]: n }))}
                       label={band.label.toLowerCase()}
                     />
                   </div>
                 );
               })}
-              {chosen ? (
-                <p className="passengers__note bcard__hint">
-                  Elegiste <strong>{chosen.name}</strong> ({chosen.type}), hasta{' '}
-                  {chosen.maxPax} pasajeros.{' '}
-                  <button
-                    type="button"
-                    className="bcard__swap"
-                    onClick={() => setVehicleSlug(null)}
-                  >
-                    Que lo elija la web
-                  </button>
-                </p>
-              ) : (
-                vehicle && (
-                  <p className="passengers__note bcard__hint">
-                    Para {total} {total === 1 ? 'pasajero' : 'pasajeros'} sugerimos{' '}
-                    <strong>{vehicle.name}</strong> ({vehicle.type}).
-                  </p>
-                )
-              )}
+            </section>
 
-              {overCapacity && (
+            <section className="bcard">
+              <h2 className="bcard__title">El vehículo</h2>
+              <p className="bcard__lead">
+                Te marcamos el que encaja por número de pasajeros, pero elige el
+                que quieras: si viajas con mucho equipaje, coge uno más grande
+                aunque seáis pocos.
+              </p>
+
+              <div className="vpick">
+                {FLEET.map((v) => {
+                  const on = vehicle?.slug === v.slug;
+                  return (
+                    <button
+                      key={v.slug}
+                      type="button"
+                      className={`vpick__item${on ? ' is-on' : ''}`}
+                      onClick={() => setVehicleSlug(v.slug)}
+                      aria-pressed={on}
+                    >
+                      <span className="vpick__media">
+                        {v.photo && (
+                          <img src={v.photo} alt="" loading="lazy" decoding="async" />
+                        )}
+                      </span>
+                      <span className="vpick__body">
+                        <span className="vpick__name">{v.name}</span>
+                        <span className="vpick__type">{v.type}</span>
+                        <span className="vpick__pax">
+                          {v.minPax}–{v.maxPax} pasajeros
+                          {v.price !== null && ` · desde $${v.price}`}
+                        </span>
+                      </span>
+                      {suggested?.slug === v.slug && !chosen && (
+                        <span className="vpick__tag">Sugerido</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {overCapacity && vehicle && (
                 <p className="passengers__note passengers__note--warn bcard__hint">
-                  Ese vehículo admite {chosen.maxPax}. Para {total} haría falta
+                  {vehicle.name} admite {vehicle.maxPax}. Para {total} haría falta
                   otro o una segunda unidad: lo coordinamos contigo.
                 </p>
               )}
@@ -414,7 +485,7 @@ export default function BookingPage() {
                 <div className="extras__group extras__group--wide">
                   <p className="extras__group-title">Paradas adicionales</p>
                   <p className="extras__group-hint">
-                    Supermercado, farmacia, cajero… se cobra por tiempo de espera.
+                    Supermercado, restaurante… se cobra por tiempo de espera.
                   </p>
                   <div className="stops">
                     {STOPS.map((stop) => {
@@ -498,9 +569,10 @@ export default function BookingPage() {
               <label className="form__field">
                 <span>WhatsApp / teléfono</span>
                 <input
+                  required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Opcional"
+                  placeholder="Para avisarte el día del viaje"
                   autoComplete="tel"
                 />
               </label>
@@ -519,6 +591,15 @@ export default function BookingPage() {
                     {prettyDate(date) || '—'} {time && `· ${time}`}
                   </dd>
                 </div>
+                {round && (
+                  <div>
+                    <dt>Regreso</dt>
+                    <dd>
+                      {prettyDate(returnDate) || '—'}{' '}
+                      {returnTime && `· ${returnTime}`}
+                    </dd>
+                  </div>
+                )}
                 {vehicle && (
                   <div>
                     <dt>Vehículo</dt>
@@ -531,10 +612,7 @@ export default function BookingPage() {
                 <div>
                   <dt>Pasajeros</dt>
                   <dd>
-                    {adults} {adults === 1 ? 'adulto' : 'adultos'}
-                    {children
-                      ? `, ${children} ${children === 1 ? 'niño' : 'niños'}`
-                      : ''}
+                    {partyLabel(party)}
                   </dd>
                 </div>
                 {extraLines.length > 0 && (

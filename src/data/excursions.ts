@@ -31,6 +31,11 @@ export interface Excursion {
    * haya enviado fotos.
    */
   photos: string[];
+  /**
+   * Solo para mayores: el formulario esconde ninos e infantes. Marcadas las que
+   * llevan barra libre o son discoteca, que es donde el propio catalogo lo dice.
+   */
+  adultsOnly?: boolean;
 }
 
 /**
@@ -159,6 +164,7 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/coco-bongo-2.webp",
       "/images/excursions/coco-bongo-3.webp",
     ],
+    adultsOnly: true,
   },
   {
     slug: "zipline-adventure",
@@ -260,6 +266,7 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/party-boat-2.webp",
       "/images/excursions/party-boat-3.webp",
     ],
+    adultsOnly: true,
   },
   {
     slug: "jet-ski-punta-cana",
@@ -449,6 +456,7 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/imagine-punta-cana-2.webp",
       "/images/excursions/imagine-punta-cana-3.webp",
     ],
+    adultsOnly: true,
   },
   {
     slug: "atv-adventure",

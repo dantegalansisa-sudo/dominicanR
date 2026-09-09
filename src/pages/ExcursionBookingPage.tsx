@@ -107,6 +107,14 @@ export default function ExcursionBookingPage() {
     [choice.text],
   );
 
+  const adultsOnly = Boolean(excursion?.adultsOnly);
+  // Elegir una excursion de solo adultos con ninos ya contados dejaria el
+  // correo pidiendo plazas que no existen.
+  useEffect(() => {
+    if (adultsOnly) setParty((p) => ({ ...p, children: 0, infants: 0 }));
+  }, [adultsOnly]);
+
+  const bands = adultsOnly ? BANDS.slice(0, 1) : BANDS;
   const total = partyTotal(party);
   const atMax = total >= MAX_PARTY;
   const pickupMap = placeMapsUrl(pickup);
@@ -120,6 +128,14 @@ export default function ExcursionBookingPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status === 'sending') return;
+
+    // El formulario lleva noValidate, asi que `required` no lo aplica el
+    // navegador: hay que comprobarlo aqui o el telefono se colaria vacio.
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      setStatus('error');
+      setError('Completa tu nombre, tu correo y tu teléfono.');
+      return;
+    }
 
     // Los tramos van desglosados y con su rango de edad al lado: es
     // exactamente lo que el operador necesita para cotizar la salida.
@@ -135,12 +151,17 @@ export default function ExcursionBookingPage() {
         ...(pickupMap ? [`  Ubicación exacta: ${pickupMap}`] : []),
         ...(room ? [`Número de habitación: ${room}`] : []),
       ],
-      [
-        `Pasajeros: ${partyLabel(party)}`,
-        `  ${AGE_BANDS.adults.label} (${AGE_BANDS.adults.hint}): ${party.adults}`,
-        `  ${AGE_BANDS.children.label} (${AGE_BANDS.children.hint}): ${party.children}`,
-        `  ${AGE_BANDS.infants.label} (${AGE_BANDS.infants.hint}): ${party.infants}`,
-      ],
+      adultsOnly
+        ? [
+            `Pasajeros: ${party.adults} ${party.adults === 1 ? 'adulto' : 'adultos'}`,
+            '  Experiencia solo para mayores de edad.',
+          ]
+        : [
+            `Pasajeros: ${partyLabel(party)}`,
+            `  ${AGE_BANDS.adults.label} (${AGE_BANDS.adults.hint}): ${party.adults}`,
+            `  ${AGE_BANDS.children.label} (${AGE_BANDS.children.hint}): ${party.children}`,
+            `  ${AGE_BANDS.infants.label} (${AGE_BANDS.infants.hint}): ${party.infants}`,
+          ],
       ...(notes ? [[`Notas: ${notes}`]] : []),
     ];
 
@@ -291,10 +312,12 @@ export default function ExcursionBookingPage() {
             <section className="bcard">
               <h2 className="bcard__title">Quiénes viajan</h2>
               <p className="bcard__lead">
-                El precio cambia según la edad, así que conviene afinarlo aquí.
+                {adultsOnly
+                  ? 'Esta experiencia es solo para mayores de edad.'
+                  : 'El precio cambia según la edad, así que conviene afinarlo aquí.'}
               </p>
 
-              {BANDS.map((band) => {
+              {bands.map((band) => {
                 const n = party[band.key];
                 return (
                   <div className="passengers__row" key={band.key}>
@@ -334,6 +357,11 @@ export default function ExcursionBookingPage() {
                   <>
                     {MAX_PARTY} es lo máximo por salida. Para grupos mayores
                     coordinamos varias unidades: cuéntanoslo abajo.
+                  </>
+                ) : adultsOnly ? (
+                  <>
+                    <strong>{excursion?.name}</strong> no admite menores: lleva
+                    barra libre.
                   </>
                 ) : (
                   <>
@@ -383,9 +411,10 @@ export default function ExcursionBookingPage() {
               <label className="form__field">
                 <span>WhatsApp / teléfono</span>
                 <input
+                  required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Opcional"
+                  placeholder="Para avisarte el día de la salida"
                   autoComplete="tel"
                 />
               </label>

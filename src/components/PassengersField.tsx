@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FLEET } from '../data/fleet';
-import { AGE_BANDS, partyTotal } from '../data/passengers';
+import { AGE_BANDS, TRANSFER_BANDS, partyTotal } from '../data/passengers';
 import type { Party } from '../data/passengers';
 
 const MAX_TOTAL = Math.max(...FLEET.filter((v) => v.standard).map((v) => v.maxPax));
@@ -19,21 +19,29 @@ export function suggestVehicle(total: number) {
   );
 }
 
-const BANDS = [
+/** En excursiones cada tramo tiene su tarifa, asi que el rango de edad importa. */
+const AGE_ROWS = [
   { key: 'adults', ...AGE_BANDS.adults, min: 1 },
   { key: 'children', ...AGE_BANDS.children, min: 0 },
   { key: 'infants', ...AGE_BANDS.infants, min: 0 },
+] as const;
+
+/** En traslados se cobra por vehiculo: solo cuenta cuanta gente sube. */
+const TRANSFER_ROWS = [
+  { key: 'adults', ...TRANSFER_BANDS.adults, min: 1 },
+  { key: 'children', ...TRANSFER_BANDS.children, min: 0 },
+  { key: 'infants', ...TRANSFER_BANDS.infants, min: 0 },
 ] as const;
 
 interface PassengersFieldProps {
   value: Party;
   onChange: (p: Party) => void;
   /**
-   * `adults` shows a single stepper — transfers are priced per vehicle, so the
-   * hero bar only needs the head count and the rest is asked on the booking
-   * form. `ages` splits the party because excursions price each band apart.
+   * Ambos reparten el grupo en los tres tramos; lo que cambia es si se enseñan
+   * los rangos de edad, que en traslados no vienen a cuento porque el precio
+   * es por vehiculo.
    */
-  variant?: 'adults' | 'ages';
+  variant?: 'transfer' | 'ages';
 }
 
 export default function PassengersField({
@@ -58,9 +66,8 @@ export default function PassengersField({
     };
   }, [open]);
 
-  const rows = variant === 'adults' ? BANDS.slice(0, 1) : BANDS;
+  const rows = variant === 'transfer' ? TRANSFER_ROWS : AGE_ROWS;
   const total = partyTotal(value);
-  const vehicle = suggestVehicle(total);
   const atMax = total >= MAX_TOTAL;
 
   const step = (key: keyof Party, delta: number) => {
@@ -99,7 +106,7 @@ export default function PassengersField({
         <span className="passengers__count">
           {total} {total === 1 ? 'pasajero' : 'pasajeros'}
         </span>
-        {variant === 'ages' && (value.children > 0 || value.infants > 0) && (
+        {(value.children > 0 || value.infants > 0) && (
           <span className="passengers__break">
             {value.adults}A
             {value.children > 0 ? ` · ${value.children}N` : ''}
@@ -123,7 +130,9 @@ export default function PassengersField({
                 <div className="passengers__row" key={row.key}>
                   <div>
                     <p className="passengers__row-label">{row.label}</p>
-                    <p className="passengers__row-hint">{row.hint}</p>
+                    {row.hint && (
+                      <p className="passengers__row-hint">{row.hint}</p>
+                    )}
                   </div>
                   <div className="passengers__stepper">
                     <button
@@ -154,16 +163,10 @@ export default function PassengersField({
                   {MAX_TOTAL} es lo máximo por vehículo. Para grupos mayores
                   coordinamos varias unidades: escríbenos.
                 </p>
-              ) : variant === 'adults' ? (
+              ) : variant === 'transfer' ? (
                 <p className="passengers__note">
-                  {vehicle ? (
-                    <>
-                      Sugerimos <strong>{vehicle.name}</strong>. Los niños y los
-                      adicionales se piden en el siguiente paso.
-                    </>
-                  ) : (
-                    'Los niños y los adicionales se piden en el siguiente paso.'
-                  )}
+                  En el siguiente paso <strong>eliges el vehículo</strong> y
+                  agregas los adicionales.
                 </p>
               ) : (
                 <p className="passengers__note">

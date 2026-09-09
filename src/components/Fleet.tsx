@@ -86,17 +86,18 @@ export default function Fleet({
   const [collapsed, setCollapsed] = useState(true);
 
   const showRest = !collapsed;
+  const shown = showRest ? OTHER_FLEET : FEATURED_FLEET;
   const active = FLEET.find((v) => v.slug === activeSlug) ?? FLEET[0];
 
-  // Collapsing while one of the hidden vehicles is selected would leave the
-  // panel showing something with no matching row in the list, so the selection
-  // falls back to the first featured one.
+  // Al cambiar de grupo, el vehiculo seleccionado deja de estar en la lista, y
+  // el panel se quedaria mostrando algo sin fila que lo respalde. Se pasa al
+  // primero del grupo que entra.
   const toggleRest = () => {
     setCollapsed((wasCollapsed) => {
-      if (!wasCollapsed && OTHER_FLEET.some((v) => v.slug === activeSlug)) {
-        setActiveSlug(FEATURED_FLEET[0]!.slug);
-      }
-      return !wasCollapsed;
+      const next = !wasCollapsed;
+      const list = next ? FEATURED_FLEET : OTHER_FLEET;
+      setActiveSlug(list[0]!.slug);
+      return next;
     });
   };
 
@@ -114,7 +115,7 @@ export default function Fleet({
 
         <div className="fleet__layout">
           <div className="fleet__list" role="tablist" aria-label="Vehículos disponibles">
-            {FEATURED_FLEET.map((v) => (
+            {shown.map((v) => (
               <FleetItem
                 key={v.slug}
                 vehicle={v}
@@ -123,30 +124,9 @@ export default function Fleet({
               />
             ))}
 
-            <AnimatePresence initial={false}>
-              {showRest && (
-                <motion.div
-                  className="fleet__rest"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.38, ease: EASINGS.premium }}
-                >
-                  <p className="fleet__group fleet__group--rest">Resto de la flota</p>
-                  {OTHER_FLEET.map((v) => (
-                    <FleetItem
-                      key={v.slug}
-                      vehicle={v}
-                      active={v.slug === activeSlug}
-                      onPick={setActiveSlug}
-                    />
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             <button type="button" className="fleet__more" onClick={toggleRest}>
-              {showRest ? 'Ver menos flota' : 'Ver más flota'}
+              {showRest ? 'Ver flota principal' : 'Ver más flota'}
               <motion.span
                 className="fleet__more-chevron"
                 animate={{ rotate: showRest ? 180 : 0 }}
