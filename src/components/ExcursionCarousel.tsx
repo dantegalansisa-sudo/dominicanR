@@ -6,6 +6,9 @@ import { EASINGS } from '../utils/easings';
 /** Arrastre mínimo, en píxeles, para que cuente como pasar de foto. */
 const SWIPE = 60;
 
+/** Lo que se queda cada foto antes de pasar sola. */
+const AUTOPLAY_MS = 5000;
+
 const variants = {
   enter: (dir: number) => ({ x: dir > 0 ? '100%' : '-100%' }),
   center: { x: 0 },
@@ -30,19 +33,36 @@ const Chevron = ({ left = false }: { left?: boolean }) => (
 );
 
 /**
- * Carrusel de la excursión elegida. No avanza solo a propósito: vive junto a
- * los campos que el visitante está rellenando, y una imagen que se mueve sola
- * al lado de un formulario distrae en lugar de ayudar. Se pasa con las flechas,
- * los puntos, el teclado o arrastrando.
+ * Carrusel de la excursión elegida. Pasa solo cada cinco segundos, y también a
+ * mano con las flechas, los puntos, el teclado o arrastrando.
+ *
+ * El automático se detiene mientras el visitante tiene el ratón encima, está
+ * navegando con el teclado o arrastrando: vive pegado a los campos del
+ * formulario, y una foto que salta bajo la mano interrumpe justo a quien está
+ * a punto de reservar.
  */
 export default function ExcursionCarousel({ item }: { item: Excursion }) {
   const [[index, dir], setSlide] = useState<[number, number]>([0, 0]);
+  const [paused, setPaused] = useState(false);
   const total = item.photos.length;
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // Cambiar de excursión tiene que devolvernos a su primera foto, o se
   // quedaría marcando la tercera de una galería que ya no existe.
   useEffect(() => setSlide([0, 0]), [item.slug]);
+
+  // Depende de `index`, asi que al pasar de foto a mano el contador vuelve a
+  // empezar y no salta a la siguiente medio segundo despues.
+  useEffect(() => {
+    if (total < 2 || paused) return;
+    // Quien pide menos movimiento en su sistema no quiere carruseles solos.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const t = setTimeout(
+      () => setSlide(([i]) => [(i + 1) % total, 1]),
+      AUTOPLAY_MS,
+    );
+    return () => clearTimeout(t);
+  }, [index, paused, total]);
 
   if (total === 0) return null;
 
@@ -61,6 +81,10 @@ export default function ExcursionCarousel({ item }: { item: Excursion }) {
       aria-roledescription="carrusel"
       aria-label={`Fotos de ${item.name}`}
       tabIndex={single ? -1 : 0}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
       onKeyDown={(e) => {
         if (single) return;
         if (e.key === 'ArrowRight') {
@@ -94,7 +118,9 @@ export default function ExcursionCarousel({ item }: { item: Excursion }) {
           drag={single ? false : 'x'}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.16}
+          onDragStart={() => setPaused(true)}
           onDragEnd={(_, info) => {
+            setPaused(false);
             if (info.offset.x < -SWIPE) go(1);
             else if (info.offset.x > SWIPE) go(-1);
           }}
