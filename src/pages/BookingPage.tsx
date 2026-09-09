@@ -67,6 +67,10 @@ const ARROW = 'M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5';
 const PIN = 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z';
 const FLAG = 'M5 21V4m0 0h11l-2 3.5L16 11H5';
 
+const CAL = 'M4.5 6.5h15v14h-15zM4.5 11h15M9 3.5v4m6-4v4';
+const CLOCK2 = 'M12 7.5V12l3 1.8M20.5 12a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0Z';
+const PLANE = 'M2.5 12.5 21 4l-8 17-2.5-6.5zM10.5 14.5 21 4';
+
 const prettyDate = (iso: string) => {
   if (!iso) return '';
   const [y, m, d] = iso.split('-');
@@ -297,23 +301,34 @@ export default function BookingPage() {
                   google
                 />
                 <label className="form__field">
-                  <span>Fecha</span>
+                  <span>
+                    <Ico d={CAL} size={13} />
+                    Fecha
+                  </span>
                   <input
                     type="date"
+                    className={date ? undefined : 'is-empty'}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                   />
                 </label>
                 <label className="form__field">
-                  <span>Hora de recogida</span>
+                  <span>
+                    <Ico d={CLOCK2} size={13} />
+                    Hora de recogida
+                  </span>
                   <input
                     type="time"
+                    className={time ? undefined : 'is-empty'}
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
                   />
                 </label>
                 <label className="form__field bcard__full">
-                  <span>Número de vuelo (opcional)</span>
+                  <span>
+                    <Ico d={PLANE} size={13} />
+                    Número de vuelo (opcional)
+                  </span>
                   <input
                     value={flight}
                     onChange={(e) => setFlight(e.target.value)}
@@ -349,17 +364,25 @@ export default function BookingPage() {
                   >
                     <div className="bcard__grid">
                       <label className="form__field">
-                        <span>Fecha del regreso</span>
+                        <span>
+                          <Ico d={CAL} size={13} />
+                          Fecha del regreso
+                        </span>
                         <input
                           type="date"
+                          className={returnDate ? undefined : 'is-empty'}
                           value={returnDate}
                           onChange={(e) => setReturnDate(e.target.value)}
                         />
                       </label>
                       <label className="form__field">
-                        <span>Hora del regreso</span>
+                        <span>
+                          <Ico d={CLOCK2} size={13} />
+                          Hora del regreso
+                        </span>
                         <input
                           type="time"
+                          className={returnTime ? undefined : 'is-empty'}
                           value={returnTime}
                           onChange={(e) => setReturnTime(e.target.value)}
                         />

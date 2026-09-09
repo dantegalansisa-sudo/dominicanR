@@ -3048,8 +3048,57 @@ ul {
   border-color: var(--coral);
 }
 
+/* PlaceField nace en la barra del hero, donde .search__field lleva relleno
+   lateral para separar las casillas entre si. Dentro de una tarjeta ese relleno
+   sangra el campo 18px respecto a los demas y la columna se ve torcida. */
 .bcard .place {
   gap: 8px;
+  padding: 0;
+}
+
+/* Todas las etiquetas llevan icono, asi que todas se alinean igual. */
+.bcard .form__field > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* En coral, como los de PlaceField: si no, media columna sale gris. */
+.bcard .form__field > span svg {
+  color: var(--coral);
+  flex-shrink: 0;
+}
+
+/* Mismo caso que en el buscador: el navegador pinta su propio calendario
+   dentro del campo y quedaban dos iconos. Se estira el indicador nativo
+   invisible sobre toda la casilla, asi que se abre pulsando en cualquier
+   punto y solo se ve el de la etiqueta. */
+.bcard .form__field input[type='date'],
+.bcard .form__field input[type='time'] {
+  cursor: pointer;
+}
+
+/* Vacio, el formato que pinta el navegador hace de marcador de posicion, asi
+   que va en el mismo gris que el resto. */
+.bcard .form__field input.is-empty::-webkit-datetime-edit {
+  color: #a89e92;
+}
+
+.bcard .form__field input[type='date']::-webkit-calendar-picker-indicator,
+.bcard .form__field input[type='time']::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* El indicador se posiciona contra el campo, no contra la tarjeta. */
+.bcard .form__field {
+  position: relative;
 }
 
 /* ---------- carrusel de la excursion ---------- */

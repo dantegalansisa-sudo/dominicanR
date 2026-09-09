@@ -72,6 +72,9 @@ const STAR = 'm12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8
 const COIN =
   'M12 3v18M16.5 7.2c-.8-1.1-2.4-1.8-4.2-1.8-2.4 0-4 1.2-4 3s1.6 2.6 4 3.1c2.6.6 4.4 1.4 4.4 3.3 0 2-1.9 3.2-4.4 3.2-2 0-3.7-.8-4.5-2';
 
+const CAL = 'M4.5 6.5h15v14h-15zM4.5 11h15M9 3.5v4m6-4v4';
+const DOOR = 'M6.5 3.5h11v17h-11zM14 12h.6';
+
 const prettyDate = (iso: string) => {
   if (!iso) return '';
   const [y, m, d] = iso.split('-');
@@ -321,9 +324,13 @@ export default function ExcursionBookingPage() {
                 </div>
 
                 <label className="form__field bcard__full">
-                  <span>Fecha</span>
+                  <span>
+                    <Ico d={CAL} size={13} />
+                    Fecha
+                  </span>
                   <input
                     type="date"
+                    className={date ? undefined : 'is-empty'}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                   />
@@ -362,7 +369,10 @@ export default function ExcursionBookingPage() {
                 </div>
 
                 <label className="form__field bcard__full">
-                  <span>Número de habitación (opcional)</span>
+                  <span>
+                    <Ico d={DOOR} size={13} />
+                    Número de habitación (opcional)
+                  </span>
                   <input
                     value={room}
                     onChange={(e) => setRoom(e.target.value)}
