@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
+import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
 import { suggestVehicle } from '../components/PassengersField';
 import { FLEET } from '../data/fleet';
 import { TRANSFER_PLACES, emptyPlace, placeMapsUrl } from '../data/places';
@@ -128,6 +129,7 @@ export default function BookingPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
 
@@ -231,7 +233,7 @@ export default function BookingPage() {
         body: JSON.stringify({
           name,
           email,
-          phone,
+          phone: `${dialOf(country)} ${phone}`,
           topic: 'Traslado',
           date,
           message,
@@ -566,16 +568,13 @@ export default function BookingPage() {
                   autoComplete="email"
                 />
               </label>
-              <label className="form__field">
-                <span>WhatsApp / teléfono</span>
-                <input
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Para avisarte el día del viaje"
-                  autoComplete="tel"
-                />
-              </label>
+              <PhoneField
+                id="bk-phone"
+                country={country}
+                onCountry={setCountry}
+                value={phone}
+                onChange={setPhone}
+              />
 
               <dl className="summary">
                 <div>

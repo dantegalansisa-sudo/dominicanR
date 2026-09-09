@@ -3,8 +3,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
+import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
 import ExcursionCarousel from '../components/ExcursionCarousel';
-import { ALWAYS_INCLUDED, CATEGORIES, EXCURSIONS } from '../data/excursions';
+import { ALWAYS_INCLUDED, CATEGORIES, EXCURSIONS, fromPrice } from '../data/excursions';
 import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal } from '../data/passengers';
 import type { Party } from '../data/passengers';
 import { PICKUP_PLACES, emptyPlace, placeMapsUrl } from '../data/places';
@@ -85,6 +86,8 @@ export default function ExcursionBookingPage() {
     seeded ? emptyPlace(seeded.name) : emptyPlace(),
   );
   const [date, setDate] = useState(seed.date ?? '');
+  const [departure, setDeparture] = useState('');
+  const [ticket, setTicket] = useState('');
   const [pickup, setPickup] = useState<PlaceValue>(seed.pickup ?? emptyPlace());
   const [room, setRoom] = useState('');
   const [party, setParty] = useState<Party>(seed.party ?? EMPTY_PARTY);
@@ -92,6 +95,7 @@ export default function ExcursionBookingPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
 
@@ -108,6 +112,16 @@ export default function ExcursionBookingPage() {
   );
 
   const adultsOnly = Boolean(excursion?.adultsOnly);
+  const departures = excursion?.departures ?? [];
+  const tickets = excursion?.tickets ?? [];
+  const chosenTicket = tickets.find((t) => t.name === ticket) ?? null;
+
+  // Cambiar de excursion deja el horario y la entrada de la anterior, que no
+  // existen en la nueva.
+  useEffect(() => {
+    setDeparture('');
+    setTicket('');
+  }, [excursion?.slug]);
   // Elegir una excursion de solo adultos con ninos ya contados dejaria el
   // correo pidiendo plazas que no existen.
   useEffect(() => {
@@ -146,6 +160,17 @@ export default function ExcursionBookingPage() {
           excursion ? ` (${excursion.duration})` : ''
         }`,
         `Fecha: ${prettyDate(date) || '(por confirmar)'}`,
+        ...(departures.length
+          ? [`Horario de salida: ${departure || '(por confirmar)'}`]
+          : []),
+        ...(chosenTicket
+          ? [
+              `Entrada: ${chosenTicket.name} — $${chosenTicket.price} por persona`,
+              `  Incluye: ${chosenTicket.includes}`,
+            ]
+          : tickets.length
+            ? ['Entrada: (por confirmar)']
+            : []),
         `Punto de recogida: ${pickup.text || '(por confirmar)'}`,
         ...(pickup.address ? [`  Dirección: ${pickup.address}`] : []),
         ...(pickupMap ? [`  Ubicación exacta: ${pickupMap}`] : []),
@@ -176,7 +201,7 @@ export default function ExcursionBookingPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, topic: 'Excursión', date, message }),
+        body: JSON.stringify({ name, email, phone: `${dialOf(country)} ${phone}`, topic: 'Excursión', date, message }),
       });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
@@ -246,9 +271,9 @@ export default function ExcursionBookingPage() {
                     </span>
                     <span className="exdetail__fact">
                       <Ico d={COIN} size={15} />
-                      {excursion.price === null
+                      {fromPrice(excursion) === null
                         ? 'A cotizar'
-                        : `Desde $${excursion.price} por adulto`}
+                        : `Desde $${fromPrice(excursion)} por adulto`}
                     </span>
                   </div>
 
@@ -285,6 +310,25 @@ export default function ExcursionBookingPage() {
                   />
                 </label>
 
+                {departures.length > 0 && (
+                  <div className="bcard__full">
+                    <p className="opt__label">Horario de salida</p>
+                    <div className="opt">
+                      {departures.map((h) => (
+                        <button
+                          key={h}
+                          type="button"
+                          className={`opt__pill${departure === h ? ' is-on' : ''}`}
+                          onClick={() => setDeparture(departure === h ? '' : h)}
+                          aria-pressed={departure === h}
+                        >
+                          {h}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="bcard__full">
                   <PlaceField
                     id="ex-pickup"
@@ -308,6 +352,32 @@ export default function ExcursionBookingPage() {
                 </label>
               </div>
             </section>
+
+            {tickets.length > 0 && (
+              <section className="bcard">
+                <h2 className="bcard__title">Tu entrada</h2>
+                <p className="bcard__lead">
+                  El precio es por persona y cambia según lo que incluye.
+                </p>
+                <div className="tickets">
+                  {tickets.map((t) => (
+                    <button
+                      key={t.name}
+                      type="button"
+                      className={`ticket${ticket === t.name ? ' is-on' : ''}`}
+                      onClick={() => setTicket(t.name)}
+                      aria-pressed={ticket === t.name}
+                    >
+                      <span className="ticket__head">
+                        <span className="ticket__name">{t.name}</span>
+                        <span className="ticket__price">${t.price}</span>
+                      </span>
+                      <span className="ticket__includes">{t.includes}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="bcard">
               <h2 className="bcard__title">Quiénes viajan</h2>
@@ -408,16 +478,13 @@ export default function ExcursionBookingPage() {
                   autoComplete="email"
                 />
               </label>
-              <label className="form__field">
-                <span>WhatsApp / teléfono</span>
-                <input
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Para avisarte el día de la salida"
-                  autoComplete="tel"
-                />
-              </label>
+              <PhoneField
+                id="ex-phone"
+                country={country}
+                onCountry={setCountry}
+                value={phone}
+                onChange={setPhone}
+              />
 
               <dl className="summary">
                 <div>
@@ -428,6 +495,22 @@ export default function ExcursionBookingPage() {
                   <dt>Cuándo</dt>
                   <dd>{prettyDate(date) || '—'}</dd>
                 </div>
+                {departures.length > 0 && (
+                  <div>
+                    <dt>Salida</dt>
+                    <dd>{departure || '—'}</dd>
+                  </div>
+                )}
+                {tickets.length > 0 && (
+                  <div>
+                    <dt>Entrada</dt>
+                    <dd>
+                      {chosenTicket
+                        ? `${chosenTicket.name} · $${chosenTicket.price}`
+                        : '—'}
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt>Recogida</dt>
                   <dd>{pickup.text || '—'}</dd>

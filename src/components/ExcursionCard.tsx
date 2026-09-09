@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import MagneticButton from './MagneticButton';
 import ExcursionPhoto from './ExcursionPhoto';
+import { fromPrice } from '../data/excursions';
 import type { Excursion } from '../data/excursions';
 import { EASINGS } from '../utils/easings';
 
@@ -100,14 +101,16 @@ export default function ExcursionCard({
   onSelect: (e: Excursion) => void;
   eager?: boolean;
 }) {
+  const price = fromPrice(item);
+
   return (
     <motion.article className="exc-card" variants={cardVariants} custom={index}>
       <div className="exc-card__media">
         <ExcursionPhoto item={item} eager={eager} />
         <div className="exc-card__price">
           <span className="exc-card__price-from">Desde</span>
-          <strong>{item.price === null ? 'Consultar' : `$${item.price}`}</strong>
-          {item.price !== null && (
+          <strong>{price === null ? 'Consultar' : `$${price}`}</strong>
+          {price !== null && (
             <span className="exc-card__price-unit">por persona</span>
           )}
         </div>

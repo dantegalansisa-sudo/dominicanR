@@ -15,6 +15,13 @@ export const CATEGORIES = [
 
 export type CategoryId = (typeof CATEGORIES)[number]['id'];
 
+export interface Ticket {
+  name: string;
+  price: number;
+  /** Lo que entra en esa entrada, tal y como lo vende el cliente. */
+  includes: string;
+}
+
 export interface Excursion {
   slug: string;
   name: string;
@@ -36,6 +43,10 @@ export interface Excursion {
    * llevan barra libre o son discoteca, que es donde el propio catalogo lo dice.
    */
   adultsOnly?: boolean;
+  /** Horas de salida fijas. Sin esto, la excursion se coordina al cotizar. */
+  departures?: string[];
+  /** Entradas o paquetes, cada uno con su precio y lo que incluye. */
+  tickets?: Ticket[];
 }
 
 /**
@@ -48,6 +59,17 @@ export const ALWAYS_INCLUDED = [
   'Guía profesional certificado',
   'Recogida y regreso a tu hotel incluidos',
 ];
+
+/**
+ * Precio "desde" que se muestra. Con entradas manda la mas barata: si no, la
+ * tarjeta anunciaria una cifra que ningun paquete cumple.
+ */
+export function fromPrice(e: Excursion): number | null {
+  if (e.tickets && e.tickets.length > 0) {
+    return Math.min(...e.tickets.map((t) => t.price));
+  }
+  return e.price;
+}
 
 /** Las seis más solicitadas, en el orden que indicó el cliente. */
 export const FEATURED_SLUGS = [
@@ -134,6 +156,7 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/buggy-adventure-2.webp",
       "/images/excursions/buggy-adventure-3.webp",
     ],
+    departures: ['8:00 AM', '11:00 AM', '2:00 PM'],
   },
   {
     slug: "excursion-los-haitises",
@@ -165,6 +188,29 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/coco-bongo-3.webp",
     ],
     adultsOnly: true,
+    tickets: [
+      { name: 'Entrada', price: 80, includes: '5 tragos' },
+      {
+        name: 'Regular',
+        price: 90,
+        includes: 'Barra libre · Acceso general · Bebidas nacionales',
+      },
+      {
+        name: 'Premium',
+        price: 125,
+        includes: 'Barra libre · Premium · Bebidas premium',
+      },
+      {
+        name: 'Gold Member',
+        price: 170,
+        includes: 'Barra libre · Zona VIP · Bebidas premium',
+      },
+      {
+        name: 'Front Row',
+        price: 190,
+        includes: 'Barra libre · Zona VIP · Bebidas premium',
+      },
+    ],
   },
   {
     slug: "zipline-adventure",
@@ -457,6 +503,23 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/imagine-punta-cana-3.webp",
     ],
     adultsOnly: true,
+    tickets: [
+      {
+        name: 'Open Bar Ticket',
+        price: 60,
+        includes: 'Barra libre de destilados y refrescos toda la noche',
+      },
+      {
+        name: 'Open Bar Premium',
+        price: 80,
+        includes: 'Barra libre premium con marcas de alta gama',
+      },
+      {
+        name: 'Zona VIP · Main Room',
+        price: 240,
+        includes: 'Mesa en la zona VIP de la sala principal',
+      },
+    ],
   },
   {
     slug: "atv-adventure",
@@ -472,6 +535,7 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/atv-adventure-2.webp",
       "/images/excursions/atv-adventure-3.webp",
     ],
+    departures: ['8:00 AM', '11:00 AM', '2:00 PM'],
   },
   {
     slug: "paseo-caballo-playa",
@@ -486,6 +550,17 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/paseo-caballo-playa.webp",
       "/images/excursions/paseo-caballo-playa-2.webp",
       "/images/excursions/paseo-caballo-playa-3.webp",
+    ],
+    departures: [
+      '8:00 AM',
+      '9:00 AM',
+      '10:00 AM',
+      '11:00 AM',
+      '12:00 PM',
+      '1:00 PM',
+      '2:00 PM',
+      '3:00 PM',
+      '4:00 PM',
     ],
   },
   {
