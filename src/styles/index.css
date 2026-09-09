@@ -1675,6 +1675,35 @@ ul {
   color: var(--ink);
 }
 
+/* Las listas pueden pasar de 8 puntos: en dos columnas se leen de un vistazo
+   en vez de empujar el formulario hacia abajo. `columns` no hace nada sobre un
+   contenedor flexible, asi que aqui vuelve a ser un bloque y la separacion la
+   ponen los propios elementos. */
+.exdetail__list {
+  display: block;
+  columns: 2;
+  column-gap: 26px;
+}
+
+.exdetail__list li {
+  break-inside: avoid;
+  margin-bottom: 10px;
+}
+
+/* Las actividades se distinguen del "que incluye" por el color del punto: son
+   lo que se hace, no lo que se paga. */
+/* Doble clase a proposito: con una sola empata en especificidad con la regla
+   general de mas abajo y gana esa por orden. */
+.exdetail__list.exdetail__list--act li::before {
+  background: var(--coral);
+}
+
+@media (max-width: 620px) {
+  .exdetail__list {
+    columns: 1;
+  }
+}
+
 .exdetail__list li::before {
   content: '';
   position: absolute;

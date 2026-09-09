@@ -43,22 +43,15 @@ export interface Excursion {
    * llevan barra libre o son discoteca, que es donde el propio catalogo lo dice.
    */
   adultsOnly?: boolean;
+  /** Lo que va incluido en el precio, tal y como lo vende el cliente. */
+  includes: string[];
+  /** Lo que se hace durante la excursion. */
+  activities: string[];
   /** Horas de salida fijas. Sin esto, la excursion se coordina al cotizar. */
   departures?: string[];
   /** Entradas o paquetes, cada uno con su precio y lo que incluye. */
   tickets?: Ticket[];
 }
-
-/**
- * Lo que el cliente garantiza en todas sus excursiones. Vivia dentro del panel
- * lateral; al desaparecer ese panel pasa aqui, que es donde le corresponde.
- */
-export const ALWAYS_INCLUDED = [
-  'Confirmación por correo el mismo día',
-  'Cancelación gratuita hasta 24 horas antes',
-  'Guía profesional certificado',
-  'Recogida y regreso a tu hotel incluidos',
-];
 
 /**
  * Precio "desde" que se muestra. Con entradas manda la mas barata: si no, la
@@ -97,6 +90,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/isla-saona-clasica-3.webp",
       "/images/excursions/isla-saona-clasica-4.webp",
     ],
+    includes: [
+      'Transporte de ida y vuelta',
+      'Almuerzo buffet dominicano',
+      'Guía turístico bilingüe',
+      'Atención del staff',
+      'Parada en piscina natural',
+      'Bebidas ilimitadas (ron, refrescos, agua)',
+    ],
+    activities: [
+      'Navegación en catamarán',
+      'Juegos de playa',
+      'Tiempo libre en la playa',
+      'Baile y música a bordo',
+      'Visita a la piscina natural con estrellas de mar',
+    ],
   },
   {
     slug: "scape-park",
@@ -111,6 +119,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/scape-park.webp",
       "/images/excursions/scape-park-2.webp",
       "/images/excursions/scape-park-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Acceso a cenotes',
+      'Tirolesas',
+      'Exploración de cuevas',
+      'Equipo de seguridad',
+      'Guías expertos',
+    ],
+    activities: [
+      'Nado en cenotes cristalinos',
+      'Tirolesas sobre la selva',
+      'Exploración de cuevas',
+      'Salto de acantilados (opcional)',
+      'Eco-aventura natural',
     ],
   },
   {
@@ -127,6 +150,20 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/montana-redonda-playa-esmeralda-2.webp",
       "/images/excursions/montana-redonda-playa-esmeralda-3.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Transporte 4x4',
+      'Refrigerios',
+      'Almuerzo (opcional adicional)',
+      'Entrada a Montaña Redonda',
+      'Tiempo en Playa Esmeralda',
+    ],
+    activities: [
+      'Vistas panorámicas 360°',
+      'Fotografías en columpios',
+      'Playa Costa Esmeralda o Playa Macao',
+      'Relajación en la playa',
+    ],
   },
   {
     slug: "parasailing-aventuras-aire",
@@ -141,6 +178,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/parasailing-aventuras-aire.webp",
       "/images/excursions/parasailing-aventuras-aire-2.webp",
       "/images/excursions/parasailing-aventuras-aire-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Vuelo de 12 a 15 minutos',
+      'Equipo de seguridad certificado',
+      'Arnés y chaleco salvavidas',
+      'Instructor profesional',
+      'Fotos desde el bote',
+    ],
+    activities: [
+      'Vuelo en paracaídas sobre el mar',
+      'Despegue y aterrizaje desde bote',
+      'Vistas panorámicas de la costa',
+      'Experiencia de adrenalina',
+      'Sesión fotográfica (adicional)',
     ],
   },
   {
@@ -158,6 +210,22 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/buggy-adventure-3.webp",
     ],
     departures: ['8:00 AM', '11:00 AM', '2:00 PM'],
+    includes: [
+      'Transporte ida y vuelta',
+      'Buggy doble (piloto + copiloto)',
+      'Buggy familiar',
+      'Guía en buggy',
+      'Visita a cenote',
+      'Parada en Playa Macao',
+    ],
+    activities: [
+      'Conducir buggy todoterreno',
+      'Nadar en cenote natural',
+      'Visita a casa típica dominicana',
+      'Tiempo libre en playa',
+      'Degustación de mamajuana',
+      'Tiempo libre en Playa Macao',
+    ],
   },
   {
     slug: "excursion-los-haitises",
@@ -172,6 +240,22 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/excursion-los-haitises.webp",
       "/images/excursions/excursion-los-haitises-2.webp",
       "/images/excursions/excursion-los-haitises-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta desde Punta Cana (clientes de Bayahíbe tienen un extra por traslado)',
+      'Bote para el parque',
+      'Guía del parque',
+      'Almuerzo típico',
+      'Entrada al parque nacional',
+      'Chaleco salvavidas',
+    ],
+    activities: [
+      'Navegación por manglares',
+      'Exploración de cuevas taínas',
+      'Observación de aves exóticas',
+      'Pictografías precolombinas',
+      'Paisajes de película',
+      'Visita a Montaña Redonda',
     ],
   },
   {
@@ -213,6 +297,21 @@ export const EXCURSIONS: Excursion[] = [
         includes: 'Barra libre · Zona VIP · Bebidas premium',
       },
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Entrada al show',
+      'Shows en vivo',
+      'Acrobacia y música',
+      'Acceso preferencial',
+      'Barra libre según paquete seleccionado',
+    ],
+    activities: [
+      'Show espectacular',
+      'Música en vivo',
+      'Imitadores de artistas',
+      'Acrobacias aéreas',
+      'Fiesta toda la noche',
+    ],
   },
   {
     slug: "zipline-adventure",
@@ -227,6 +326,19 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/zipline-adventure.webp",
       "/images/excursions/zipline-adventure-2.webp",
       "/images/excursions/zipline-adventure-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Equipo completo de seguridad',
+      'Casco y arnés profesional',
+      '8 líneas de tirolesa',
+      'Guías certificados',
+    ],
+    activities: [
+      'Tirolesa por la selva tropical',
+      'Vistas panorámicas espectaculares',
+      'Adrenalina pura',
+      'Cruce de puentes colgantes',
     ],
   },
   {
@@ -245,6 +357,25 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/isla-saona-vip-4.webp",
       "/images/excursions/isla-saona-vip-5.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Capitán y tripulación profesional',
+      'Equipo de snorkel completo',
+      'Barra libre (ron, cerveza, jugos)',
+      'Acceso a zona exclusiva',
+      'Guía profesional',
+      'Chaleco salvavidas',
+      'Almuerzo premium',
+    ],
+    activities: [
+      'Navegación en catamarán o lancha rápida',
+      'Tiempo libre en la playa',
+      'Visita a la piscina natural con estrellas de mar',
+      'Música y entretenimiento',
+      'Visitar 4 playas diferentes',
+      'Visitar el pueblito de Mano Juan',
+      'Nadar en aguas cristalinas',
+    ],
   },
   {
     slug: "combo-zipline-buggy",
@@ -256,6 +387,22 @@ export const EXCURSIONS: Excursion[] = [
     duration: "6 horas",
     description: "Combina tirolesa extrema, buggy y paseo a caballo en una aventura completa.",
     photos: ["/images/excursions/combo-zipline-buggy.webp"],
+    includes: [
+      'Transporte ida y vuelta',
+      '8 líneas de zipline',
+      'Buggy todoterreno',
+      'Equipo completo de seguridad',
+      'Almuerzo ligero',
+      'Guías certificados',
+      'Paseo a caballo',
+    ],
+    activities: [
+      'Tirolesa por la selva',
+      'Aventura en buggy',
+      'Paseo a caballo',
+      'Adrenalina extrema',
+      'Paisajes tropicales',
+    ],
   },
   {
     slug: "samana-ballenas-jorobadas",
@@ -270,6 +417,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/samana-ballenas-jorobadas.webp",
       "/images/excursions/samana-ballenas-jorobadas-2.webp",
       "/images/excursions/samana-ballenas-jorobadas-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Bote para avistamiento de ballenas',
+      'Guía naturalista especializado',
+      'Almuerzo típico dominicano',
+      'Visita a Cayo Levantado',
+      'Todas las entradas',
+    ],
+    activities: [
+      'Avistamiento de ballenas jorobadas',
+      'Navegación por la Bahía de Samaná',
+      'Tiempo en playa de Cayo Levantado',
+      'Fotografía de ballenas',
+      'Experiencia única con la naturaleza',
     ],
   },
   {
@@ -287,6 +449,23 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/isla-saona-exclusiva-3.webp",
       "/images/excursions/isla-saona-exclusiva-4.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Navegación en lancha rápida',
+      'Barra libre',
+      'Zona exclusiva en la playa',
+      'Guía profesional',
+      'Parada en piscina natural',
+      'Almuerzo',
+    ],
+    activities: [
+      'Playa exclusiva menos concurrida',
+      'Navegación rápida',
+      'Piscina natural con estrellas de mar',
+      'Tiempo de calidad en la playa',
+      'Servicio premium',
+      'Experiencia VIP',
+    ],
   },
   {
     slug: "isla-catalina",
@@ -302,6 +481,20 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/isla-catalina-2.webp",
       "/images/excursions/isla-catalina-3.webp",
       "/images/excursions/isla-catalina-4.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Snorkel y equipo',
+      'Almuerzo buffet',
+      'Barra libre',
+      'Guía certificado',
+    ],
+    activities: [
+      'Snorkel en arrecifes vírgenes',
+      'Playa paradisíaca',
+      'Exploración de la isla',
+      'Tiempo libre en la playa',
+      'Fotografías de recuerdo (no incluidas)',
     ],
   },
   {
@@ -319,6 +512,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/party-boat-3.webp",
     ],
     adultsOnly: true,
+    includes: [
+      'Transporte ida y vuelta',
+      'Barra libre ilimitada',
+      'Recorrido en catamarán',
+      'DJ y animación',
+      'Parada en playa natural',
+    ],
+    activities: [
+      'Fiesta a bordo con DJ',
+      'Snorkel',
+      'Barra libre (ron, cervezas, gaseosas)',
+      'Juegos acuáticos',
+      'Recorrido por la costa',
+      'Baile y música caribeña',
+    ],
   },
   {
     slug: "jet-ski-punta-cana",
@@ -333,6 +541,18 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/jet-ski-punta-cana.webp",
       "/images/excursions/jet-ski-punta-cana-2.webp",
       "/images/excursions/jet-ski-punta-cana-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Jet Ski moderno',
+      'Chaleco salvavidas',
+      'Instructor certificado',
+      'Briefing de seguridad',
+    ],
+    activities: [
+      'Jet Ski',
+      'Adrenalina pura',
+      'Experiencia emocionante',
     ],
   },
   {
@@ -349,6 +569,17 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/speed-boat-2.webp",
       "/images/excursions/speed-boat-3.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Lancha rápida moderna',
+      'Capitán experimentado',
+      'Chalecos salvavidas',
+    ],
+    activities: [
+      'Navegación en speedboat',
+      'Visita a playas secretas',
+      'Snorkel en arrecife virgen',
+    ],
   },
   {
     slug: "dolphin-explorer",
@@ -364,6 +595,22 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/dolphin-explorer-2.webp",
       "/images/excursions/dolphin-explorer-3.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Entrada al parque',
+      'Interacción con delfines',
+      'Entrenador profesional',
+      'Chaleco salvavidas',
+      'Uso de casilleros',
+      'Fotografías disponibles (extra)',
+    ],
+    activities: [
+      'Nadar con delfines',
+      'Show de delfines',
+      'Aprender sobre delfines',
+      'Experiencia educativa',
+      'Momento inolvidable',
+    ],
   },
   {
     slug: "isla-catalina-con-buceo",
@@ -378,6 +625,22 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/isla-catalina-con-buceo.webp",
       "/images/excursions/isla-catalina-con-buceo-2.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Equipo completo de buceo',
+      'Instructor certificado de buceo',
+      'Snorkel adicional',
+      'Almuerzo buffet',
+      'Barra libre',
+      'Entrada al parque',
+    ],
+    activities: [
+      'Buceo en arrecifes vírgenes',
+      'Snorkel en aguas cristalinas',
+      'Exploración submarina',
+      'Playa paradisíaca',
+      'Fotografías de recuerdo (no incluidas)',
+    ],
   },
   {
     slug: "monkey-land-con-zipline",
@@ -391,6 +654,24 @@ export const EXCURSIONS: Excursion[] = [
     photos: [
       "/images/excursions/monkey-land-con-zipline.webp",
       "/images/excursions/monkey-land-con-zipline-2.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Entrada a Monkey Land',
+      'Tirolesas incluidas',
+      'Interacción con monos',
+      'Guía naturalista',
+      'Tour botánico',
+      'Almuerzo ligero',
+      'Todo el equipamiento y formación',
+    ],
+    activities: [
+      'Interacción con monos ardilla',
+      'Tirolesas por la selva',
+      'Tour por jardines botánicos',
+      'Educación sobre fauna',
+      'Fotografías con animales',
+      'Aventura combinada',
     ],
   },
   {
@@ -407,6 +688,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/domitai-park-full-power-2.webp",
       "/images/excursions/domitai-park-full-power-3.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Acceso full power a todas las atracciones',
+      'Tirolesas extremas',
+      'Equipo profesional de seguridad',
+      'Guías certificados',
+      'Almuerzo incluido',
+    ],
+    activities: [
+      'Tirolesas de alta velocidad',
+      'Puentes tibetanos',
+      'Circuito de aventura extrema',
+      'Adrenalina pura',
+      'Desafíos de altura',
+    ],
   },
   {
     slug: "excursion-samana",
@@ -421,6 +717,20 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/excursion-samana.webp",
       "/images/excursions/excursion-samana-2.webp",
       "/images/excursions/excursion-samana-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta desde Punta Cana (clientes de Bayahíbe tienen un costo extra por traslado)',
+      'Viaje en bote o catamarán',
+      'Guía naturalista',
+      'Almuerzo típico',
+      'Visita a Cayo Levantado',
+    ],
+    activities: [
+      'Recorrido panorámico del pueblo',
+      'Visita a cascada El Limón',
+      'Playa en Cayo Levantado',
+      'Recorrido por la bahía',
+      'Fotografía de naturaleza',
     ],
   },
   {
@@ -437,6 +747,24 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/excursion-altos-chavon-2.webp",
       "/images/excursions/excursion-altos-chavon-3.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Guía cultural',
+      'Entrada a Casa de Campo',
+      'Recorrido en el pueblo',
+      'Visita al anfiteatro',
+      'Visita a museos',
+      'Tiempo libre para compras',
+      'Refrigerios',
+    ],
+    activities: [
+      'Recorrido por villa mediterránea',
+      'Anfiteatro greco-romano',
+      'Galerías de arte',
+      'Museo del Ámbar',
+      'Tiendas artesanales',
+      'Vistas al río Chavón',
+    ],
   },
   {
     slug: "monkey-land",
@@ -451,6 +779,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/monkey-land.webp",
       "/images/excursions/monkey-land-2.webp",
       "/images/excursions/monkey-land-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Entrada al santuario',
+      'Interacción con monos ardilla',
+      'Guía naturalista',
+      'Tour botánico',
+      'Refrescos naturales',
+    ],
+    activities: [
+      'Interacción con monos',
+      'Tour por jardines botánicos',
+      'Educación sobre fauna',
+      'Fotografías con animales',
+      'Experiencia única',
     ],
   },
   {
@@ -467,6 +810,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/bahia-aguilas-vip-2.webp",
       "/images/excursions/bahia-aguilas-vip-3.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Bote privado a la bahía',
+      'Comidas incluidas: desayuno, almuerzo y cena',
+      'Campamento en la playa',
+      'Equipo de snorkel',
+    ],
+    activities: [
+      'Playa más hermosa del Caribe',
+      'Aguas cristalinas vírgenes',
+      'Arena blanca prístina',
+      'Snorkel en aguas turquesas',
+      'Visitas a San Rafael y Los Patos',
+      'Paisajes de película',
+    ],
   },
   {
     slug: "seaquarium-experience",
@@ -478,6 +836,21 @@ export const EXCURSIONS: Excursion[] = [
     duration: "4 horas",
     description: "Disfruta de shows interactivos con delfines, leones marinos y explora fascinantes acuarios con vida marina del Caribe.",
     photos: ["/images/excursions/seaquarium-experience.webp"],
+    includes: [
+      'Transporte ida y vuelta',
+      'Entrada al parque marino',
+      'Shows de delfines y leones marinos',
+      'Acceso a todos los acuarios',
+      'Guía profesional',
+      'Fotografías disponibles (extra)',
+    ],
+    activities: [
+      'Shows interactivos de animales marinos',
+      'Observación de tiburones y rayas',
+      'Experiencia educativa marina',
+      'Piscinas temáticas',
+      'Contacto con animales marinos',
+    ],
   },
   {
     slug: "safari-bavaro-runner",
@@ -492,6 +865,23 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/safari-bavaro-runner.webp",
       "/images/excursions/safari-bavaro-runner-2.webp",
       "/images/excursions/safari-bavaro-runner-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Visita a casa típica',
+      'Degustación de productos locales',
+      'Transporte en camión safari',
+      'Almuerzo',
+      'Guía oficial',
+      'Frutas frescas',
+    ],
+    activities: [
+      'Visita a plantación dominicana',
+      'Cenote natural',
+      'Playa Macao',
+      'Aventura off-road',
+      'Camión safari',
+      'Visita a la Basílica Catedral Nuestra Señora de la Altagracia',
     ],
   },
   {
@@ -526,6 +916,21 @@ export const EXCURSIONS: Excursion[] = [
         includes: 'Mesa en la zona VIP de la sala principal',
       },
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Entrada a la discoteca',
+      'Barra libre según paquete seleccionado',
+      'Acceso a las 3 cuevas temáticas',
+      'DJ en vivo',
+      'Ambiente único en cueva natural',
+    ],
+    activities: [
+      'Fiesta en cueva natural subterránea',
+      'Música latina (reggaetón, bachata, merengue)',
+      'Música electrónica',
+      'Pista de baile de 600 m²',
+      'Experiencia única en el Caribe',
+    ],
   },
   {
     slug: "atv-adventure",
@@ -542,6 +947,19 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/atv-adventure-3.webp",
     ],
     departures: ['8:00 AM', '11:00 AM', '2:00 PM'],
+    includes: [
+      'Transporte ida y vuelta',
+      'ATV individual o doble',
+      'Casco y equipo de protección',
+      'Guía en ATV líder',
+      'Visita a Playa Macao',
+    ],
+    activities: [
+      'Conducir ATV por terrenos variados',
+      'Degustación de café y chocolate',
+      'Tiempo en Playa Macao',
+      'Recorrido por el campo dominicano',
+    ],
   },
   {
     slug: "paseo-caballo-playa",
@@ -568,6 +986,18 @@ export const EXCURSIONS: Excursion[] = [
       '3:00 PM',
       '4:00 PM',
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Caballo manso entrenado',
+      'Instructor experimentado',
+      'Casco de seguridad',
+    ],
+    activities: [
+      'Paseo a caballo por la playa',
+      'Lección básica de equitación',
+      'Fotografías a caballo',
+      'Vista del atardecer',
+    ],
   },
   {
     slug: "pesca-deportiva",
@@ -582,6 +1012,23 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/pesca-deportiva.webp",
       "/images/excursions/pesca-deportiva-2.webp",
       "/images/excursions/pesca-deportiva-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Bote de pesca profesional',
+      'Capitán experimentado',
+      'Equipo de pesca completo',
+      'Carnada y señuelos',
+      'Bebidas y snacks',
+      'Licencia de pesca',
+      'Hielo para conservar el pescado',
+    ],
+    activities: [
+      'Pesca de altura en el Caribe',
+      'Captura de marlín, dorado y atún',
+      'Técnicas profesionales de pesca',
+      'Batalla con peces grandes',
+      'Puedes llevarte tu pesca',
     ],
   },
   {
@@ -598,6 +1045,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/samana-vip-2.webp",
       "/images/excursions/samana-vip-3.webp",
     ],
+    includes: [
+      'Transporte de ida y vuelta',
+      'Alojamiento',
+      'Comidas incluidas: desayuno, almuerzo y cena',
+      'Acceso a Cayo Levantado',
+    ],
+    activities: [
+      'Playa Rincón',
+      'Caño Frío',
+      'Cascada El Limón',
+      'Playa Cayo Levantado (Isla Bacardí)',
+      'Tour en el pueblo de Samaná',
+      'Servicio premium personalizado',
+      'Experiencia exclusiva',
+    ],
   },
   {
     slug: "caribbean-pirates",
@@ -612,6 +1074,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/caribbean-pirates.webp",
       "/images/excursions/caribbean-pirates-2.webp",
       "/images/excursions/caribbean-pirates-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Crucero en barco pirata',
+      'Show de piratas en vivo',
+      'Barra libre ilimitada',
+      'Snorkel',
+      'Animación y entretenimiento',
+    ],
+    activities: [
+      'Show interactivo de piratas',
+      'Navegación en barco temático',
+      'Snorkel en parada caribeña',
+      'Juegos y competencias',
+      'Diversión para toda la familia',
     ],
   },
   {
@@ -630,6 +1107,22 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/city-tour-santo-domingo-4.webp",
       "/images/excursions/city-tour-santo-domingo-5.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Guía historiador',
+      'Almuerzo típico dominicano',
+      'Entradas a museos',
+      'Tour caminando por la Zona Colonial',
+    ],
+    activities: [
+      'Catedral Primada de América',
+      'Alcázar de Colón',
+      'Fortaleza Ozama',
+      'Calle Las Damas',
+      'Los Tres Ojos',
+      'Faro a Colón',
+      'Compras en mercados locales',
+    ],
   },
   {
     slug: "scuba-doo",
@@ -645,6 +1138,22 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/scuba-doo-2.webp",
       "/images/excursions/scuba-doo-3.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Scuba Doo submarino individual',
+      'Casco con domo transparente',
+      'Instructor profesional',
+      'Briefing de seguridad',
+      'Exploración de arrecifes',
+      'Fotos submarinas (extra)',
+    ],
+    activities: [
+      'Conducir scooter submarino',
+      'Explorar arrecifes de coral',
+      'Ver peces tropicales de cerca',
+      'Experiencia submarina única',
+      'No necesitas certificación de buceo',
+    ],
   },
   {
     slug: "la-hacienda-park",
@@ -659,6 +1168,21 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/la-hacienda-park.webp",
       "/images/excursions/la-hacienda-park-2.webp",
       "/images/excursions/la-hacienda-park-3.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Acceso a todas las atracciones',
+      'Equipo de seguridad completo',
+      'Guías profesionales',
+      'Almuerzo ligero',
+      'Refrescos',
+    ],
+    activities: [
+      'Tirolesas múltiples',
+      'Puentes colgantes',
+      'Circuito de aventura',
+      'Actividades familiares',
+      'Diversión para todas las edades',
     ],
   },
   {
@@ -677,6 +1201,22 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/city-tour-higuey-4.webp",
       "/images/excursions/city-tour-higuey-5.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Entrada a la Basílica',
+      'Visita al mercado local',
+      'Degustaciones de café y cacao',
+      'Almuerzo (opcional adicional)',
+    ],
+    activities: [
+      'Basílica de Higüey',
+      'Iglesia San Dionisio',
+      'Visita a casita típica dominicana',
+      'Mercado local tradicional',
+      'Cultura dominicana',
+      'Compras de artesanías',
+      'Fotografía arquitectónica',
+    ],
   },
   {
     slug: "shopping-artesanal",
@@ -692,6 +1232,18 @@ export const EXCURSIONS: Excursion[] = [
       "/images/excursions/shopping-artesanal-2.webp",
       "/images/excursions/shopping-artesanal-3.webp",
     ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Visita a múltiples tiendas',
+      'Demostración de artesanías',
+    ],
+    activities: [
+      'Compras de artesanías locales',
+      'Joyería de larimar y ámbar',
+      'Arte dominicano auténtico',
+      'Productos de cacao y café',
+      'Ron y souvenirs típicos',
+    ],
   },
   {
     slug: "city-tour-punta-cana",
@@ -705,6 +1257,19 @@ export const EXCURSIONS: Excursion[] = [
     photos: [
       "/images/excursions/city-tour-punta-cana.webp",
       "/images/excursions/city-tour-punta-cana-2.webp",
+    ],
+    includes: [
+      'Transporte ida y vuelta',
+      'Visitas a puntos clave',
+      'Shopping time',
+      'Fotos de recuerdo',
+    ],
+    activities: [
+      'Playa Macao (opcional)',
+      'Centros comerciales',
+      'Zona hotelera',
+      'Lugares emblemáticos',
+      'Compras locales',
     ],
   },
 ];

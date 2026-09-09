@@ -5,7 +5,7 @@ import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
 import ExcursionCarousel from '../components/ExcursionCarousel';
-import { ALWAYS_INCLUDED, CATEGORIES, EXCURSIONS, fromPrice } from '../data/excursions';
+import { CATEGORIES, EXCURSIONS, fromPrice } from '../data/excursions';
 import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal } from '../data/passengers';
 import type { Party } from '../data/passengers';
 import { PICKUP_PLACES, emptyPlace, placeMapsUrl } from '../data/places';
@@ -283,12 +283,27 @@ export default function ExcursionBookingPage() {
 
                   <p className="exdetail__desc">{excursion.description}</p>
 
-                  <h3 className="exdetail__sub">Lo que siempre está incluido</h3>
-                  <ul className="exdetail__list">
-                    {ALWAYS_INCLUDED.map((g) => (
-                      <li key={g}>{g}</li>
-                    ))}
-                  </ul>
+                  {excursion.includes.length > 0 && (
+                    <>
+                      <h3 className="exdetail__sub">Qué incluye</h3>
+                      <ul className="exdetail__list">
+                        {excursion.includes.map((x) => (
+                          <li key={x}>{x}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+
+                  {excursion.activities.length > 0 && (
+                    <>
+                      <h3 className="exdetail__sub">Actividades</h3>
+                      <ul className="exdetail__list exdetail__list--act">
+                        {excursion.activities.map((x) => (
+                          <li key={x}>{x}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </div>
               )}
 
