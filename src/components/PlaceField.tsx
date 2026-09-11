@@ -32,6 +32,8 @@ interface PlaceFieldProps {
    * excursiones, que es un catálogo cerrado nuestro y no un lugar del mapa.
    */
   google?: boolean;
+  /** El buscador lo marca cuando falta al enviar. */
+  invalid?: boolean;
 }
 
 /**
@@ -49,6 +51,7 @@ export default function PlaceField({
   value,
   onChange,
   google = false,
+  invalid = false,
 }: PlaceFieldProps) {
   const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState(-1);
@@ -172,7 +175,7 @@ export default function PlaceField({
   const showMenu = open && (flat.length > 0 || loading);
 
   return (
-    <div className="search__field place" ref={wrapRef}>
+    <div className={`search__field place${invalid ? ' is-missing' : ''}`} ref={wrapRef}>
       <label className="search__label" htmlFor={id}>
         {icon}
         {label}

@@ -129,6 +129,11 @@ export default function BookingPage() {
   const [returnTime, setReturnTime] = useState('');
   const [party, setParty] = useState<Party>(seed.party ?? EMPTY_PARTY);
   const [vehicleSlug, setVehicleSlug] = useState<string | null>(seed.vehicle ?? null);
+  // Si viene de una tarjeta de la flota ya eligio: se le muestra solo ese y no
+  // la lista entera otra vez. "Cambiar" la despliega por si se lo piensa.
+  const [locked, setLocked] = useState(
+    Boolean(seed.vehicle && FLEET.some((v) => v.slug === seed.vehicle)),
+  );
   const [extras, setExtras] = useState<Extras>(EMPTY_EXTRAS);
   const [flight, setFlight] = useState('');
   const [notes, setNotes] = useState('');
@@ -470,11 +475,18 @@ export default function BookingPage() {
 
             <section className="bcard">
               <h2 className="bcard__title">El vehículo</h2>
-              <p className="bcard__lead">
-                Te marcamos el que encaja por número de pasajeros, pero elige el
-                que quieras: si viajas con mucho equipaje, coge uno más grande
-                aunque seáis pocos.
-              </p>
+              {locked ? (
+                <p className="bcard__lead">
+                  Este es el que elegiste. Si viajas con mucho equipaje o
+                  cambias de idea, puedes escoger otro.
+                </p>
+              ) : (
+                <p className="bcard__lead">
+                  Te marcamos el que encaja por número de pasajeros, pero elige
+                  el que quieras: si viajas con mucho equipaje, coge uno más
+                  grande aunque seáis pocos.
+                </p>
+              )}
 
               {pricing === 'loading' && (
                 <p className="passengers__note bcard__hint">Calculando la ruta…</p>
@@ -487,8 +499,8 @@ export default function BookingPage() {
                 </p>
               )}
 
-              <div className="vpick">
-                {FLEET.map((v) => {
+              <div className={`vpick${locked ? ' vpick--single' : ''}`}>
+                {(locked && chosen ? [chosen] : FLEET).map((v) => {
                   const on = vehicle?.slug === v.slug;
                   const q = priceFor(v.slug);
                   return (
@@ -525,6 +537,16 @@ export default function BookingPage() {
                   );
                 })}
               </div>
+
+              {locked && (
+                <button
+                  type="button"
+                  className="vpick__change"
+                  onClick={() => setLocked(false)}
+                >
+                  Cambiar de vehículo
+                </button>
+              )}
 
               {overCapacity && vehicle && (
                 <p className="passengers__note passengers__note--warn bcard__hint">

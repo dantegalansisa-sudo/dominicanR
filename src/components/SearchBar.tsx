@@ -95,10 +95,40 @@ export default function SearchBar() {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [party, setParty] = useState<Party>(EMPTY_PARTY);
+  /** Campos que faltaban en el ultimo intento de enviar. */
+  const [missing, setMissing] = useState<string[]>([]);
 
   const isTransfer = tab === 'Traslado';
+  const miss = (k: string) => missing.includes(k);
+
+  // Cambiar de pestana vacia el aviso: lo que faltaba en traslados no tiene
+  // por que faltar en excursiones.
+  const switchTab = (t: Tab) => {
+    setTab(t);
+    setMissing([]);
+  };
 
   const submit = () => {
+    // Sin esto, "Pedir traslado" con todo vacio abria un formulario en blanco
+    // que volvia a pedir lo mismo. El cliente quiere los datos aqui primero.
+    const gaps: string[] = [];
+    if (!origin.text.trim()) gaps.push('origin');
+    if (!destination.text.trim()) gaps.push('destination');
+    if (!date) gaps.push('date');
+    if (isTransfer && !time) gaps.push('time');
+    if (gaps.length > 0) {
+      setMissing(gaps);
+      const ids: Record<string, string> = {
+        origin: 'sb-origin',
+        destination: 'sb-dest',
+        date: 'sb-date',
+        time: 'sb-time',
+      };
+      document.getElementById(ids[gaps[0]!]!)?.focus();
+      return;
+    }
+    setMissing([]);
+
     // Transfers get their own page: the client asked for children and the
     // on-board amenities to live there, not crowding the hero bar.
     if (isTransfer) {
@@ -134,7 +164,7 @@ export default function SearchBar() {
             role="tab"
             aria-selected={tab === t}
             className={`search__tab${tab === t ? ' is-active' : ''}`}
-            onClick={() => setTab(t)}
+            onClick={() => switchTab(t)}
           >
             {tab === t && (
               <motion.span
@@ -148,7 +178,7 @@ export default function SearchBar() {
         ))}
       </div>
 
-      <div className="search__bar">
+      <div className={`search__bar${missing.length ? ' has-missing' : ''}`}>
         <PlaceField
           id="sb-origin"
           label={isTransfer ? 'Origen' : 'Punto de recogida'}
@@ -158,6 +188,7 @@ export default function SearchBar() {
           value={origin}
           onChange={setOrigin}
           google
+          invalid={miss('origin')}
         />
 
         <PlaceField
@@ -169,9 +200,10 @@ export default function SearchBar() {
           value={destination}
           onChange={setDestination}
           google={isTransfer}
+          invalid={miss('destination')}
         />
 
-        <div className="search__field">
+        <div className={`search__field${miss('date') ? ' is-missing' : ''}`}>
           <label className="search__label" htmlFor="sb-date">
             <CalendarIcon />
             Fecha
@@ -185,7 +217,7 @@ export default function SearchBar() {
           />
         </div>
 
-        <div className="search__field">
+        <div className={`search__field${miss('time') ? ' is-missing' : ''}`}>
           <label className="search__label" htmlFor="sb-time">
             <ClockIcon />
             Hora
@@ -218,12 +250,22 @@ export default function SearchBar() {
       </div>
 
       <div className="search__foot search__foot--single">
-        <p className="search__note">
-          <ShieldIcon />
-          {isTransfer
-            ? 'Niños y adicionales en el siguiente paso · Cancelación gratuita'
-            : 'Los infantes no pagan · Confirmación por correo · Cancelación gratuita'}
-        </p>
+        {/* El aviso ocupa el sitio de la nota: al enfocar el origen se abre su
+            menu y taparia cualquier cosa puesta a la izquierda. */}
+        {missing.length > 0 ? (
+          <p className="search__error" role="alert">
+            {isTransfer
+              ? 'Completa origen, destino, fecha y hora para pedir el traslado.'
+              : 'Elige la excursión y la fecha para continuar.'}
+          </p>
+        ) : (
+          <p className="search__note">
+            <ShieldIcon />
+            {isTransfer
+              ? 'Niños y adicionales en el siguiente paso · Cancelación gratuita'
+              : 'Los infantes no pagan · Confirmación por correo · Cancelación gratuita'}
+          </p>
+        )}
       </div>
     </motion.div>
   );

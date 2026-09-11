@@ -3,11 +3,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import ImagePlaceholder from './ImagePlaceholder';
-import { FEATURED_FLEET, FLEET, OTHER_FLEET } from '../data/fleet';
+import { cardVariants } from './ExcursionCard';
+import { FEATURED_FLEET, OTHER_FLEET } from '../data/fleet';
 import type { Vehicle } from '../data/fleet';
 import { EASINGS } from '../utils/easings';
-
-const MAX_PAX = 50;
 
 const ArrowIcon = () => (
   <svg
@@ -45,61 +44,88 @@ const UsersIcon = () => (
   </svg>
 );
 
-function FleetItem({
+function FleetCard({
   vehicle,
-  active,
-  onPick,
+  index,
+  onRequest,
 }: {
   vehicle: Vehicle;
-  active: boolean;
-  onPick: (slug: string) => void;
+  index: number;
+  onRequest: (slug: string) => void;
 }) {
   return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      className={`fleet__item${active ? ' is-active' : ''}`}
-      onClick={() => onPick(vehicle.slug)}
+    <motion.article
+      className="fleet-card"
+      variants={cardVariants}
+      custom={index}
+      initial="hidden"
+      animate="visible"
+      exit={{ opacity: 0, y: 16, transition: { duration: 0.22 } }}
+      layout
     >
-      {active && (
-        <motion.span
-          layoutId="fleet-marker"
-          className="fleet__marker"
-          transition={{ type: 'spring', stiffness: 420, damping: 36 }}
-        />
-      )}
-      <span className="fleet__item-name">{vehicle.name}</span>
-      <span className="fleet__item-pax">
-        {vehicle.minPax}–{vehicle.maxPax}
-      </span>
-    </button>
+      <div className="fleet-card__media">
+        {vehicle.photo ? (
+          <img
+            src={vehicle.photo}
+            alt={`${vehicle.name} — ${vehicle.type}`}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <ImagePlaceholder category="vehiculo" label="Foto próximamente" />
+        )}
+        <span className="fleet-card__badge">
+          {vehicle.price === null ? (
+            'Cotizar'
+          ) : (
+            <>
+              Desde <strong>${vehicle.price}</strong>
+            </>
+          )}
+        </span>
+      </div>
+
+      <div className="fleet-card__body">
+        <h3 className="fleet-card__name">{vehicle.name}</h3>
+        <p className="fleet-card__type">{vehicle.type}</p>
+        <p className="fleet-card__pax">
+          <UsersIcon />
+          {vehicle.minPax}–{vehicle.maxPax} pasajeros
+        </p>
+        <p className="fleet-card__summary">{vehicle.summary}</p>
+        <ul className="fleet-card__features">
+          {vehicle.features.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
+        </ul>
+        <div className="fleet-card__cta">
+          <MagneticButton
+            className="btn btn--primary btn--block"
+            block
+            magnetStrength={0.18}
+            onClick={() => onRequest(vehicle.slug)}
+            ariaLabel={`Pedir traslado en ${vehicle.name}`}
+          >
+            Pedir este traslado
+            <ArrowIcon />
+          </MagneticButton>
+        </div>
+      </div>
+    </motion.article>
   );
 }
 
+/**
+ * Cuatro tarjetas con los modelos principales, del mismo corte que las de
+ * excursiones. "Ver más flota" abre debajo las otras cuatro. Antes había una
+ * lista con una ficha grande al lado, y la ficha se veía fuera de escala.
+ */
 export default function Fleet({
   onRequest,
 }: {
   onRequest: (vehicleSlug: string) => void;
 }) {
-  const [activeSlug, setActiveSlug] = useState(FLEET[1]!.slug);
-  const [collapsed, setCollapsed] = useState(true);
-
-  const showRest = !collapsed;
-  const shown = showRest ? OTHER_FLEET : FEATURED_FLEET;
-  const active = FLEET.find((v) => v.slug === activeSlug) ?? FLEET[0];
-
-  // Al cambiar de grupo, el vehiculo seleccionado deja de estar en la lista, y
-  // el panel se quedaria mostrando algo sin fila que lo respalde. Se pasa al
-  // primero del grupo que entra.
-  const toggleRest = () => {
-    setCollapsed((wasCollapsed) => {
-      const next = !wasCollapsed;
-      const list = next ? FEATURED_FLEET : OTHER_FLEET;
-      setActiveSlug(list[0]!.slug);
-      return next;
-    });
-  };
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <section className="section fleet" id="traslados">
@@ -113,123 +139,43 @@ export default function Fleet({
           </div>
         </div>
 
-        <div className="fleet__layout">
-          <div className="fleet__list" role="tablist" aria-label="Vehículos disponibles">
-            {shown.map((v) => (
-              <FleetItem
-                key={v.slug}
-                vehicle={v}
-                active={v.slug === activeSlug}
-                onPick={setActiveSlug}
-              />
-            ))}
+        <div className="fleet__grid">
+          {FEATURED_FLEET.map((v, i) => (
+            <FleetCard key={v.slug} vehicle={v} index={i} onRequest={onRequest} />
+          ))}
+          <AnimatePresence initial={false}>
+            {expanded &&
+              OTHER_FLEET.map((v, i) => (
+                <FleetCard key={v.slug} vehicle={v} index={i} onRequest={onRequest} />
+              ))}
+          </AnimatePresence>
+        </div>
 
-
-            <button type="button" className="fleet__more" onClick={toggleRest}>
-              {showRest ? 'Ver flota principal' : 'Ver más flota'}
-              <motion.span
-                className="fleet__more-chevron"
-                animate={{ rotate: showRest ? 180 : 0 }}
-                transition={{ duration: 0.28, ease: EASINGS.smooth }}
-                aria-hidden="true"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="m6 9 6 6 6-6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  </svg>
-                </motion.span>
-            </button>
-          </div>
-
-          <div className="fleet__stage">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active.slug}
-                className="fleet__panel"
-                initial={{ opacity: 0, y: 22 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.42, ease: EASINGS.premium }}
-              >
-                <div className="fleet__media">
-                  {active.photo ? (
-                    <img
-                      className="fleet__photo"
-                      src={active.photo}
-                      alt={`${active.name} — ${active.type}`}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : (
-                    <ImagePlaceholder category="vehiculo" label="Foto próximamente" />
-                  )}
-                  <span className="fleet__badge">
-                    {active.price === null ? (
-                      'Cotizar'
-                    ) : (
-                      <>
-                        Desde <strong>${active.price}</strong>
-                      </>
-                    )}
-                  </span>
-                </div>
-
-                <div className="fleet__info">
-                  <div className="fleet__head-block">
-                    <h3 className="fleet__name">{active.name}</h3>
-                    <p className="fleet__model">{active.type}</p>
-
-                    <div className="fleet__capacity">
-                      <span className="fleet__capacity-label">
-                        <UsersIcon />
-                        {active.minPax}–{active.maxPax} pasajeros
-                      </span>
-                      <span className="fleet__capacity-track">
-                        <motion.span
-                          className="fleet__capacity-bar"
-                          initial={{ scaleX: 0 }}
-                          animate={{ scaleX: active.maxPax / MAX_PAX }}
-                          transition={{ duration: 0.7, ease: EASINGS.premium }}
-                        />
-                      </span>
-                    </div>
-
-                    <p className="fleet__summary">{active.summary}</p>
-                  </div>
-
-                  <div className="fleet__side-block">
-                    <ul className="fleet__features">
-                      {active.features.map((f, i) => (
-                        <motion.li
-                          key={f}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.12 + i * 0.07, duration: 0.4 }}
-                        >
-                          {f}
-                        </motion.li>
-                      ))}
-                    </ul>
-
-                    <div className="fleet__cta">
-                      <MagneticButton
-                        className="btn btn--primary"
-                        onClick={() => onRequest(active.slug)}
-                      >
-                        Pedir este traslado
-                        <ArrowIcon />
-                      </MagneticButton>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+        <div className="fleet__foot">
+          <button
+            type="button"
+            className="fleet__more"
+            onClick={() => setExpanded((e) => !e)}
+            aria-expanded={expanded}
+          >
+            {expanded ? 'Ver menos' : `Ver más flota (${OTHER_FLEET.length} más)`}
+            <motion.span
+              className="fleet__more-chevron"
+              animate={{ rotate: expanded ? 180 : 0 }}
+              transition={{ duration: 0.28, ease: EASINGS.smooth }}
+              aria-hidden="true"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="m6 9 6 6 6-6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.span>
+          </button>
         </div>
       </div>
     </section>
