@@ -50,7 +50,23 @@ npm run server         # arranca en el puerto 3000
 
 `db:seed` solo siembra si la base está vacía: ejecutarlo de nuevo no borra nada.
 
-## Lo que hay que montar en el VPS (lo que el chat tiene que guiar)
+## Con Dokploy (build por Dockerfile, Traefik con HTTPS)
+
+El repo ya trae `Dockerfile` y `.dockerignore`. En Dokploy:
+
+1. Aplicación nueva → fuente GitHub, rama `main`, tipo de build **Dockerfile**.
+2. Variables de entorno: las de la tabla de arriba. `NODE_ENV`, `PORT` y
+   `DATA_DIR` ya vienen fijadas en la imagen (`production`, `3000`, `/app/data`).
+3. **Volumen persistente** montado en `/app/data` (base SQLite + fotos). Sin
+   esto cada redespliegue arranca con la base vacía y sin fotos.
+4. Dominio del cliente apuntando al puerto **3000** del contenedor, con HTTPS
+   (Let's Encrypt) activado en Traefik. El servidor ya lleva `trust proxy`.
+5. El contenedor ejecuta `npm run db:seed` (solo siembra si la base está
+   vacía) y después `npm run server`.
+
+Lo que sigue (PM2 + Nginx) es la alternativa sin Docker; con Dokploy no hace falta.
+
+## Sin Docker: lo que hay que montar a mano en el VPS
 
 1. **Node 24** (vía `nvm` o NodeSource) y `git`.
 2. **PM2** para que `npm run server` quede corriendo y se reinicie al reiniciar

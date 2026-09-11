@@ -21,6 +21,10 @@ migrate();
 
 const app = express();
 app.disable('x-powered-by');
+// Detras de Traefik (o Nginx) la peticion llega por HTTP aunque el visitante
+// entre por HTTPS. Sin esto Express no se fia del X-Forwarded-Proto y la
+// cookie "secure" del panel no se enviaria nunca.
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
@@ -72,6 +76,8 @@ app.get(/.*/, (req, res, next) => {
   res.sendFile(index);
 });
 
-app.listen(PORT, () => {
-  console.log(`Dominican Routes escuchando en http://localhost:${PORT}`);
+// 0.0.0.0 y no localhost: dentro del contenedor, localhost seria solo el
+// propio contenedor y Traefik no podria llegar.
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Dominican Routes escuchando en http://0.0.0.0:${PORT}`);
 });
