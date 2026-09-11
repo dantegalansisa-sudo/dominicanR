@@ -54,15 +54,7 @@ function FleetCard({
   onRequest: (slug: string) => void;
 }) {
   return (
-    <motion.article
-      className="fleet-card"
-      variants={cardVariants}
-      custom={index}
-      initial="hidden"
-      animate="visible"
-      exit={{ opacity: 0, y: 16, transition: { duration: 0.22 } }}
-      layout
-    >
+    <motion.article className="fleet-card" variants={cardVariants} custom={index}>
       <div className="fleet-card__media">
         {vehicle.photo ? (
           <img
@@ -117,15 +109,17 @@ function FleetCard({
 
 /**
  * Cuatro tarjetas con los modelos principales, del mismo corte que las de
- * excursiones. "Ver más flota" abre debajo las otras cuatro. Antes había una
- * lista con una ficha grande al lado, y la ficha se veía fuera de escala.
+ * excursiones. "Ver más flota" cambia las cuatro por las otras cuatro en el
+ * mismo sitio: el cliente no quiere ocho tarjetas apiladas ocupando media
+ * pantalla. Antes había una lista con una ficha grande al lado.
  */
 export default function Fleet({
   onRequest,
 }: {
   onRequest: (vehicleSlug: string) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [showRest, setShowRest] = useState(false);
+  const shown = showRest ? OTHER_FLEET : FEATURED_FLEET;
 
   return (
     <section className="section fleet" id="traslados">
@@ -139,29 +133,32 @@ export default function Fleet({
           </div>
         </div>
 
-        <div className="fleet__grid">
-          {FEATURED_FLEET.map((v, i) => (
-            <FleetCard key={v.slug} vehicle={v} index={i} onRequest={onRequest} />
-          ))}
-          <AnimatePresence initial={false}>
-            {expanded &&
-              OTHER_FLEET.map((v, i) => (
-                <FleetCard key={v.slug} vehicle={v} index={i} onRequest={onRequest} />
-              ))}
-          </AnimatePresence>
-        </div>
+        {/* El grupo entero es un solo hijo con clave: sale uno, entra el otro
+            en el mismo hueco, y las tarjetas heredan el escalonado. */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={showRest ? 'rest' : 'featured'}
+            className="fleet__grid"
+            initial="hidden"
+            animate="visible"
+            exit={{ opacity: 0, y: 12, transition: { duration: 0.2 } }}
+          >
+            {shown.map((v, i) => (
+              <FleetCard key={v.slug} vehicle={v} index={i} onRequest={onRequest} />
+            ))}
+          </motion.div>
+        </AnimatePresence>
 
         <div className="fleet__foot">
           <button
             type="button"
             className="fleet__more"
-            onClick={() => setExpanded((e) => !e)}
-            aria-expanded={expanded}
+            onClick={() => setShowRest((r) => !r)}
           >
-            {expanded ? 'Ver menos' : `Ver más flota (${OTHER_FLEET.length} más)`}
+            {showRest ? 'Ver flota principal' : `Ver más flota (${OTHER_FLEET.length} más)`}
             <motion.span
               className="fleet__more-chevron"
-              animate={{ rotate: expanded ? 180 : 0 }}
+              animate={{ rotate: showRest ? 180 : 0 }}
               transition={{ duration: 0.28, ease: EASINGS.smooth }}
               aria-hidden="true"
             >
