@@ -26,3 +26,6 @@ Thumbs.db
 
 # vercel
 .vercel
+
+# base de datos y fotos subidas desde el panel
+data/

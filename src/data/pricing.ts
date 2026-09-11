@@ -71,7 +71,7 @@ export const fold = (s: string) =>
  * ('samana' || 'samana'). Eran restos de cuando se comparaba con acento, antes
  * de normalizar; una vez sin acentos las dos ramas son idénticas.
  */
-const ZONES: Record<string, string[]> = {
+export const ZONES: Record<string, string[]> = {
   miches: ['miches', 'michez', 'el seibo', 'el seybo'],
   bayahibe: ['bayahibe', 'bayaibe', 'bayajibe', 'dominicus'],
   juanDolio: ['juan dolio', 'juandolio', 'guayacanes'],
