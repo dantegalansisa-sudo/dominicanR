@@ -91,8 +91,9 @@ Lo que sigue (PM2 + Nginx) es la alternativa sin Docker; con Dokploy no hace fal
 - `vercel.json` y la carpeta `api/` son de Vercel; en el VPS no se usan
   directamente (el servidor Express reutiliza los mismos manejadores). No hay
   que borrarlos.
-- El panel de administración (`/api/admin/*`) tiene el backend hecho; la
-  interfaz web está pendiente. Para el despliegue no cambia nada.
+- El panel de administración está en `https://DOMINIO/admin`. Se entra con
+  `ADMIN_EMAIL` / `ADMIN_PASSWORD`; la contraseña se puede cambiar desde
+  Ajustes. Lo que se edita ahí se guarda en `data/` y la web lo lee al momento.
 - Cuando el dominio ya resuelva al VPS, verificar el dominio en Resend y
   cambiar `CONTACT_FROM` a una dirección de ese dominio para que los correos no
   salgan de `onboarding@resend.dev`.

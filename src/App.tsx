@@ -1,5 +1,5 @@
-import { useCallback, useEffect } from 'react';
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import { Suspense, lazy, useCallback, useEffect } from 'react';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
@@ -13,6 +13,8 @@ import FloatingCta from './components/FloatingCta';
 import ExcursionsPage from './pages/ExcursionsPage';
 import BookingPage from './pages/BookingPage';
 import ExcursionBookingPage from './pages/ExcursionBookingPage';
+// El panel solo lo carga quien entra en /admin: el visitante no se lo baja.
+const AdminApp = lazy(() => import('./admin/AdminApp'));
 import type { Excursion } from './data/excursions';
 import { useT } from './i18n';
 
@@ -43,6 +45,9 @@ function Home({
 
 export default function App() {
   const navigate = useNavigate();
+  // El panel va sin la cabecera ni el pie de la web: es otra aplicacion que
+  // comparte el proyecto, no una pagina mas del sitio.
+  const isAdmin = useLocation().pathname.startsWith('/admin');
 
   const requestTransfer = useCallback(
     (vehicleSlug: string) => {
@@ -60,6 +65,16 @@ export default function App() {
     },
     [navigate],
   );
+
+  if (isAdmin) {
+    return (
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/admin/*" element={<AdminApp />} />
+        </Routes>
+      </Suspense>
+    );
+  }
 
   return (
     <>
