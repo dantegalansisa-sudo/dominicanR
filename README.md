@@ -257,3 +257,5 @@ atribución obligatoria).
 ---
 
 *NEXIX Tech Studio*
+
+<!-- Prueba del despliegue automático desde Dokploy: 2026-09-12 -->
