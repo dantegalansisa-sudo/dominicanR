@@ -5,6 +5,8 @@
  * distintos.
  */
 
+import { useT } from '../i18n';
+
 interface Country {
   /** Código ISO, que es lo único único: varios países comparten prefijo. */
   code: string;
@@ -51,17 +53,18 @@ export default function PhoneField({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const t = useT();
   return (
     <div className="form__field phone">
       <label htmlFor={id}>
-        <span>WhatsApp / teléfono</span>
+        <span>{t.phone.label}</span>
       </label>
       <div className="phone__row">
         <select
           className="phone__code"
           value={country}
           onChange={(e) => onCountry(e.target.value)}
-          aria-label="País del teléfono"
+          aria-label={t.phone.countryAria}
         >
           {COUNTRIES.map((c) => (
             <option key={c.code} value={c.code}>

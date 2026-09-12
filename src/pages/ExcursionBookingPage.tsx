@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
 import ExcursionCarousel from '../components/ExcursionCarousel';
-import { CATEGORIES, EXCURSIONS, fromPrice } from '../data/excursions';
+import { EXCURSIONS as EXCURSIONS_ES, fromPrice } from '../data/excursions';
 import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal } from '../data/passengers';
 import type { Party } from '../data/passengers';
-import { PICKUP_PLACES, emptyPlace, placeMapsUrl } from '../data/places';
+import { emptyPlace, placeMapsUrl } from '../data/places';
 import type { PlaceGroup, PlaceValue } from '../data/places';
+import { useLang } from '../i18n';
+import { partyLabelT, prettyDateT, useCategories, useExcursions, usePickupPlaces } from '../i18n/catalog';
 
 /** Lo que dejan la ficha de excursión o el buscador al navegar hasta aquí. */
 export interface ExcursionSeed {
@@ -24,20 +26,7 @@ type Status = 'idle' | 'sending' | 'sent' | 'error';
 /** Máximo por salida; para grupos mayores el cliente coordina aparte. */
 const MAX_PARTY = 50;
 
-// El desplegable va agrupado por categoría: con 38 excursiones, una lista
-// plana obliga a leerlas todas para encontrar la que se busca.
-const EXCURSION_GROUPS: PlaceGroup[] = CATEGORIES.filter((c) => c.id !== 'todas')
-  .map((c) => ({
-    label: c.label,
-    items: EXCURSIONS.filter((e) => e.category === c.id).map((e) => e.name),
-  }))
-  .filter((g) => g.items.length > 0);
-
-const BANDS = [
-  { key: 'adults', ...AGE_BANDS.adults, min: 1 },
-  { key: 'children', ...AGE_BANDS.children, min: 0 },
-  { key: 'infants', ...AGE_BANDS.infants, min: 0 },
-] as const;
+const BAND_KEYS = ['adults', 'children', 'infants'] as const;
 
 const Ico = ({
   d,
@@ -75,15 +64,35 @@ const COIN =
 const CAL = 'M4.5 6.5h15v14h-15zM4.5 11h15M9 3.5v4m6-4v4';
 const DOOR = 'M6.5 3.5h11v17h-11zM14 12h.6';
 
-const prettyDate = (iso: string) => {
-  if (!iso) return '';
-  const [y, m, d] = iso.split('-');
-  return d && m && y ? `${d}/${m}/${y}` : iso;
-};
+/** Para el correo al operador, siempre dd/mm/aaaa. */
+const prettyDate = (iso: string) => prettyDateT('es', iso);
 
 export default function ExcursionBookingPage() {
   const seed = (useLocation().state ?? {}) as ExcursionSeed;
+  const { lang, t } = useLang();
+  const EXCURSIONS = useExcursions();
+  const CATEGORIES = useCategories();
+  const PICKUP_PLACES = usePickupPlaces();
   const seeded = seed.slug ? EXCURSIONS.find((e) => e.slug === seed.slug) : undefined;
+
+  // El desplegable va agrupado por categoría: con 38 excursiones, una lista
+  // plana obliga a leerlas todas para encontrar la que se busca.
+  const EXCURSION_GROUPS: PlaceGroup[] = useMemo(
+    () =>
+      CATEGORIES.filter((c) => c.id !== 'todas')
+        .map((c) => ({
+          label: c.label,
+          items: EXCURSIONS.filter((e) => e.category === c.id).map((e) => e.name),
+        }))
+        .filter((g) => g.items.length > 0),
+    [CATEGORIES, EXCURSIONS],
+  );
+
+  const BANDS = BAND_KEYS.map((key) => ({
+    key,
+    ...t.passengers.bands[key],
+    min: key === 'adults' ? 1 : 0,
+  }));
 
   const [choice, setChoice] = useState<PlaceValue>(
     seeded ? emptyPlace(seeded.name) : emptyPlace(),
@@ -104,20 +113,36 @@ export default function ExcursionBookingPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = 'Reservar excursión — Dominican Routes';
   }, []);
+  useEffect(() => {
+    document.title = t.titles.excursion;
+  }, [t]);
 
   // Si el texto coincide con una del catálogo mostramos sus datos; si no,
   // vale igual, porque el cliente también arma salidas a medida.
   const excursion = useMemo(
     () => EXCURSIONS.find((e) => e.name === choice.text.trim()),
-    [choice.text],
+    [choice.text, EXCURSIONS],
   );
+  // Al cambiar de idioma el nombre elegido cambia con el catálogo, para que
+  // el formulario no se quede apuntando a un texto que ya no existe. Se
+  // recuerda el slug porque el nombre viejo ya no está en la lista nueva.
+  const lastSlug = useRef<string | undefined>(seeded?.slug);
+  if (excursion) lastSlug.current = excursion.slug;
+  useEffect(() => {
+    const here = lastSlug.current ? EXCURSIONS.find((e) => e.slug === lastSlug.current) : undefined;
+    if (here) setChoice((c) => (c.text.trim() === here.name ? c : emptyPlace(here.name)));
+  }, [EXCURSIONS]);
+  // Para el correo al operador: la ficha en español.
+  const excursionEs = excursion ? EXCURSIONS_ES.find((e) => e.slug === excursion.slug) : undefined;
 
   const adultsOnly = Boolean(excursion?.adultsOnly);
   const departures = excursion?.departures ?? [];
   const tickets = excursion?.tickets ?? [];
-  const chosenTicket = tickets.find((t) => t.name === ticket) ?? null;
+  const chosenTicket = tickets.find((tk) => tk.name === ticket) ?? null;
+  const chosenTicketEs = chosenTicket
+    ? (excursionEs?.tickets?.[tickets.indexOf(chosenTicket)] ?? chosenTicket)
+    : null;
 
   // Cambiar de excursion deja el horario y la entrada de la anterior, que no
   // existen en la nueva.
@@ -134,7 +159,7 @@ export default function ExcursionBookingPage() {
   // Con barra libre el tramo de adultos no es el del catalogo, que empieza a
   // los 11: decir "solo para mayores" y debajo "11 anos o mas" se contradice.
   const bands = adultsOnly
-    ? [{ ...BANDS[0], hint: '18 años o más' }]
+    ? [{ ...BANDS[0]!, hint: t.passengers.adultsOnlyHint }]
     : BANDS;
   const total = partyTotal(party);
   const atMax = total >= MAX_PARTY;
@@ -154,26 +179,29 @@ export default function ExcursionBookingPage() {
     // navegador: hay que comprobarlo aqui o el telefono se colaria vacio.
     if (!name.trim() || !email.trim() || !phone.trim()) {
       setStatus('error');
-      setError('Completa tu nombre, tu correo y tu teléfono.');
+      setError(t.exBooking.missingContact);
       return;
     }
 
     // Los tramos van desglosados y con su rango de edad al lado: es
     // exactamente lo que el operador necesita para cotizar la salida.
     const blocks = [
-      ['Solicitud de excursión.'],
       [
-        `Excursión: ${choice.text || '(por confirmar)'}${
-          excursion ? ` (${excursion.duration})` : ''
+        'Solicitud de excursión.',
+        ...(lang === 'en' ? ['Idioma del cliente: inglés (reservó desde la web en inglés).'] : []),
+      ],
+      [
+        `Excursión: ${excursionEs?.name || choice.text || '(por confirmar)'}${
+          excursionEs ? ` (${excursionEs.duration})` : ''
         }`,
         `Fecha: ${prettyDate(date) || '(por confirmar)'}`,
         ...(departures.length
           ? [`Horario de salida: ${departure || '(por confirmar)'}`]
           : []),
-        ...(chosenTicket
+        ...(chosenTicketEs
           ? [
-              `Entrada: ${chosenTicket.name} — $${chosenTicket.price} por persona`,
-              `  Incluye: ${chosenTicket.includes}`,
+              `Entrada: ${chosenTicketEs.name} — $${chosenTicketEs.price} por persona`,
+              `  Incluye: ${chosenTicketEs.includes}`,
             ]
           : tickets.length
             ? ['Entrada: (por confirmar)']
@@ -208,7 +236,7 @@ export default function ExcursionBookingPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone: `${dialOf(country)} ${phone}`, topic: 'Excursión', date, message }),
+        body: JSON.stringify({ name, email, phone: `${dialOf(country)} ${phone}`, topic: 'Excursión', date, message, lang }),
       });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
@@ -217,11 +245,11 @@ export default function ExcursionBookingPage() {
       if (res.ok && body.ok) setStatus('sent');
       else {
         setStatus('error');
-        setError(body.error || 'No pudimos enviar tu solicitud. Intenta de nuevo.');
+        setError(t.exBooking.failed);
       }
     } catch {
       setStatus('error');
-      setError('Revisa tu conexión e intenta de nuevo.');
+      setError(t.exBooking.offline);
     }
   };
 
@@ -231,19 +259,16 @@ export default function ExcursionBookingPage() {
         <div className="booking-page__head">
           <Link className="catalogue__back" to="/excursiones">
             <Ico d={ARROW} flip />
-            Ver todas las excursiones
+            {t.exBooking.back}
           </Link>
           <p className="eyebrow">
             {excursion
               ? (CATEGORIES.find((c) => c.id === excursion.category)?.label ??
-                'Excursiones')
-              : 'Excursiones'}
+                t.exBooking.eyebrow)
+              : t.exBooking.eyebrow}
           </p>
-          <h1 className="h1 booking-page__title">Completa tu excursión</h1>
-          <p className="booking-page__sub">
-            Confirmamos por correo con el precio cerrado, normalmente el mismo
-            día. Todavía no se cobra nada.
-          </p>
+          <h1 className="h1 booking-page__title">{t.exBooking.title}</h1>
+          <p className="booking-page__sub">{t.exBooking.sub}</p>
         </div>
 
         <form className="booking-form" onSubmit={submit} noValidate>
@@ -258,7 +283,7 @@ export default function ExcursionBookingPage() {
               )}
 
               <h2 className="bcard__title">
-                {excursion ? excursion.name : 'La excursión'}
+                {excursion ? excursion.name : t.exBooking.theExcursion}
               </h2>
 
               {excursion && (
@@ -270,7 +295,7 @@ export default function ExcursionBookingPage() {
                     </span>
                     <span className="exdetail__fact">
                       <Ico d={STAR} size={15} />
-                      {excursion.rating.toFixed(1)} · {excursion.reviews} reseñas
+                      {excursion.rating.toFixed(1)} · {excursion.reviews} {t.exBooking.reviews}
                     </span>
                     <span className="exdetail__fact">
                       <Ico d={PIN} size={15} />
@@ -279,8 +304,8 @@ export default function ExcursionBookingPage() {
                     <span className="exdetail__fact">
                       <Ico d={COIN} size={15} />
                       {fromPrice(excursion) === null
-                        ? 'A cotizar'
-                        : `Desde $${fromPrice(excursion)} por adulto`}
+                        ? t.exBooking.toQuote
+                        : t.exBooking.fromPerAdult(fromPrice(excursion)!)}
                     </span>
                   </div>
 
@@ -288,7 +313,7 @@ export default function ExcursionBookingPage() {
 
                   {excursion.includes.length > 0 && (
                     <>
-                      <h3 className="exdetail__sub">Qué incluye</h3>
+                      <h3 className="exdetail__sub">{t.exBooking.includes}</h3>
                       <ul className="exdetail__list">
                         {excursion.includes.map((x) => (
                           <li key={x}>{x}</li>
@@ -299,7 +324,7 @@ export default function ExcursionBookingPage() {
 
                   {excursion.activities.length > 0 && (
                     <>
-                      <h3 className="exdetail__sub">Actividades</h3>
+                      <h3 className="exdetail__sub">{t.exBooking.activities}</h3>
                       <ul className="exdetail__list exdetail__list--act">
                         {excursion.activities.map((x) => (
                           <li key={x}>{x}</li>
@@ -314,8 +339,8 @@ export default function ExcursionBookingPage() {
                 <div className="bcard__full">
                   <PlaceField
                     id="ex-choice"
-                    label="Excursión"
-                    placeholder="Elige una excursión"
+                    label={t.exBooking.excursion}
+                    placeholder={t.exBooking.excursionPh}
                     icon={<Ico d={COMPASS} size={13} />}
                     groups={EXCURSION_GROUPS}
                     value={choice}
@@ -326,7 +351,7 @@ export default function ExcursionBookingPage() {
                 <label className="form__field bcard__full">
                   <span>
                     <Ico d={CAL} size={13} />
-                    Fecha
+                    {t.exBooking.date}
                   </span>
                   <input
                     type="date"
@@ -338,7 +363,7 @@ export default function ExcursionBookingPage() {
 
                 {departures.length > 0 && (
                   <div className="bcard__full">
-                    <p className="opt__label">Horario de salida</p>
+                    <p className="opt__label">{t.exBooking.departure}</p>
                     <div className="opt">
                       {departures.map((h) => (
                         <button
@@ -358,8 +383,8 @@ export default function ExcursionBookingPage() {
                 <div className="bcard__full">
                   <PlaceField
                     id="ex-pickup"
-                    label="Punto de recogida"
-                    placeholder="Tu hotel, zona o dirección"
+                    label={t.exBooking.pickup}
+                    placeholder={t.exBooking.pickupPh}
                     icon={<Ico d={PIN} size={13} />}
                     groups={PICKUP_PLACES}
                     value={pickup}
@@ -371,12 +396,12 @@ export default function ExcursionBookingPage() {
                 <label className="form__field bcard__full">
                   <span>
                     <Ico d={DOOR} size={13} />
-                    Número de habitación (opcional)
+                    {t.exBooking.room}
                   </span>
                   <input
                     value={room}
                     onChange={(e) => setRoom(e.target.value)}
-                    placeholder="Para saber dónde buscarte"
+                    placeholder={t.exBooking.roomPh}
                   />
                 </label>
               </div>
@@ -384,24 +409,22 @@ export default function ExcursionBookingPage() {
 
             {tickets.length > 0 && (
               <section className="bcard">
-                <h2 className="bcard__title">Tu entrada</h2>
-                <p className="bcard__lead">
-                  El precio es por persona y cambia según lo que incluye.
-                </p>
+                <h2 className="bcard__title">{t.exBooking.ticket}</h2>
+                <p className="bcard__lead">{t.exBooking.ticketLead}</p>
                 <div className="tickets">
-                  {tickets.map((t) => (
+                  {tickets.map((tk) => (
                     <button
-                      key={t.name}
+                      key={tk.name}
                       type="button"
-                      className={`ticket${ticket === t.name ? ' is-on' : ''}`}
-                      onClick={() => setTicket(t.name)}
-                      aria-pressed={ticket === t.name}
+                      className={`ticket${ticket === tk.name ? ' is-on' : ''}`}
+                      onClick={() => setTicket(tk.name)}
+                      aria-pressed={ticket === tk.name}
                     >
                       <span className="ticket__head">
-                        <span className="ticket__name">{t.name}</span>
-                        <span className="ticket__price">${t.price}</span>
+                        <span className="ticket__name">{tk.name}</span>
+                        <span className="ticket__price">${tk.price}</span>
                       </span>
-                      <span className="ticket__includes">{t.includes}</span>
+                      <span className="ticket__includes">{tk.includes}</span>
                     </button>
                   ))}
                 </div>
@@ -409,11 +432,9 @@ export default function ExcursionBookingPage() {
             )}
 
             <section className="bcard">
-              <h2 className="bcard__title">Quiénes viajan</h2>
+              <h2 className="bcard__title">{t.exBooking.who}</h2>
               <p className="bcard__lead">
-                {adultsOnly
-                  ? 'Esta experiencia es solo para mayores de edad.'
-                  : 'El precio cambia según la edad, así que conviene afinarlo aquí.'}
+                {adultsOnly ? t.exBooking.adultsOnlyLead : t.exBooking.agesLead}
               </p>
 
               {bands.map((band) => {
@@ -429,7 +450,7 @@ export default function ExcursionBookingPage() {
                         type="button"
                         onClick={() => step(band.key, -1)}
                         disabled={n <= band.min}
-                        aria-label={`Menos ${band.label.toLowerCase()}`}
+                        aria-label={`${t.passengers.less} ${band.label.toLowerCase()}`}
                       >
                         –
                       </button>
@@ -438,7 +459,7 @@ export default function ExcursionBookingPage() {
                         type="button"
                         onClick={() => step(band.key, 1)}
                         disabled={atMax}
-                        aria-label={`Más ${band.label.toLowerCase()}`}
+                        aria-label={`${t.passengers.more} ${band.label.toLowerCase()}`}
                       >
                         +
                       </button>
@@ -452,31 +473,20 @@ export default function ExcursionBookingPage() {
                   atMax ? ' passengers__note--warn' : ''
                 }`}
               >
-                {atMax ? (
-                  <>
-                    {MAX_PARTY} es lo máximo por salida. Para grupos mayores
-                    coordinamos varias unidades: cuéntanoslo abajo.
-                  </>
-                ) : adultsOnly ? (
-                  <>
-                    <strong>{excursion?.name}</strong> no admite menores: lleva
-                    barra libre.
-                  </>
-                ) : (
-                  <>
-                    Los <strong>infantes de 0 a 4 años no pagan</strong>. Niños y
-                    adultos tienen tarifas distintas.
-                  </>
-                )}
+                {atMax
+                  ? t.exBooking.maxNote(MAX_PARTY)
+                  : adultsOnly
+                    ? t.exBooking.adultsOnlyNote(excursion?.name ?? '')
+                    : t.exBooking.agesNote}
               </p>
 
               <label className="form__field bcard__notes">
-                <span>Algo más que debamos saber</span>
+                <span>{t.exBooking.notes}</span>
                 <textarea
                   rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Alergias, movilidad reducida, celebración, idioma del guía…"
+                  placeholder={t.exBooking.notesPh}
                 />
               </label>
             </section>
@@ -484,26 +494,26 @@ export default function ExcursionBookingPage() {
 
           <aside className="booking-form__side">
             <div className="bcard bcard--sticky">
-              <h2 className="bcard__title">Tus datos</h2>
+              <h2 className="bcard__title">{t.exBooking.yourDetails}</h2>
 
               <label className="form__field">
-                <span>Nombre</span>
+                <span>{t.exBooking.name}</span>
                 <input
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Tu nombre"
+                  placeholder={t.exBooking.namePh}
                   autoComplete="name"
                 />
               </label>
               <label className="form__field">
-                <span>Correo</span>
+                <span>{t.exBooking.email}</span>
                 <input
                   required
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tucorreo@ejemplo.com"
+                  placeholder={t.exBooking.emailPh}
                   autoComplete="email"
                 />
               </label>
@@ -517,22 +527,22 @@ export default function ExcursionBookingPage() {
 
               <dl className="summary">
                 <div>
-                  <dt>Excursión</dt>
+                  <dt>{t.exBooking.excursionRow}</dt>
                   <dd>{choice.text || '—'}</dd>
                 </div>
                 <div>
-                  <dt>Cuándo</dt>
-                  <dd>{prettyDate(date) || '—'}</dd>
+                  <dt>{t.exBooking.when}</dt>
+                  <dd>{prettyDateT(lang, date) || '—'}</dd>
                 </div>
                 {departures.length > 0 && (
                   <div>
-                    <dt>Salida</dt>
+                    <dt>{t.exBooking.departureRow}</dt>
                     <dd>{departure || '—'}</dd>
                   </div>
                 )}
                 {tickets.length > 0 && (
                   <div>
-                    <dt>Entrada</dt>
+                    <dt>{t.exBooking.ticketRow}</dt>
                     <dd>
                       {chosenTicket
                         ? `${chosenTicket.name} · $${chosenTicket.price}`
@@ -541,12 +551,12 @@ export default function ExcursionBookingPage() {
                   </div>
                 )}
                 <div>
-                  <dt>Recogida</dt>
+                  <dt>{t.exBooking.pickupRow}</dt>
                   <dd>{pickup.text || '—'}</dd>
                 </div>
                 <div>
-                  <dt>Pasajeros</dt>
-                  <dd>{partyLabel(party)}</dd>
+                  <dt>{t.exBooking.passengersRow}</dt>
+                  <dd>{partyLabelT(t, party)}</dd>
                 </div>
               </dl>
 
@@ -557,7 +567,7 @@ export default function ExcursionBookingPage() {
                 magnetStrength={0.14}
                 disabled={status === 'sending'}
               >
-                {status === 'sending' ? 'Enviando…' : 'Enviar solicitud'}
+                {status === 'sending' ? t.exBooking.sending : t.exBooking.send}
                 {status !== 'sending' && <Ico d={ARROW} />}
               </MagneticButton>
 
@@ -571,7 +581,7 @@ export default function ExcursionBookingPage() {
                     exit={{ opacity: 0 }}
                   >
                     <Ico d="M20 6 9 17l-5-5" size={16} />
-                    Recibimos tu solicitud. Te confirmamos por correo.
+                    {t.exBooking.sent}
                   </motion.p>
                 )}
                 {status === 'error' && (
@@ -591,9 +601,7 @@ export default function ExcursionBookingPage() {
                 )}
               </AnimatePresence>
 
-              <p className="bcard__fine">
-                No se cobra nada ahora. Te enviamos el precio cerrado por correo.
-              </p>
+              <p className="bcard__fine">{t.exBooking.fine}</p>
             </div>
           </aside>
         </form>

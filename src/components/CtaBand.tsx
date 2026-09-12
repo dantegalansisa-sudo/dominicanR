@@ -2,12 +2,11 @@ import { motion } from 'framer-motion';
 import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import { EASINGS } from '../utils/easings';
-
-const WHATSAPP =
-  'https://wa.me/18292191573?text=' +
-  encodeURIComponent('Hola, quiero armar un traslado o una excursión a mi medida.');
+import { useT } from '../i18n';
 
 export default function CtaBand() {
+  const t = useT();
+  const WHATSAPP = 'https://wa.me/18292191573?text=' + encodeURIComponent(t.cta.whatsapp);
   return (
     <section className="section cta-band">
       <div className="container">
@@ -21,18 +20,15 @@ export default function CtaBand() {
           <div className="cta-card__glow" aria-hidden="true" />
 
           <div className="cta-card__body">
-            <p className="eyebrow cta-card__eyebrow">A tu medida</p>
-            <RevealText tag="h2" className="h2 cta-card__title">
-              {['¿Listo', 'para', 'tu', <em key="prox">próxima aventura?</em>]}
+            <p className="eyebrow cta-card__eyebrow">{t.cta.eyebrow}</p>
+            <RevealText key={t.code} tag="h2" className="h2 cta-card__title">
+              {t.cta.title}
             </RevealText>
-            <p className="cta-card__sub">
-              Cuéntanos tu grupo, tus fechas y tu presupuesto. Te enviamos la
-              cotización por correo el mismo día.
-            </p>
+            <p className="cta-card__sub">{t.cta.sub}</p>
 
             <div className="cta-card__actions">
               <MagneticButton className="btn btn--primary" href="#contacto">
-                Solicitar mi cotización
+                {t.cta.button}
                 <svg
                   className="btn__arrow"
                   width="17"
@@ -52,15 +48,15 @@ export default function CtaBand() {
               </MagneticButton>
 
               <a className="cta-card__phone" href="tel:+18292191573">
-                <span>o llámanos</span>
+                <span>{t.cta.orCall}</span>
                 <strong>+1 (829) 219-1573</strong>
               </a>
             </div>
 
             <p className="cta-card__alt">
-              También por{' '}
+              {t.cta.also}{' '}
               <a href="mailto:dominicanroutes@gmail.com">dominicanroutes@gmail.com</a>
-              {' '}o{' '}
+              {' '}{t.cta.or}{' '}
               <a href={WHATSAPP} target="_blank" rel="noopener noreferrer">
                 WhatsApp
               </a>

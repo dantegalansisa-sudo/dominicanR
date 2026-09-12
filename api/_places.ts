@@ -53,6 +53,7 @@ async function autocomplete(
   key: string,
   input: string,
   session: string,
+  lang: string,
 ): Promise<PlacesResult> {
   // No es un error: es una búsqueda demasiado corta para gastar una llamada.
   if (input.length < MIN_INPUT) return { status: 200, body: { ok: true, suggestions: [] } };
@@ -63,7 +64,9 @@ async function autocomplete(
     body: JSON.stringify({
       input,
       includedRegionCodes: [REGION],
-      languageCode: 'es',
+      // Los nombres de hoteles no cambian, pero "Calle" o "Street" si; el
+      // visitante ve las sugerencias en el idioma en que tiene la web.
+      languageCode: lang === 'en' ? 'en' : 'es',
       ...(session ? { sessionToken: session } : {}),
     }),
   });
@@ -191,7 +194,7 @@ export async function handlePlaces(payload: unknown): Promise<PlacesResult> {
 
   switch (str(p.op)) {
     case 'autocomplete':
-      return autocomplete(key, str(p.input), session);
+      return autocomplete(key, str(p.input), session, str(p.lang));
     case 'details':
       return details(key, str(p.placeId), session);
     case 'distance':

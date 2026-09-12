@@ -1,0 +1,392 @@
+/**
+ * Textos en español. Es el diccionario de referencia: el inglés se tipa
+ * contra este, así que aquí se define la forma.
+ */
+export const es = {
+  code: 'es',
+  locale: 'es-DO',
+
+  titles: {
+    home: 'Dominican Routes — Traslados y Excursiones en Punta Cana',
+    catalogue: 'Excursiones en Punta Cana — Dominican Routes',
+    transfer: 'Reservar traslado — Dominican Routes',
+    excursion: 'Reservar excursión — Dominican Routes',
+  },
+
+  nav: {
+    home: 'Inicio',
+    transfers: 'Traslados',
+    excursions: 'Excursiones',
+    about: 'Quiénes Somos',
+    contact: 'Contacto',
+    book: 'Reservar',
+    brand: 'Dominican Routes — inicio',
+    main: 'Principal',
+    language: 'Idioma',
+    openMenu: 'Abrir menú',
+    closeMenu: 'Cerrar menú',
+  },
+
+  hero: {
+    eyebrow: 'Punta Cana · República Dominicana',
+    ofFive: 'de 5',
+    reviews: 'reseñas',
+    excursions: 'excursiones',
+    vehicles: 'vehículos',
+    open: 'Descubre',
+    sub: 'Traslados privados y excursiones diseñadas para que solo te preocupes por disfrutar.',
+    close: 'como se debe vivir',
+  },
+
+  search: {
+    tabs: { transfer: 'Traslado', excursion: 'Excursiones' },
+    tabsAria: 'Tipo de reserva',
+    origin: 'Origen',
+    originPh: 'Aeropuerto, hotel o zona',
+    pickup: 'Punto de recogida',
+    pickupPh: 'Tu hotel o zona',
+    destination: 'Destino',
+    destinationPh: 'Hotel, zona o dirección',
+    excursion: 'Excursión',
+    excursionPh: 'Elige una excursión',
+    date: 'Fecha',
+    time: 'Hora',
+    submitTransfer: 'Pedir traslado',
+    submitExcursion: 'Pedir excursión',
+    noteTransfer: 'Niños y adicionales en el siguiente paso · Cancelación gratuita',
+    noteExcursion: 'Los infantes no pagan · Confirmación por correo · Cancelación gratuita',
+    errorTransfer: 'Completa origen, destino, fecha y hora para pedir el traslado.',
+    errorExcursion: 'Elige la excursión y la fecha para continuar.',
+  },
+
+  place: {
+    searching: 'Buscando…',
+    google: 'Resultados de Google',
+    noResults: 'Sin resultados. Puedes escribirlo tal cual.',
+  },
+
+  passengers: {
+    label: 'Pasajeros',
+    one: 'pasajero',
+    many: 'pasajeros',
+    /** Iniciales del desglose: adultos, niños, infantes. */
+    initials: { adults: 'A', children: 'N', infants: 'I' },
+    less: 'Menos',
+    more: 'Más',
+    done: 'Listo',
+    maxNote: (max: number) =>
+      `${max} es lo máximo por vehículo. Para grupos mayores coordinamos varias unidades: escríbenos.`,
+    transferNote: (
+      <>
+        En el siguiente paso <strong>eliges el vehículo</strong> y agregas los adicionales.
+      </>
+    ),
+    agesNote: (
+      <>
+        Los <strong>infantes no pagan</strong>. Niños y adultos tienen tarifas distintas.
+      </>
+    ),
+    bands: {
+      adults: { label: 'Adultos', hint: '11 años o más' },
+      children: { label: 'Niños', hint: 'De 5 a 10 años' },
+      infants: { label: 'Infantes', hint: 'De 0 a 4 años · no pagan' },
+    },
+    adultsOnlyHint: '18 años o más',
+    adult: { one: 'adulto', many: 'adultos' },
+    child: { one: 'niño', many: 'niños' },
+    infant: { one: 'infante', many: 'infantes' },
+  },
+
+  trust: {
+    aria: 'Dominican Routes en cifras',
+    excursions: 'Excursiones en catálogo',
+    rating: 'Calificación promedio',
+    reviews: 'Reseñas de viajeros',
+    vehicles: 'Tipos de vehículo',
+  },
+
+  fleet: {
+    eyebrow: 'Transporte privado',
+    title: ['Un', 'vehículo', 'para', <em key="cada">cada viaje</em>],
+    from: 'Desde',
+    quote: 'Cotizar',
+    passengers: 'pasajeros',
+    request: 'Pedir este traslado',
+    requestAria: (name: string) => `Pedir traslado en ${name}`,
+    more: (n: number) => `Ver más flota (${n} más)`,
+    main: 'Ver flota principal',
+    photoSoon: 'Foto próximamente',
+  },
+
+  excursions: {
+    eyebrow: 'Las más solicitadas',
+    title: ['Vive', 'la', 'isla', <em key="verdad">de verdad</em>],
+    sub: (total: number) => `Las seis experiencias que más nos piden. Tenemos ${total} en total.`,
+    seeAll: (total: number) => `Ver las ${total} excursiones`,
+    from: 'Desde',
+    ask: 'Consultar',
+    perPerson: 'por persona',
+    perks: ['Cancelación gratuita', 'Confirmación inmediata', 'Guía profesional'],
+    view: 'Ver experiencia',
+    viewAria: (name: string) => `Ver la experiencia ${name}`,
+    imageSoon: 'Imagen próximamente',
+    categories: {
+      todas: 'Todas',
+      islas: 'Islas y playas',
+      aventura: 'Aventura',
+      acuaticas: 'Acuáticas',
+      naturaleza: 'Naturaleza',
+      cultura: 'Cultura',
+      nocturna: 'Vida nocturna',
+      vip: 'VIP',
+    } as Record<string, string>,
+  },
+
+  catalogue: {
+    back: 'Volver al inicio',
+    eyebrow: 'Catálogo completo',
+    title: (n: number) => `${n} excursiones por toda la isla`,
+    sub: 'Desde medio día hasta escapadas de dos días. Filtra por lo que te interesa y pídenos la que quieras: te cotizamos por correo el mismo día.',
+    filtersAria: 'Categorías de excursiones',
+  },
+
+  why: {
+    eyebrow: 'La diferencia',
+    title: ['Comprometidos', 'con', 'tu', <em key="exp">experiencia</em>],
+    reasons: [
+      {
+        title: 'Puntualidad garantizada',
+        copy: 'Cumplimos los horarios acordados. Si tu vuelo se adelanta o se retrasa, el conductor ya lo sabe.',
+      },
+      {
+        title: 'Seguridad total',
+        copy: 'Vehículos en perfecto estado y conductores profesionales certificados, sin excepción.',
+      },
+      {
+        title: 'Trato de anfitrión',
+        copy: 'Personal capacitado que conoce la isla y responde en tu idioma, no solo alguien al volante.',
+      },
+      {
+        title: 'Precio cerrado',
+        copy: 'Tarifas competitivas sin cargos sorpresa al final. Lo que cotizamos es lo que pagas.',
+      },
+    ],
+  },
+
+  cta: {
+    eyebrow: 'A tu medida',
+    title: ['¿Listo', 'para', 'tu', <em key="prox">próxima aventura?</em>],
+    sub: 'Cuéntanos tu grupo, tus fechas y tu presupuesto. Te enviamos la cotización por correo el mismo día.',
+    button: 'Solicitar mi cotización',
+    orCall: 'o llámanos',
+    also: 'También por',
+    or: 'o',
+    whatsapp: 'Hola, quiero armar un traslado o una excursión a mi medida.',
+  },
+
+  fab: {
+    label: 'Reservar ahora',
+    whatsapp: 'Hola, quiero reservar un traslado o una excursión.',
+  },
+
+  contact: {
+    eyebrow: 'Hablemos',
+    title: ['Cuéntanos', 'qué', 'viaje', <em key="mente">tienes en mente</em>],
+    sub: 'Respondemos por correo el mismo día, con la cotización cerrada y sin cargos sorpresa. Si es urgente, llámanos — atendemos 24/7.',
+    trap: 'No llenes este campo',
+    name: 'Nombre',
+    namePh: 'Tu nombre',
+    email: 'Correo',
+    emailPh: 'tucorreo@ejemplo.com',
+    phone: 'WhatsApp / teléfono',
+    optional: 'Opcional',
+    travelDate: 'Fecha de viaje',
+    need: '¿Qué necesitas?',
+    needAria: 'Tipo de solicitud',
+    topics: ['Traslado', 'Excursión', 'Grupo o evento', 'Otro'],
+    message: 'Mensaje',
+    messagePh: 'Cuántos son, desde dónde salen y qué les gustaría hacer.',
+    send: 'Enviar solicitud',
+    sending: 'Enviando…',
+    sent: 'Recibimos tu solicitud. Te respondemos en breve.',
+    failed: 'No pudimos enviar tu mensaje. Intenta de nuevo.',
+    offline: 'Revisa tu conexión e intenta de nuevo.',
+    mapTitle: 'Mapa de Punta Cana',
+    openMap: 'Abrir en Google Maps',
+    location: 'Ubicación',
+    phoneLabel: 'Teléfono',
+    emailLabel: 'Correo',
+  },
+
+  footer: {
+    tagline: 'Tu aventura comienza aquí.',
+    navAria: 'Pie de página',
+    navigation: 'Navegación',
+    contact: 'Contacto',
+    hours: 'Atención 24/7',
+    follow: 'Síguenos',
+    designed: 'Diseñado por',
+  },
+
+  phone: {
+    label: 'WhatsApp / teléfono',
+    countryAria: 'País del teléfono',
+  },
+
+  places: {
+    airports: 'Aeropuertos',
+    zones: 'Zonas y ciudades',
+    hotelZones: 'Zonas hoteleras',
+    airportNames: {
+      PUJ: 'Aeropuerto de Punta Cana (PUJ)',
+      SDQ: 'Aeropuerto Las Américas, Santo Domingo (SDQ)',
+      JBQ: 'Aeropuerto La Isabela, Santo Domingo (JBQ)',
+      LRM: 'Aeropuerto de La Romana (LRM)',
+      POP: 'Aeropuerto Gregorio Luperón, Puerto Plata (POP)',
+      STI: 'Aeropuerto del Cibao, Santiago (STI)',
+      AZS: 'Aeropuerto El Catey, Samaná (AZS)',
+    } as Record<string, string>,
+  },
+
+  extras: {
+    seats: { baby: 'Baby seat', car: 'Car seat', booster: 'Booster seat' } as Record<string, string>,
+    drinks: {
+      agua: 'Agua embotellada',
+      cerveza: 'Cerveza Presidente',
+      sixpack: 'Six pack Cerveza Presidente',
+      ron: 'Ron Brugal o Barceló',
+    } as Record<string, string>,
+    stops: { '15': '15 minutos', '30': '30 minutos', '60': '1 hora' } as Record<string, string>,
+    stopLine: 'Paradas adicionales',
+  },
+
+  carousel: {
+    role: 'carrusel',
+    photosOf: (name: string) => `Fotos de ${name}`,
+    photoN: (name: string, i: number, total: number) => `${name}, foto ${i} de ${total}`,
+    prev: 'Foto anterior',
+    next: 'Foto siguiente',
+    goTo: (i: number) => `Ver foto ${i}`,
+  },
+
+  booking: {
+    back: 'Volver al inicio',
+    step: 'Paso 2 de 2',
+    title: 'Completa tu traslado',
+    sub: 'Confirmamos por correo con el precio cerrado, normalmente el mismo día. Todavía no se cobra nada.',
+    trip: 'El viaje',
+    origin: 'Origen',
+    originPh: 'Aeropuerto, hotel o zona',
+    destination: 'Destino',
+    destinationPh: 'Hotel, zona o dirección',
+    date: 'Fecha',
+    pickupTime: 'Hora de recogida',
+    flight: 'Número de vuelo (opcional)',
+    flightPh: 'Para seguir tu vuelo si se adelanta o retrasa',
+    roundTrip: 'Necesito el regreso también',
+    returnDate: 'Fecha del regreso',
+    returnTime: 'Hora del regreso',
+    who: 'Quiénes viajan',
+    vehicle: 'El vehículo',
+    vehicleLockedLead: 'Este es el que elegiste. Si viajas con mucho equipaje o cambias de idea, puedes escoger otro.',
+    vehicleLead: 'Te marcamos el que encaja por número de pasajeros, pero elige el que quieras: si viajas con mucho equipaje, coge uno más grande aunque seáis pocos.',
+    routing: 'Calculando la ruta…',
+    kmLine: (km: number, round: boolean, total: number) =>
+      `${km} km por carretera${round ? ` · ida y vuelta, ${total} km en total` : ''}. Los precios ya incluyen el recorrido.`,
+    passengers: 'pasajeros',
+    fromPrice: (p: number) => `desde $${p}`,
+    toQuote: 'A cotizar',
+    suggested: 'Sugerido',
+    suggestedParen: '(sugerido)',
+    changeVehicle: 'Cambiar de vehículo',
+    overCapacity: (name: string, max: number, total: number) =>
+      `${name} admite ${max}. Para ${total} haría falta otro o una segunda unidad: lo coordinamos contigo.`,
+    extras: 'Adicionales',
+    extrasLead: 'Todo opcional y en dólares. Lo sumamos a la cotización del traslado.',
+    childSeats: 'Sillas para niños',
+    onBoard: 'A bordo',
+    stops: 'Paradas adicionales',
+    stopsHint: 'Supermercado, restaurante… se cobra por tiempo de espera.',
+    extrasTotal: 'Total en adicionales',
+    notes: 'Algo más que debamos saber',
+    notesPh: 'Equipaje voluminoso, silla de ruedas, celebración…',
+    yourDetails: 'Tus datos',
+    name: 'Nombre',
+    namePh: 'Tu nombre',
+    email: 'Correo',
+    emailPh: 'tucorreo@ejemplo.com',
+    route: 'Ruta',
+    roundParen: '(ida y vuelta)',
+    when: 'Cuándo',
+    return: 'Regreso',
+    vehicleRow: 'Vehículo',
+    price: 'Precio',
+    passengersRow: 'Pasajeros',
+    extrasRow: 'Adicionales',
+    send: 'Enviar solicitud',
+    sending: 'Enviando…',
+    sent: 'Recibimos tu solicitud. Te confirmamos por correo.',
+    failed: 'No pudimos enviar tu solicitud. Intenta de nuevo.',
+    offline: 'Revisa tu conexión e intenta de nuevo.',
+    missingContact: 'Completa tu nombre, tu correo y tu teléfono.',
+    fine: 'No se cobra nada ahora. Te enviamos el precio cerrado por correo.',
+  },
+
+  exBooking: {
+    back: 'Ver todas las excursiones',
+    eyebrow: 'Excursiones',
+    title: 'Completa tu excursión',
+    sub: 'Confirmamos por correo con el precio cerrado, normalmente el mismo día. Todavía no se cobra nada.',
+    theExcursion: 'La excursión',
+    reviews: 'reseñas',
+    toQuote: 'A cotizar',
+    fromPerAdult: (p: number) => `Desde $${p} por adulto`,
+    includes: 'Qué incluye',
+    activities: 'Actividades',
+    excursion: 'Excursión',
+    excursionPh: 'Elige una excursión',
+    date: 'Fecha',
+    departure: 'Horario de salida',
+    pickup: 'Punto de recogida',
+    pickupPh: 'Tu hotel, zona o dirección',
+    room: 'Número de habitación (opcional)',
+    roomPh: 'Para saber dónde buscarte',
+    ticket: 'Tu entrada',
+    ticketLead: 'El precio es por persona y cambia según lo que incluye.',
+    who: 'Quiénes viajan',
+    adultsOnlyLead: 'Esta experiencia es solo para mayores de edad.',
+    agesLead: 'El precio cambia según la edad, así que conviene afinarlo aquí.',
+    maxNote: (max: number) =>
+      `${max} es lo máximo por salida. Para grupos mayores coordinamos varias unidades: cuéntanoslo abajo.`,
+    adultsOnlyNote: (name: string) => (
+      <>
+        <strong>{name}</strong> no admite menores: lleva barra libre.
+      </>
+    ),
+    agesNote: (
+      <>
+        Los <strong>infantes de 0 a 4 años no pagan</strong>. Niños y adultos tienen tarifas distintas.
+      </>
+    ),
+    notes: 'Algo más que debamos saber',
+    notesPh: 'Alergias, movilidad reducida, celebración, idioma del guía…',
+    yourDetails: 'Tus datos',
+    name: 'Nombre',
+    namePh: 'Tu nombre',
+    email: 'Correo',
+    emailPh: 'tucorreo@ejemplo.com',
+    excursionRow: 'Excursión',
+    when: 'Cuándo',
+    departureRow: 'Salida',
+    ticketRow: 'Entrada',
+    pickupRow: 'Recogida',
+    passengersRow: 'Pasajeros',
+    send: 'Enviar solicitud',
+    sending: 'Enviando…',
+    sent: 'Recibimos tu solicitud. Te confirmamos por correo.',
+    failed: 'No pudimos enviar tu solicitud. Intenta de nuevo.',
+    offline: 'Revisa tu conexión e intenta de nuevo.',
+    missingContact: 'Completa tu nombre, tu correo y tu teléfono.',
+    fine: 'No se cobra nada ahora. Te enviamos el precio cerrado por correo.',
+  },
+};

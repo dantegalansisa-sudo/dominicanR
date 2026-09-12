@@ -37,8 +37,9 @@ export async function fetchSuggestions(
   input: string,
   session: string,
   signal?: AbortSignal,
+  lang = 'es',
 ): Promise<Suggestion[]> {
-  const body = await call({ op: 'autocomplete', input, session }, signal);
+  const body = await call({ op: 'autocomplete', input, session, lang }, signal);
   return (body.suggestions as Suggestion[]) ?? [];
 }
 

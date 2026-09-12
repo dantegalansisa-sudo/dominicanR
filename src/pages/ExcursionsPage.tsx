@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import ExcursionCard, { ArrowIcon } from '../components/ExcursionCard';
-import { CATEGORIES, EXCURSIONS } from '../data/excursions';
 import type { CategoryId, Excursion } from '../data/excursions';
+import { useT } from '../i18n';
+import { useCategories, useExcursions } from '../i18n/catalog';
 
 /** The full catalogue, on its own URL. Filters live here, not on the home page. */
 export default function ExcursionsPage({
@@ -12,18 +13,23 @@ export default function ExcursionsPage({
   onSelect: (e: Excursion) => void;
 }) {
   const [active, setActive] = useState<CategoryId>('todas');
+  const t = useT();
+  const EXCURSIONS = useExcursions();
+  const CATEGORIES = useCategories();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = 'Excursiones en Punta Cana — Dominican Routes';
   }, []);
+  useEffect(() => {
+    document.title = t.titles.catalogue;
+  }, [t]);
 
   const items = useMemo(
     () =>
       active === 'todas'
         ? EXCURSIONS
         : EXCURSIONS.filter((e) => e.category === active),
-    [active],
+    [active, EXCURSIONS],
   );
 
   return (
@@ -31,19 +37,14 @@ export default function ExcursionsPage({
       <div className="container">
         <Link className="catalogue__back" to="/">
           <ArrowIcon dir="left" />
-          Volver al inicio
+          {t.catalogue.back}
         </Link>
 
-        <p className="eyebrow catalogue__eyebrow">Catálogo completo</p>
-        <h1 className="h1 catalogue__title">
-          {EXCURSIONS.length} excursiones por toda la isla
-        </h1>
-        <p className="catalogue__sub">
-          Desde medio día hasta escapadas de dos días. Filtra por lo que te
-          interesa y pídenos la que quieras: te cotizamos por correo el mismo día.
-        </p>
+        <p className="eyebrow catalogue__eyebrow">{t.catalogue.eyebrow}</p>
+        <h1 className="h1 catalogue__title">{t.catalogue.title(EXCURSIONS.length)}</h1>
+        <p className="catalogue__sub">{t.catalogue.sub}</p>
 
-        <div className="filters" role="tablist" aria-label="Categorías de excursiones">
+        <div className="filters" role="tablist" aria-label={t.catalogue.filtersAria}>
           {CATEGORIES.map((c) => {
             const count =
               c.id === 'todas'
@@ -77,7 +78,7 @@ export default function ExcursionsPage({
             cards inherit the container's finished "visible" state and mount
             hidden. */}
         <motion.div
-          key={active}
+          key={`${active}-${t.code}`}
           className="excursions__grid"
           initial="hidden"
           animate="visible"

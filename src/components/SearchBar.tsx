@@ -6,17 +6,14 @@ import PlaceField from './PlaceField';
 import PassengersField from './PassengersField';
 import { EMPTY_PARTY } from '../data/passengers';
 import type { Party } from '../data/passengers';
-import { PICKUP_PLACES, TRANSFER_PLACES, emptyPlace } from '../data/places';
+import { emptyPlace } from '../data/places';
 import type { PlaceValue } from '../data/places';
-import { EXCURSIONS } from '../data/excursions';
 import { EASINGS } from '../utils/easings';
+import { useT } from '../i18n';
+import { useExcursions, usePickupPlaces, useTransferPlaces } from '../i18n/catalog';
 
-const TABS = ['Traslado', 'Excursiones'] as const;
+const TABS = ['transfer', 'excursion'] as const;
 type Tab = (typeof TABS)[number];
-
-const EXCURSION_PLACES = [
-  { label: 'Excursiones', items: EXCURSIONS.map((e) => e.name) },
-];
 
 const ico = {
   width: 13,
@@ -89,7 +86,12 @@ const ArrowIcon = () => (
  */
 export default function SearchBar() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('Traslado');
+  const t = useT();
+  const EXCURSIONS = useExcursions();
+  const TRANSFER_PLACES = useTransferPlaces();
+  const PICKUP_PLACES = usePickupPlaces();
+  const EXCURSION_PLACES = [{ label: t.search.tabs.excursion, items: EXCURSIONS.map((e) => e.name) }];
+  const [tab, setTab] = useState<Tab>('transfer');
   const [origin, setOrigin] = useState<PlaceValue>(emptyPlace());
   const [destination, setDestination] = useState<PlaceValue>(emptyPlace());
   const [date, setDate] = useState('');
@@ -98,7 +100,7 @@ export default function SearchBar() {
   /** Campos que faltaban en el ultimo intento de enviar. */
   const [missing, setMissing] = useState<string[]>([]);
 
-  const isTransfer = tab === 'Traslado';
+  const isTransfer = tab === 'transfer';
   const miss = (k: string) => missing.includes(k);
 
   // Cambiar de pestana vacia el aviso: lo que faltaba en traslados no tiene
@@ -156,24 +158,24 @@ export default function SearchBar() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.95, delay: 0.85, ease: EASINGS.premium }}
     >
-      <div className="search__tabs" role="tablist" aria-label="Tipo de reserva">
-        {TABS.map((t) => (
+      <div className="search__tabs" role="tablist" aria-label={t.search.tabsAria}>
+        {TABS.map((tb) => (
           <button
-            key={t}
+            key={tb}
             type="button"
             role="tab"
-            aria-selected={tab === t}
-            className={`search__tab${tab === t ? ' is-active' : ''}`}
-            onClick={() => switchTab(t)}
+            aria-selected={tab === tb}
+            className={`search__tab${tab === tb ? ' is-active' : ''}`}
+            onClick={() => switchTab(tb)}
           >
-            {tab === t && (
+            {tab === tb && (
               <motion.span
                 layoutId="search-tab-pill"
                 className="search__tab-pill"
                 transition={{ type: 'spring', stiffness: 380, damping: 32 }}
               />
             )}
-            {t}
+            {t.search.tabs[tb]}
           </button>
         ))}
       </div>
@@ -181,8 +183,8 @@ export default function SearchBar() {
       <div className={`search__bar${missing.length ? ' has-missing' : ''}`}>
         <PlaceField
           id="sb-origin"
-          label={isTransfer ? 'Origen' : 'Punto de recogida'}
-          placeholder={isTransfer ? 'Aeropuerto, hotel o zona' : 'Tu hotel o zona'}
+          label={isTransfer ? t.search.origin : t.search.pickup}
+          placeholder={isTransfer ? t.search.originPh : t.search.pickupPh}
           icon={<PinIcon />}
           groups={isTransfer ? TRANSFER_PLACES : PICKUP_PLACES}
           value={origin}
@@ -193,8 +195,8 @@ export default function SearchBar() {
 
         <PlaceField
           id="sb-dest"
-          label={isTransfer ? 'Destino' : 'Excursión'}
-          placeholder={isTransfer ? 'Hotel, zona o dirección' : 'Elige una excursión'}
+          label={isTransfer ? t.search.destination : t.search.excursion}
+          placeholder={isTransfer ? t.search.destinationPh : t.search.excursionPh}
           icon={<FlagIcon />}
           groups={isTransfer ? TRANSFER_PLACES : EXCURSION_PLACES}
           value={destination}
@@ -206,7 +208,7 @@ export default function SearchBar() {
         <div className={`search__field${miss('date') ? ' is-missing' : ''}`}>
           <label className="search__label" htmlFor="sb-date">
             <CalendarIcon />
-            Fecha
+            {t.search.date}
           </label>
           <input
             id="sb-date"
@@ -220,7 +222,7 @@ export default function SearchBar() {
         <div className={`search__field${miss('time') ? ' is-missing' : ''}`}>
           <label className="search__label" htmlFor="sb-time">
             <ClockIcon />
-            Hora
+            {t.search.time}
           </label>
           <input
             id="sb-time"
@@ -243,7 +245,7 @@ export default function SearchBar() {
             magnetStrength={0.22}
             onClick={submit}
           >
-            {isTransfer ? 'Pedir traslado' : 'Pedir excursión'}
+            {isTransfer ? t.search.submitTransfer : t.search.submitExcursion}
             <ArrowIcon />
           </MagneticButton>
         </div>
@@ -254,16 +256,12 @@ export default function SearchBar() {
             menu y taparia cualquier cosa puesta a la izquierda. */}
         {missing.length > 0 ? (
           <p className="search__error" role="alert">
-            {isTransfer
-              ? 'Completa origen, destino, fecha y hora para pedir el traslado.'
-              : 'Elige la excursión y la fecha para continuar.'}
+            {isTransfer ? t.search.errorTransfer : t.search.errorExcursion}
           </p>
         ) : (
           <p className="search__note">
             <ShieldIcon />
-            {isTransfer
-              ? 'Niños y adicionales en el siguiente paso · Cancelación gratuita'
-              : 'Los infantes no pagan · Confirmación por correo · Cancelación gratuita'}
+            {isTransfer ? t.search.noteTransfer : t.search.noteExcursion}
           </p>
         )}
       </div>

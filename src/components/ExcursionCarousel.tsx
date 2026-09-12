@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Excursion } from '../data/excursions';
 import { EASINGS } from '../utils/easings';
+import { useT } from '../i18n';
 
 /** Arrastre mínimo, en píxeles, para que cuente como pasar de foto. */
 const SWIPE = 60;
@@ -46,6 +47,7 @@ export default function ExcursionCarousel({ item }: { item: Excursion }) {
   const [paused, setPaused] = useState(false);
   const total = item.photos.length;
   const wrapRef = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   // Cambiar de excursión tiene que devolvernos a su primera foto, o se
   // quedaría marcando la tercera de una galería que ya no existe.
@@ -78,8 +80,8 @@ export default function ExcursionCarousel({ item }: { item: Excursion }) {
       className="carousel"
       ref={wrapRef}
       role="group"
-      aria-roledescription="carrusel"
-      aria-label={`Fotos de ${item.name}`}
+      aria-roledescription={t.carousel.role}
+      aria-label={t.carousel.photosOf(item.name)}
       tabIndex={single ? -1 : 0}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -102,11 +104,7 @@ export default function ExcursionCarousel({ item }: { item: Excursion }) {
           key={item.photos[index]}
           className="carousel__img"
           src={item.photos[index]}
-          alt={
-            single
-              ? item.name
-              : `${item.name}, foto ${index + 1} de ${total}`
-          }
+          alt={single ? item.name : t.carousel.photoN(item.name, index + 1, total)}
           decoding="async"
           draggable={false}
           custom={dir}
@@ -133,7 +131,7 @@ export default function ExcursionCarousel({ item }: { item: Excursion }) {
             type="button"
             className="carousel__nav carousel__nav--prev"
             onClick={() => go(-1)}
-            aria-label="Foto anterior"
+            aria-label={t.carousel.prev}
           >
             <Chevron left />
           </button>
@@ -141,7 +139,7 @@ export default function ExcursionCarousel({ item }: { item: Excursion }) {
             type="button"
             className="carousel__nav carousel__nav--next"
             onClick={() => go(1)}
-            aria-label="Foto siguiente"
+            aria-label={t.carousel.next}
           >
             <Chevron />
           </button>
@@ -153,7 +151,7 @@ export default function ExcursionCarousel({ item }: { item: Excursion }) {
                 type="button"
                 className={`carousel__dot${i === index ? ' is-on' : ''}`}
                 onClick={() => jump(i)}
-                aria-label={`Ver foto ${i + 1}`}
+                aria-label={t.carousel.goTo(i + 1)}
                 aria-current={i === index}
               />
             ))}

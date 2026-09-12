@@ -2,8 +2,10 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import RevealText from './RevealText';
 import ExcursionCard, { ArrowIcon } from './ExcursionCard';
-import { EXCURSIONS, FEATURED_EXCURSIONS } from '../data/excursions';
+import { EXCURSIONS } from '../data/excursions';
 import type { Excursion } from '../data/excursions';
+import { useT } from '../i18n';
+import { useFeaturedExcursions } from '../i18n/catalog';
 
 /**
  * Home section: only the six the client sells most, laid out 3 + 3 so nothing
@@ -15,19 +17,18 @@ export default function Excursions({
 }: {
   onSelect: (e: Excursion) => void;
 }) {
+  const t = useT();
+  const featured = useFeaturedExcursions();
   return (
     <section className="section excursions" id="excursiones">
       <div className="container">
         <div className="excursions__head">
           <div>
-            <p className="eyebrow">Las más solicitadas</p>
-            <RevealText tag="h2" className="h2 excursions__title">
-              {['Vive', 'la', 'isla', <em key="verdad">de verdad</em>]}
+            <p className="eyebrow">{t.excursions.eyebrow}</p>
+            <RevealText key={t.code} tag="h2" className="h2 excursions__title">
+              {t.excursions.title}
             </RevealText>
-            <p className="excursions__sub">
-              Las seis experiencias que más nos piden. Tenemos{' '}
-              {EXCURSIONS.length} en total.
-            </p>
+            <p className="excursions__sub">{t.excursions.sub(EXCURSIONS.length)}</p>
           </div>
         </div>
 
@@ -37,14 +38,14 @@ export default function Excursions({
           whileInView="visible"
           viewport={{ once: true, amount: 0.1 }}
         >
-          {FEATURED_EXCURSIONS.map((item, i) => (
+          {featured.map((item, i) => (
             <ExcursionCard key={item.slug} item={item} index={i} onSelect={onSelect} eager />
           ))}
         </motion.div>
 
         <div className="excursions__foot excursions__foot--center">
           <Link className="btn btn--ghost-dark" to="/excursiones">
-            Ver las {EXCURSIONS.length} excursiones
+            {t.excursions.seeAll(EXCURSIONS.length)}
             <ArrowIcon />
           </Link>
         </div>

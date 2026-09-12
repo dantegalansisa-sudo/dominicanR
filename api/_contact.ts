@@ -13,6 +13,14 @@ export const TOPICS = [
   'Otro',
 ] as const;
 
+/** El tipo de solicitud, en inglés, para el acuse de recibo. */
+const TOPIC_EN: Record<string, string> = {
+  Traslado: 'transfer',
+  Excursión: 'excursion',
+  'Grupo o evento': 'group or event',
+  Otro: 'general',
+};
+
 export type Topic = (typeof TOPICS)[number];
 
 export interface ContactResult {
@@ -88,6 +96,9 @@ export async function handleContact(raw: unknown): Promise<ContactResult> {
   const topic = str(data.topic);
   const date = str(data.date);
   const message = str(data.message);
+  // Idioma en que el visitante usó la web: el acuse de recibo va en ese
+  // idioma, y al operador se le avisa para que conteste en el mismo.
+  const lang = str(data.lang) === 'en' ? 'en' : 'es';
 
   if (name.length < 2 || name.length > 80)
     return { status: 400, body: { ok: false, error: 'Escribe tu nombre.' } };
@@ -124,6 +135,7 @@ export async function handleContact(raw: unknown): Promise<ContactResult> {
     ['Teléfono', phone || '—'],
     ['Solicitud', topic],
     ['Fecha de viaje', date || '—'],
+    ['Idioma', lang === 'en' ? 'Inglés (contestar en inglés)' : 'Español'],
   ];
 
   const table = rows
@@ -157,7 +169,42 @@ export async function handleContact(raw: unknown): Promise<ContactResult> {
 
   // 2) The receipt, to the visitor. A failure here must not lose the request —
   //    the business already has it, so the form still reports success.
-  const receiptOk = await sendEmail({
+  const first = escapeHtml(name.split(' ')[0]!);
+  const receiptOk = lang === 'en'
+    ? await sendEmail({
+        apiKey,
+        from,
+        to: email,
+        replyTo: to,
+        subject: 'We received your request — Dominican Routes',
+        html: `
+      <div style="font-family:system-ui,-apple-system,sans-serif;color:${BRAND.ink};max-width:560px">
+        <h2 style="margin:0 0 6px">Thank you, ${first}</h2>
+        <p style="margin:0 0 20px;color:${BRAND.soft};line-height:1.6">
+          We received your <strong>${escapeHtml(TOPIC_EN[topic] ?? topic.toLowerCase())}</strong> request.
+          We reply to this same email, usually the same day.
+        </p>
+        <p style="margin:0 0 8px;color:${BRAND.soft}">This is what you sent us:</p>
+        <p style="margin:0 0 22px;padding:16px;background:${BRAND.cream};border-radius:12px;white-space:pre-wrap">${escapeHtml(message)}</p>
+        <p style="margin:0 0 6px;color:${BRAND.soft};font-size:14px">Need something urgently?</p>
+        <p style="margin:0 0 24px;font-size:16px;font-weight:600">+1 (829) 219-1573 · available 24/7</p>
+        <p style="margin:0;padding-top:18px;border-top:1px solid #E2DACD;font-size:13px;color:${BRAND.soft}">
+          Dominican Routes · Punta Cana, La Altagracia, Dominican Republic
+        </p>
+      </div>`,
+        text: [
+          `Thank you, ${name.split(' ')[0]}`,
+          '',
+          `We received your ${TOPIC_EN[topic] ?? topic.toLowerCase()} request. We reply to this same email, usually the same day.`,
+          '',
+          'This is what you sent us:',
+          message,
+          '',
+          'Need something urgently? +1 (829) 219-1573 · available 24/7',
+          'Dominican Routes · Punta Cana, La Altagracia, Dominican Republic',
+        ].join('\n'),
+      })
+    : await sendEmail({
     apiKey,
     from,
     to: email,

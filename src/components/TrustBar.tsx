@@ -3,6 +3,7 @@ import AnimatedCounter from './AnimatedCounter';
 import { EXCURSIONS } from '../data/excursions';
 import { FLEET } from '../data/fleet';
 import { EASINGS } from '../utils/easings';
+import { useT } from '../i18n';
 
 // Every figure here is derived from the client's own catalogue rather than
 // invented, so nothing on the page claims more than they can back up.
@@ -14,28 +15,17 @@ const TOTAL_REVIEWS = EXCURSIONS.reduce(
   0,
 );
 
-const STATS = [
-  {
-    node: <AnimatedCounter target={EXCURSIONS.length} />,
-    label: 'Excursiones en catálogo',
-  },
-  {
-    node: <AnimatedCounter target={AVG_RATING} decimals={1} />,
-    label: 'Calificación promedio',
-  },
-  {
-    node: <AnimatedCounter target={TOTAL_REVIEWS} suffix="+" />,
-    label: 'Reseñas de viajeros',
-  },
-  {
-    node: <AnimatedCounter target={FLEET.length} />,
-    label: 'Tipos de vehículo',
-  },
-];
-
 export default function TrustBar() {
+  const t = useT();
+  const STATS = [
+    { node: <AnimatedCounter target={EXCURSIONS.length} />, label: t.trust.excursions },
+    { node: <AnimatedCounter target={AVG_RATING} decimals={1} />, label: t.trust.rating },
+    { node: <AnimatedCounter target={TOTAL_REVIEWS} suffix="+" />, label: t.trust.reviews },
+    { node: <AnimatedCounter target={FLEET.length} />, label: t.trust.vehicles },
+  ];
+
   return (
-    <section className="trustbar" aria-label="Dominican Routes en cifras">
+    <section className="trustbar" aria-label={t.trust.aria}>
       <motion.div
         className="container trustbar__grid"
         initial="hidden"

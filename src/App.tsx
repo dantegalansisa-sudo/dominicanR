@@ -14,6 +14,7 @@ import ExcursionsPage from './pages/ExcursionsPage';
 import BookingPage from './pages/BookingPage';
 import ExcursionBookingPage from './pages/ExcursionBookingPage';
 import type { Excursion } from './data/excursions';
+import { useT } from './i18n';
 
 function Home({
   onSelect,
@@ -22,9 +23,10 @@ function Home({
   onSelect: (e: Excursion) => void;
   onRequestTransfer: (slug: string) => void;
 }) {
+  const t = useT();
   useEffect(() => {
-    document.title = 'Dominican Routes — Traslados y Excursiones en Punta Cana';
-  }, []);
+    document.title = t.titles.home;
+  }, [t]);
 
   return (
     <>

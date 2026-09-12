@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-
-const HREF =
-  'https://wa.me/18292191573?text=' +
-  encodeURIComponent('Hola, quiero reservar un traslado o una excursión.');
+import { useT } from '../i18n';
 
 /**
  * Quick line to a person. The structured requests go through the form — every
@@ -14,6 +11,8 @@ export default function FloatingCta() {
   const [pastHero, setPastHero] = useState(false);
   const [atForm, setAtForm] = useState(false);
   const { scrollY } = useScroll();
+  const t = useT();
+  const HREF = 'https://wa.me/18292191573?text=' + encodeURIComponent(t.fab.whatsapp);
 
   // Hold it back until the hero is behind you — the hero has its own search bar.
   useMotionValueEvent(scrollY, 'change', (v) => setPastHero(v > 600));
@@ -55,7 +54,7 @@ export default function FloatingCta() {
       <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-1.7-.1a12 12 0 0 1-3.2-1.5 12 12 0 0 1-3.4-4c-.4-.7-.7-1.5-.7-2.3 0-.8.4-1.5.8-1.9.2-.2.4-.3.6-.3h.5c.2 0 .4 0 .6.4l.8 1.9c.1.2 0 .4-.1.5l-.4.5c-.1.2-.3.3-.1.6.3.5.9 1.4 1.7 2 .9.8 1.7 1.1 2 1.2.2.1.4.1.6-.1l.7-.9c.2-.2.4-.2.6-.1l1.9.9c.2.1.4.2.4.4.1.2.1.9-.1 1.5Z" />
       </svg>
-      Reservar ahora
+      {t.fab.label}
     </motion.a>
   );
 }

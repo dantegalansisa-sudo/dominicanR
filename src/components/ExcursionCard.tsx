@@ -5,8 +5,7 @@ import ExcursionPhoto from './ExcursionPhoto';
 import { fromPrice } from '../data/excursions';
 import type { Excursion } from '../data/excursions';
 import { EASINGS } from '../utils/easings';
-
-const PERKS = ['Cancelación gratuita', 'Confirmación inmediata', 'Guía profesional'];
+import { useT } from '../i18n';
 
 // Cap the stagger: on the full catalogue a plain staggerChildren would queue
 // all 38 cards and leave the tail mid-animation while you scroll.
@@ -102,16 +101,17 @@ export default function ExcursionCard({
   eager?: boolean;
 }) {
   const price = fromPrice(item);
+  const t = useT();
 
   return (
     <motion.article className="exc-card" variants={cardVariants} custom={index}>
       <div className="exc-card__media">
         <ExcursionPhoto item={item} eager={eager} />
         <div className="exc-card__price">
-          <span className="exc-card__price-from">Desde</span>
-          <strong>{price === null ? 'Consultar' : `$${price}`}</strong>
+          <span className="exc-card__price-from">{t.excursions.from}</span>
+          <strong>{price === null ? t.excursions.ask : `$${price}`}</strong>
           {price !== null && (
-            <span className="exc-card__price-unit">por persona</span>
+            <span className="exc-card__price-unit">{t.excursions.perPerson}</span>
           )}
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function ExcursionCard({
         <p className="exc-card__desc">{item.description}</p>
 
         <ul className="exc-card__perks">
-          {PERKS.map((p) => (
+          {t.excursions.perks.map((p) => (
             <li key={p}>{p}</li>
           ))}
         </ul>
@@ -144,9 +144,9 @@ export default function ExcursionCard({
             block
             magnetStrength={0.18}
             onClick={() => onSelect(item)}
-            ariaLabel={`Ver la experiencia ${item.name}`}
+            ariaLabel={t.excursions.viewAria(item.name)}
           >
-            Ver experiencia
+            {t.excursions.view}
             <ArrowIcon />
           </MagneticButton>
         </div>

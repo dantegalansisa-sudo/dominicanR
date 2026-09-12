@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FLEET } from '../data/fleet';
-import { AGE_BANDS, TRANSFER_BANDS, partyTotal } from '../data/passengers';
+import { partyTotal } from '../data/passengers';
 import type { Party } from '../data/passengers';
+import { useT } from '../i18n';
 
 const MAX_TOTAL = Math.max(...FLEET.filter((v) => v.standard).map((v) => v.maxPax));
 
@@ -19,19 +20,7 @@ export function suggestVehicle(total: number) {
   );
 }
 
-/** En excursiones cada tramo tiene su tarifa, asi que el rango de edad importa. */
-const AGE_ROWS = [
-  { key: 'adults', ...AGE_BANDS.adults, min: 1 },
-  { key: 'children', ...AGE_BANDS.children, min: 0 },
-  { key: 'infants', ...AGE_BANDS.infants, min: 0 },
-] as const;
-
-/** En traslados se cobra por vehiculo: solo cuenta cuanta gente sube. */
-const TRANSFER_ROWS = [
-  { key: 'adults', ...TRANSFER_BANDS.adults, min: 1 },
-  { key: 'children', ...TRANSFER_BANDS.children, min: 0 },
-  { key: 'infants', ...TRANSFER_BANDS.infants, min: 0 },
-] as const;
+const KEYS = ['adults', 'children', 'infants'] as const;
 
 interface PassengersFieldProps {
   value: Party;
@@ -51,6 +40,16 @@ export default function PassengersField({
 }: PassengersFieldProps) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const t = useT();
+
+  // En excursiones cada tramo tiene su tarifa, asi que el rango de edad
+  // importa; en traslados se cobra por vehiculo y solo cuenta cuanta gente sube.
+  const rows = KEYS.map((key) => ({
+    key,
+    label: t.passengers.bands[key].label,
+    hint: variant === 'transfer' ? '' : t.passengers.bands[key].hint,
+    min: key === 'adults' ? 1 : 0,
+  }));
 
   useEffect(() => {
     if (!open) return;
@@ -66,7 +65,6 @@ export default function PassengersField({
     };
   }, [open]);
 
-  const rows = variant === 'transfer' ? TRANSFER_ROWS : AGE_ROWS;
   const total = partyTotal(value);
   const atMax = total >= MAX_TOTAL;
 
@@ -94,7 +92,7 @@ export default function PassengersField({
           <circle cx="9" cy="8" r="3.4" />
           <path d="M3 20a6 6 0 0 1 12 0M16.5 5.2a3.4 3.4 0 0 1 0 5.6M18 20a6 6 0 0 0-2.2-4.6" />
         </svg>
-        Pasajeros
+        {t.passengers.label}
       </span>
 
       <button
@@ -104,13 +102,13 @@ export default function PassengersField({
         aria-expanded={open}
       >
         <span className="passengers__count">
-          {total} {total === 1 ? 'pasajero' : 'pasajeros'}
+          {total} {total === 1 ? t.passengers.one : t.passengers.many}
         </span>
         {(value.children > 0 || value.infants > 0) && (
           <span className="passengers__break">
-            {value.adults}A
-            {value.children > 0 ? ` · ${value.children}N` : ''}
-            {value.infants > 0 ? ` · ${value.infants}I` : ''}
+            {value.adults}{t.passengers.initials.adults}
+            {value.children > 0 ? ` · ${value.children}${t.passengers.initials.children}` : ''}
+            {value.infants > 0 ? ` · ${value.infants}${t.passengers.initials.infants}` : ''}
           </span>
         )}
       </button>
@@ -139,7 +137,7 @@ export default function PassengersField({
                       type="button"
                       onClick={() => step(row.key, -1)}
                       disabled={n <= row.min}
-                      aria-label={`Menos ${row.label.toLowerCase()}`}
+                      aria-label={`${t.passengers.less} ${row.label.toLowerCase()}`}
                     >
                       –
                     </button>
@@ -148,7 +146,7 @@ export default function PassengersField({
                       type="button"
                       onClick={() => step(row.key, 1)}
                       disabled={atMax}
-                      aria-label={`Más ${row.label.toLowerCase()}`}
+                      aria-label={`${t.passengers.more} ${row.label.toLowerCase()}`}
                     >
                       +
                     </button>
@@ -160,19 +158,12 @@ export default function PassengersField({
             <div className="passengers__foot">
               {atMax ? (
                 <p className="passengers__note passengers__note--warn">
-                  {MAX_TOTAL} es lo máximo por vehículo. Para grupos mayores
-                  coordinamos varias unidades: escríbenos.
+                  {t.passengers.maxNote(MAX_TOTAL)}
                 </p>
               ) : variant === 'transfer' ? (
-                <p className="passengers__note">
-                  En el siguiente paso <strong>eliges el vehículo</strong> y
-                  agregas los adicionales.
-                </p>
+                <p className="passengers__note">{t.passengers.transferNote}</p>
               ) : (
-                <p className="passengers__note">
-                  Los <strong>infantes no pagan</strong>. Niños y adultos tienen
-                  tarifas distintas.
-                </p>
+                <p className="passengers__note">{t.passengers.agesNote}</p>
               )}
 
               <button
@@ -180,7 +171,7 @@ export default function PassengersField({
                 className="passengers__done"
                 onClick={() => setOpen(false)}
               >
-                Listo
+                {t.passengers.done}
               </button>
             </div>
           </motion.div>

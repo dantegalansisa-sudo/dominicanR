@@ -8,15 +8,12 @@ import { suggestVehicle } from '../components/PassengersField';
 import { FLEET } from '../data/fleet';
 import { quote } from '../data/pricing';
 import { fetchDistance } from '../utils/googlePlaces';
-import { TRANSFER_PLACES, emptyPlace, placeMapsUrl } from '../data/places';
+import { emptyPlace, placeMapsUrl } from '../data/places';
 import type { PlaceValue } from '../data/places';
 import {
-  DRINKS,
   EMPTY_EXTRAS,
-  SEATS,
   STOPS,
   EMPTY_PARTY,
-  TRANSFER_BANDS,
   partyLabel,
   partyTotal,
   extrasLines,
@@ -24,6 +21,15 @@ import {
   usd,
 } from '../data/passengers';
 import type { Extras, SeatId, DrinkId, Party } from '../data/passengers';
+import { useLang } from '../i18n';
+import {
+  extrasLinesT,
+  partyLabelT,
+  prettyDateT,
+  useExtrasCatalog,
+  useFleet,
+  useTransferPlaces,
+} from '../i18n/catalog';
 
 /** Lo que el buscador del hero deja al navegar hasta aquí. */
 export interface BookingSeed {
@@ -73,11 +79,8 @@ const CAL = 'M4.5 6.5h15v14h-15zM4.5 11h15M9 3.5v4m6-4v4';
 const CLOCK2 = 'M12 7.5V12l3 1.8M20.5 12a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0Z';
 const PLANE = 'M2.5 12.5 21 4l-8 17-2.5-6.5zM10.5 14.5 21 4';
 
-const prettyDate = (iso: string) => {
-  if (!iso) return '';
-  const [y, m, d] = iso.split('-');
-  return d && m && y ? `${d}/${m}/${y}` : iso;
-};
+/** Para el correo al operador, siempre dd/mm/aaaa. */
+const prettyDate = (iso: string) => prettyDateT('es', iso);
 
 function Stepper({
   value,
@@ -92,13 +95,14 @@ function Stepper({
   onChange: (n: number) => void;
   label: string;
 }) {
+  const { t } = useLang();
   return (
     <div className="passengers__stepper">
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        aria-label={`Menos ${label}`}
+        aria-label={`${t.passengers.less} ${label}`}
       >
         –
       </button>
@@ -107,7 +111,7 @@ function Stepper({
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        aria-label={`Más ${label}`}
+        aria-label={`${t.passengers.more} ${label}`}
       >
         +
       </button>
@@ -117,6 +121,11 @@ function Stepper({
 
 export default function BookingPage() {
   const seed = (useLocation().state ?? {}) as BookingSeed;
+  const { lang, t } = useLang();
+  const fleet = useFleet();
+  const TRANSFER_PLACES = useTransferPlaces();
+  const { seats: SEATS, drinks: DRINKS, stops: STOPS_T } = useExtrasCatalog();
+  const uiDate = (iso: string) => prettyDateT(lang, iso);
 
   const [origin, setOrigin] = useState<PlaceValue>(seed.origin ?? emptyPlace());
   const [destination, setDestination] = useState<PlaceValue>(
@@ -148,8 +157,10 @@ export default function BookingPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = 'Reservar traslado — Dominican Routes';
   }, []);
+  useEffect(() => {
+    document.title = t.titles.transfer;
+  }, [t]);
 
   // Solo cuentan los extremos ya elegidos: cada consulta de ruta se factura, y
   // tecleando "bavaro" letra a letra se dispararian seis.
@@ -183,9 +194,12 @@ export default function BookingPage() {
   const billableKm = km == null ? null : round ? km * 2 : km;
 
   const total = partyTotal(party);
-  const chosen = vehicleSlug ? (FLEET.find((v) => v.slug === vehicleSlug) ?? null) : null;
-  const suggested = suggestVehicle(total);
+  const chosen = vehicleSlug ? (fleet.find((v) => v.slug === vehicleSlug) ?? null) : null;
+  const suggestedEs = suggestVehicle(total);
+  const suggested = suggestedEs ? (fleet.find((v) => v.slug === suggestedEs.slug) ?? null) : null;
   const vehicle = chosen ?? suggested;
+  // El correo al operador va en español: nombre y tipo del catálogo original.
+  const vehicleEs = vehicle ? (FLEET.find((v) => v.slug === vehicle.slug) ?? vehicle) : null;
   const overCapacity = vehicle != null && total > vehicle.maxPax;
   const priceFor = (slug: string) =>
     quote(billableKm, slug, origin.text, destination.text);
@@ -206,6 +220,7 @@ export default function BookingPage() {
     setExtras((e) => ({ ...e, stop: e.stop === id ? null : id }));
 
   const extraLines = extrasLines(extras);
+  const extraLinesUi = extrasLinesT(t, extras, usd);
   const extrasSum = extrasTotal(extras);
 
   const originMap = placeMapsUrl(origin);
@@ -219,12 +234,15 @@ export default function BookingPage() {
     // navegador: hay que comprobarlo aqui o el telefono se colaria vacio.
     if (!name.trim() || !email.trim() || !phone.trim()) {
       setStatus('error');
-      setError('Completa tu nombre, tu correo y tu teléfono.');
+      setError(t.booking.missingContact);
       return;
     }
 
     const blocks = [
-      [`Solicitud de traslado${round ? ' ida y vuelta' : ''}.`],
+      [
+        `Solicitud de traslado${round ? ' ida y vuelta' : ''}.`,
+        ...(lang === 'en' ? ['Idioma del cliente: inglés (reservó desde la web en inglés).'] : []),
+      ],
       [
         `Origen: ${origin.text || '(por confirmar)'}`,
         ...(origin.address ? [`  Dirección: ${origin.address}`] : []),
@@ -245,14 +263,14 @@ export default function BookingPage() {
       ],
       [
         `Pasajeros: ${partyLabel(party)}`,
-        ...(chosen
-          ? [`Vehículo elegido por el cliente: ${chosen.name} (${chosen.type}).`]
-          : vehicle
-            ? [`Vehículo sugerido por la web: ${vehicle.name} (${vehicle.type}).`]
+        ...(chosen && vehicleEs
+          ? [`Vehículo elegido por el cliente: ${vehicleEs.name} (${vehicleEs.type}).`]
+          : vehicleEs
+            ? [`Vehículo sugerido por la web: ${vehicleEs.name} (${vehicleEs.type}).`]
             : []),
-        ...(overCapacity && vehicle
+        ...(overCapacity && vehicleEs
           ? [
-              `AVISO: ${total} pasajeros superan los ${vehicle.maxPax} de ese vehículo.`,
+              `AVISO: ${total} pasajeros superan los ${vehicleEs.maxPax} de ese vehículo.`,
             ]
           : []),
         ...(km != null
@@ -297,6 +315,7 @@ export default function BookingPage() {
           topic: 'Traslado',
           date,
           message,
+          lang,
         }),
       });
       const body = (await res.json().catch(() => ({}))) as {
@@ -306,11 +325,11 @@ export default function BookingPage() {
       if (res.ok && body.ok) setStatus('sent');
       else {
         setStatus('error');
-        setError(body.error || 'No pudimos enviar tu solicitud. Intenta de nuevo.');
+        setError(t.booking.failed);
       }
     } catch {
       setStatus('error');
-      setError('Revisa tu conexión e intenta de nuevo.');
+      setError(t.booking.offline);
     }
   };
 
@@ -320,26 +339,23 @@ export default function BookingPage() {
         <div className="booking-page__head">
           <Link className="catalogue__back" to="/">
             <Ico d={ARROW} flip />
-            Volver al inicio
+            {t.booking.back}
           </Link>
-          <p className="eyebrow">Paso 2 de 2</p>
-          <h1 className="h1 booking-page__title">Completa tu traslado</h1>
-          <p className="booking-page__sub">
-            Confirmamos por correo con el precio cerrado, normalmente el mismo
-            día. Todavía no se cobra nada.
-          </p>
+          <p className="eyebrow">{t.booking.step}</p>
+          <h1 className="h1 booking-page__title">{t.booking.title}</h1>
+          <p className="booking-page__sub">{t.booking.sub}</p>
         </div>
 
         <form className="booking-form" onSubmit={submit} noValidate>
           <div className="booking-form__main">
             <section className="bcard">
-              <h2 className="bcard__title">El viaje</h2>
+              <h2 className="bcard__title">{t.booking.trip}</h2>
 
               <div className="bcard__grid">
                 <PlaceField
                   id="bk-origin"
-                  label="Origen"
-                  placeholder="Aeropuerto, hotel o zona"
+                  label={t.booking.origin}
+                  placeholder={t.booking.originPh}
                   icon={<Ico d={PIN} size={13} />}
                   groups={TRANSFER_PLACES}
                   value={origin}
@@ -348,8 +364,8 @@ export default function BookingPage() {
                 />
                 <PlaceField
                   id="bk-dest"
-                  label="Destino"
-                  placeholder="Hotel, zona o dirección"
+                  label={t.booking.destination}
+                  placeholder={t.booking.destinationPh}
                   icon={<Ico d={FLAG} size={13} />}
                   groups={TRANSFER_PLACES}
                   value={destination}
@@ -359,7 +375,7 @@ export default function BookingPage() {
                 <label className="form__field">
                   <span>
                     <Ico d={CAL} size={13} />
-                    Fecha
+                    {t.booking.date}
                   </span>
                   <input
                     type="date"
@@ -371,7 +387,7 @@ export default function BookingPage() {
                 <label className="form__field">
                   <span>
                     <Ico d={CLOCK2} size={13} />
-                    Hora de recogida
+                    {t.booking.pickupTime}
                   </span>
                   <input
                     type="time"
@@ -383,12 +399,12 @@ export default function BookingPage() {
                 <label className="form__field bcard__full">
                   <span>
                     <Ico d={PLANE} size={13} />
-                    Número de vuelo (opcional)
+                    {t.booking.flight}
                   </span>
                   <input
                     value={flight}
                     onChange={(e) => setFlight(e.target.value)}
-                    placeholder="Para seguir tu vuelo si se adelanta o retrasa"
+                    placeholder={t.booking.flightPh}
                   />
                 </label>
               </div>
@@ -406,7 +422,7 @@ export default function BookingPage() {
                     transition={{ type: 'spring', stiffness: 500, damping: 34 }}
                   />
                 </span>
-                Necesito el regreso también
+                {t.booking.roundTrip}
               </button>
 
               <AnimatePresence initial={false}>
@@ -422,7 +438,7 @@ export default function BookingPage() {
                       <label className="form__field">
                         <span>
                           <Ico d={CAL} size={13} />
-                          Fecha del regreso
+                          {t.booking.returnDate}
                         </span>
                         <input
                           type="date"
@@ -434,7 +450,7 @@ export default function BookingPage() {
                       <label className="form__field">
                         <span>
                           <Ico d={CLOCK2} size={13} />
-                          Hora del regreso
+                          {t.booking.returnTime}
                         </span>
                         <input
                           type="time"
@@ -450,16 +466,14 @@ export default function BookingPage() {
             </section>
 
             <section className="bcard">
-              <h2 className="bcard__title">Quiénes viajan</h2>
+              <h2 className="bcard__title">{t.booking.who}</h2>
               {(['adults', 'children', 'infants'] as const).map((key) => {
-                const band = TRANSFER_BANDS[key];
+                // En traslados se cobra por vehículo: sin rangos de edad.
+                const band = { label: t.passengers.bands[key].label };
                 return (
                   <div className="passengers__row" key={key}>
                     <div>
                       <p className="passengers__row-label">{band.label}</p>
-                      {band.hint && (
-                        <p className="passengers__row-hint">{band.hint}</p>
-                      )}
                     </div>
                     <Stepper
                       value={party[key]}
@@ -474,33 +488,22 @@ export default function BookingPage() {
             </section>
 
             <section className="bcard">
-              <h2 className="bcard__title">El vehículo</h2>
-              {locked ? (
-                <p className="bcard__lead">
-                  Este es el que elegiste. Si viajas con mucho equipaje o
-                  cambias de idea, puedes escoger otro.
-                </p>
-              ) : (
-                <p className="bcard__lead">
-                  Te marcamos el que encaja por número de pasajeros, pero elige
-                  el que quieras: si viajas con mucho equipaje, coge uno más
-                  grande aunque seáis pocos.
-                </p>
-              )}
+              <h2 className="bcard__title">{t.booking.vehicle}</h2>
+              <p className="bcard__lead">
+                {locked ? t.booking.vehicleLockedLead : t.booking.vehicleLead}
+              </p>
 
               {pricing === 'loading' && (
-                <p className="passengers__note bcard__hint">Calculando la ruta…</p>
+                <p className="passengers__note bcard__hint">{t.booking.routing}</p>
               )}
               {pricing === 'ready' && km != null && (
                 <p className="passengers__note bcard__hint">
-                  {km} km por carretera
-                  {round && ` · ida y vuelta, ${billableKm} km en total`}. Los
-                  precios ya incluyen el recorrido.
+                  {t.booking.kmLine(km, round, billableKm ?? km)}
                 </p>
               )}
 
               <div className={`vpick${locked ? ' vpick--single' : ''}`}>
-                {(locked && chosen ? [chosen] : FLEET).map((v) => {
+                {(locked && chosen ? [chosen] : fleet).map((v) => {
                   const on = vehicle?.slug === v.slug;
                   const q = priceFor(v.slug);
                   return (
@@ -520,18 +523,18 @@ export default function BookingPage() {
                         <span className="vpick__name">{v.name}</span>
                         <span className="vpick__type">{v.type}</span>
                         <span className="vpick__pax">
-                          {v.minPax}–{v.maxPax} pasajeros
+                          {v.minPax}–{v.maxPax} {t.booking.passengers}
                         </span>
                         <span className="vpick__price">
                           {q
                             ? `US$${q.total}`
                             : v.price !== null
-                              ? `desde $${v.price}`
-                              : 'A cotizar'}
+                              ? t.booking.fromPrice(v.price)
+                              : t.booking.toQuote}
                         </span>
                       </span>
                       {suggested?.slug === v.slug && !chosen && (
-                        <span className="vpick__tag">Sugerido</span>
+                        <span className="vpick__tag">{t.booking.suggested}</span>
                       )}
                     </button>
                   );
@@ -544,28 +547,24 @@ export default function BookingPage() {
                   className="vpick__change"
                   onClick={() => setLocked(false)}
                 >
-                  Cambiar de vehículo
+                  {t.booking.changeVehicle}
                 </button>
               )}
 
               {overCapacity && vehicle && (
                 <p className="passengers__note passengers__note--warn bcard__hint">
-                  {vehicle.name} admite {vehicle.maxPax}. Para {total} haría falta
-                  otro o una segunda unidad: lo coordinamos contigo.
+                  {t.booking.overCapacity(vehicle.name, vehicle.maxPax, total)}
                 </p>
               )}
             </section>
 
             <section className="bcard">
-              <h2 className="bcard__title">Adicionales</h2>
-              <p className="bcard__lead">
-                Todo opcional y en dólares. Lo sumamos a la cotización del
-                traslado.
-              </p>
+              <h2 className="bcard__title">{t.booking.extras}</h2>
+              <p className="bcard__lead">{t.booking.extrasLead}</p>
 
               <div className="extras">
                 <div className="extras__group">
-                  <p className="extras__group-title">Sillas para niños</p>
+                  <p className="extras__group-title">{t.booking.childSeats}</p>
                   {SEATS.map((seat) => (
                     <div className="extras__row" key={seat.id}>
                       <p className="extras__name">{seat.label}</p>
@@ -582,7 +581,7 @@ export default function BookingPage() {
                 </div>
 
                 <div className="extras__group">
-                  <p className="extras__group-title">A bordo</p>
+                  <p className="extras__group-title">{t.booking.onBoard}</p>
                   {DRINKS.map((drink) => (
                     <div className="extras__row" key={drink.id}>
                       <p className="extras__name">{drink.label}</p>
@@ -599,12 +598,10 @@ export default function BookingPage() {
                 </div>
 
                 <div className="extras__group extras__group--wide">
-                  <p className="extras__group-title">Paradas adicionales</p>
-                  <p className="extras__group-hint">
-                    Supermercado, restaurante… se cobra por tiempo de espera.
-                  </p>
+                  <p className="extras__group-title">{t.booking.stops}</p>
+                  <p className="extras__group-hint">{t.booking.stopsHint}</p>
                   <div className="stops">
-                    {STOPS.map((stop) => {
+                    {STOPS_T.map((stop) => {
                       const on = extras.stop === stop.id;
                       return (
                         <button
@@ -639,19 +636,19 @@ export default function BookingPage() {
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.25 }}
                   >
-                    <span>Total en adicionales</span>
+                    <span>{t.booking.extrasTotal}</span>
                     <strong>{usd(extrasSum)}</strong>
                   </motion.p>
                 )}
               </AnimatePresence>
 
               <label className="form__field bcard__notes">
-                <span>Algo más que debamos saber</span>
+                <span>{t.booking.notes}</span>
                 <textarea
                   rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Equipaje voluminoso, silla de ruedas, celebración…"
+                  placeholder={t.booking.notesPh}
                 />
               </label>
             </section>
@@ -659,26 +656,26 @@ export default function BookingPage() {
 
           <aside className="booking-form__side">
             <div className="bcard bcard--sticky">
-              <h2 className="bcard__title">Tus datos</h2>
+              <h2 className="bcard__title">{t.booking.yourDetails}</h2>
 
               <label className="form__field">
-                <span>Nombre</span>
+                <span>{t.booking.name}</span>
                 <input
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Tu nombre"
+                  placeholder={t.booking.namePh}
                   autoComplete="name"
                 />
               </label>
               <label className="form__field">
-                <span>Correo</span>
+                <span>{t.booking.email}</span>
                 <input
                   required
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tucorreo@ejemplo.com"
+                  placeholder={t.booking.emailPh}
                   autoComplete="email"
                 />
               </label>
@@ -692,39 +689,39 @@ export default function BookingPage() {
 
               <dl className="summary">
                 <div>
-                  <dt>Ruta</dt>
+                  <dt>{t.booking.route}</dt>
                   <dd>
                     {origin.text || '—'} → {destination.text || '—'}
-                    {round ? ' (ida y vuelta)' : ''}
+                    {round ? ` ${t.booking.roundParen}` : ''}
                   </dd>
                 </div>
                 <div>
-                  <dt>Cuándo</dt>
+                  <dt>{t.booking.when}</dt>
                   <dd>
-                    {prettyDate(date) || '—'} {time && `· ${time}`}
+                    {uiDate(date) || '—'} {time && `· ${time}`}
                   </dd>
                 </div>
                 {round && (
                   <div>
-                    <dt>Regreso</dt>
+                    <dt>{t.booking.return}</dt>
                     <dd>
-                      {prettyDate(returnDate) || '—'}{' '}
+                      {uiDate(returnDate) || '—'}{' '}
                       {returnTime && `· ${returnTime}`}
                     </dd>
                   </div>
                 )}
                 {vehicle && (
                   <div>
-                    <dt>Vehículo</dt>
+                    <dt>{t.booking.vehicleRow}</dt>
                     <dd>
                       {vehicle.name}
-                      {!chosen && ' (sugerido)'}
+                      {!chosen && ` ${t.booking.suggestedParen}`}
                     </dd>
                   </div>
                 )}
                 {chosenQuote && (
                   <div>
-                    <dt>Precio</dt>
+                    <dt>{t.booking.price}</dt>
                     <dd>
                       US${chosenQuote.total}
                       {chosenQuote.surcharge && (
@@ -740,16 +737,14 @@ export default function BookingPage() {
                   </div>
                 )}
                 <div>
-                  <dt>Pasajeros</dt>
-                  <dd>
-                    {partyLabel(party)}
-                  </dd>
+                  <dt>{t.booking.passengersRow}</dt>
+                  <dd>{partyLabelT(t, party)}</dd>
                 </div>
-                {extraLines.length > 0 && (
+                {extraLinesUi.length > 0 && (
                   <div>
-                    <dt>Adicionales</dt>
+                    <dt>{t.booking.extrasRow}</dt>
                     <dd>
-                      {extraLines.join(' · ')}
+                      {extraLinesUi.join(' · ')}
                       <br />
                       <strong>{usd(extrasSum)}</strong>
                     </dd>
@@ -764,7 +759,7 @@ export default function BookingPage() {
                 magnetStrength={0.14}
                 disabled={status === 'sending'}
               >
-                {status === 'sending' ? 'Enviando…' : 'Enviar solicitud'}
+                {status === 'sending' ? t.booking.sending : t.booking.send}
                 {status !== 'sending' && <Ico d={ARROW} />}
               </MagneticButton>
 
@@ -778,7 +773,7 @@ export default function BookingPage() {
                     exit={{ opacity: 0 }}
                   >
                     <Ico d="M20 6 9 17l-5-5" size={16} />
-                    Recibimos tu solicitud. Te confirmamos por correo.
+                    {t.booking.sent}
                   </motion.p>
                 )}
                 {status === 'error' && (
@@ -798,9 +793,7 @@ export default function BookingPage() {
                 )}
               </AnimatePresence>
 
-              <p className="bcard__fine">
-                No se cobra nada ahora. Te enviamos el precio cerrado por correo.
-              </p>
+              <p className="bcard__fine">{t.booking.fine}</p>
             </div>
           </aside>
         </form>

@@ -4,9 +4,10 @@ import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import ImagePlaceholder from './ImagePlaceholder';
 import { cardVariants } from './ExcursionCard';
-import { FEATURED_FLEET, OTHER_FLEET } from '../data/fleet';
 import type { Vehicle } from '../data/fleet';
 import { EASINGS } from '../utils/easings';
+import { useT } from '../i18n';
+import { useFleet } from '../i18n/catalog';
 
 const ArrowIcon = () => (
   <svg
@@ -53,6 +54,7 @@ function FleetCard({
   index: number;
   onRequest: (slug: string) => void;
 }) {
+  const t = useT();
   return (
     <motion.article className="fleet-card" variants={cardVariants} custom={index}>
       <div className="fleet-card__media">
@@ -64,14 +66,14 @@ function FleetCard({
             decoding="async"
           />
         ) : (
-          <ImagePlaceholder category="vehiculo" label="Foto próximamente" />
+          <ImagePlaceholder category="vehiculo" label={t.fleet.photoSoon} />
         )}
         <span className="fleet-card__badge">
           {vehicle.price === null ? (
-            'Cotizar'
+            t.fleet.quote
           ) : (
             <>
-              Desde <strong>${vehicle.price}</strong>
+              {t.fleet.from} <strong>${vehicle.price}</strong>
             </>
           )}
         </span>
@@ -82,7 +84,7 @@ function FleetCard({
         <p className="fleet-card__type">{vehicle.type}</p>
         <p className="fleet-card__pax">
           <UsersIcon />
-          {vehicle.minPax}–{vehicle.maxPax} pasajeros
+          {vehicle.minPax}–{vehicle.maxPax} {t.fleet.passengers}
         </p>
         <p className="fleet-card__summary">{vehicle.summary}</p>
         <ul className="fleet-card__features">
@@ -96,9 +98,9 @@ function FleetCard({
             block
             magnetStrength={0.18}
             onClick={() => onRequest(vehicle.slug)}
-            ariaLabel={`Pedir traslado en ${vehicle.name}`}
+            ariaLabel={t.fleet.requestAria(vehicle.name)}
           >
-            Pedir este traslado
+            {t.fleet.request}
             <ArrowIcon />
           </MagneticButton>
         </div>
@@ -119,6 +121,10 @@ export default function Fleet({
   onRequest: (vehicleSlug: string) => void;
 }) {
   const [showRest, setShowRest] = useState(false);
+  const t = useT();
+  const fleet = useFleet();
+  const FEATURED_FLEET = fleet.filter((v) => v.featured);
+  const OTHER_FLEET = fleet.filter((v) => !v.featured);
   const shown = showRest ? OTHER_FLEET : FEATURED_FLEET;
 
   return (
@@ -126,9 +132,9 @@ export default function Fleet({
       <div className="container">
         <div className="fleet__head">
           <div>
-            <p className="eyebrow">Transporte privado</p>
-            <RevealText tag="h2" className="h2 fleet__title">
-              {['Un', 'vehículo', 'para', <em key="cada">cada viaje</em>]}
+            <p className="eyebrow">{t.fleet.eyebrow}</p>
+            <RevealText key={t.code} tag="h2" className="h2 fleet__title">
+              {t.fleet.title}
             </RevealText>
           </div>
         </div>
@@ -137,7 +143,7 @@ export default function Fleet({
             en el mismo hueco, y las tarjetas heredan el escalonado. */}
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            key={showRest ? 'rest' : 'featured'}
+            key={`${showRest ? 'rest' : 'featured'}-${t.code}`}
             className="fleet__grid"
             initial="hidden"
             animate="visible"
@@ -155,7 +161,7 @@ export default function Fleet({
             className="fleet__more"
             onClick={() => setShowRest((r) => !r)}
           >
-            {showRest ? 'Ver flota principal' : `Ver más flota (${OTHER_FLEET.length} más)`}
+            {showRest ? t.fleet.main : t.fleet.more(OTHER_FLEET.length)}
             <motion.span
               className="fleet__more-chevron"
               animate={{ rotate: showRest ? 180 : 0 }}

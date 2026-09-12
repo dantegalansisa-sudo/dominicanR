@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { EASINGS } from '../utils/easings';
+import { useLang } from '../i18n';
+import type { Lang } from '../i18n';
 
-const LINKS = [
-  { label: 'Inicio', href: '/#inicio' },
-  { label: 'Traslados', href: '/#traslados' },
-  { label: 'Excursiones', href: '/excursiones' },
-  { label: 'Quiénes Somos', href: '/#nosotros' },
-  { label: 'Contacto', href: '/#contacto' },
-];
+const HREFS = ['/#inicio', '/#traslados', '/excursiones', '/#nosotros', '/#contacto'];
 
 export default function Navbar() {
   const [solid, setSolid] = useState(false);
   const [open, setOpen] = useState(false);
-  const [lang, setLang] = useState<'ES' | 'EN'>('ES');
+  const { lang, setLang, t } = useLang();
   const { scrollY } = useScroll();
+
+  const LINKS = [t.nav.home, t.nav.transfers, t.nav.excursions, t.nav.about, t.nav.contact].map(
+    (label, i) => ({ label, href: HREFS[i]! }),
+  );
 
   useMotionValueEvent(scrollY, 'change', (v) => setSolid(v > 80));
 
@@ -43,7 +43,7 @@ export default function Navbar() {
         transition={{ duration: 0.35, ease: EASINGS.smooth }}
       >
         <div className="container nav__inner">
-          <a href="/#inicio" className="nav__brand" aria-label="Dominican Routes — inicio">
+          <a href="/#inicio" className="nav__brand" aria-label={t.nav.brand}>
             <img
               src="/images/logo.png"
               alt="Dominican Routes"
@@ -52,7 +52,7 @@ export default function Navbar() {
             />
           </a>
 
-          <nav className="nav__links" aria-label="Principal">
+          <nav className="nav__links" aria-label={t.nav.main}>
             {LINKS.map((l, i) => (
               <a
                 key={l.href}
@@ -65,16 +65,17 @@ export default function Navbar() {
           </nav>
 
           <div className="nav__right">
-            <div className="nav__lang" role="group" aria-label="Idioma">
-              {(['ES', 'EN'] as const).map((code) => (
+            <div className="nav__lang" role="group" aria-label={t.nav.language}>
+              {(['es', 'en'] as Lang[]).map((code) => (
                 <button
                   key={code}
                   type="button"
+                  lang={code}
                   className={lang === code ? 'is-active' : ''}
                   onClick={() => setLang(code)}
                   aria-pressed={lang === code}
                 >
-                  {code}
+                  {code.toUpperCase()}
                 </button>
               ))}
             </div>
@@ -82,14 +83,14 @@ export default function Navbar() {
             {/* Dice "Reservar", asi que lleva a la reserva de verdad y no al
                 formulario de contacto generico. */}
             <a className="nav__cta" href="/reservar">
-              Reservar
+              {t.nav.book}
             </a>
 
             <button
               type="button"
               className="nav__burger"
               onClick={() => setOpen((v) => !v)}
-              aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+              aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
               aria-expanded={open}
             >
               <motion.span animate={{ rotate: open ? 45 : 0, y: open ? 6.5 : 0 }} />

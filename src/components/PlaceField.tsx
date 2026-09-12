@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PlaceGroup, PlaceValue } from '../data/places';
 import { fetchPlace, fetchSuggestions, newSessionToken } from '../utils/googlePlaces';
+import { useLang } from '../i18n';
 import type { Suggestion } from '../utils/googlePlaces';
 
 /** Ignore accents and case so "bavaro" finds "Bávaro". */
@@ -53,6 +54,7 @@ export default function PlaceField({
   google = false,
   invalid = false,
 }: PlaceFieldProps) {
+  const { lang, t } = useLang();
   const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState(-1);
   const [remote, setRemote] = useState<Suggestion[]>([]);
@@ -89,18 +91,18 @@ export default function PlaceField({
 
     const ctrl = new AbortController();
     setLoading(true);
-    const t = setTimeout(() => {
-      fetchSuggestions(query, session.current, ctrl.signal)
+    const timer = setTimeout(() => {
+      fetchSuggestions(query, session.current, ctrl.signal, lang)
         .then(setRemote)
         .catch(() => setRemote([]))
         .finally(() => setLoading(false));
     }, DEBOUNCE_MS);
 
     return () => {
-      clearTimeout(t);
+      clearTimeout(timer);
       ctrl.abort();
     };
-  }, [google, open, query, value.placeId]);
+  }, [google, open, query, value.placeId, lang]);
 
   // Los de Google van después: la lista fija son los sitios que más se piden y
   // conviene poder tocarlos sin leer nada más.
@@ -238,7 +240,7 @@ export default function PlaceField({
             {google && (loading || remote.length > 0) && (
               <div className="place__group place__group--google">
                 <p className="place__group-label">
-                  Direcciones y hoteles
+                  {t.place.google}
                   {loading && <span className="place__spinner" aria-hidden="true" />}
                 </p>
 

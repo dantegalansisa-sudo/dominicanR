@@ -1,13 +1,8 @@
 import { motion } from 'framer-motion';
 import { EASINGS } from '../utils/easings';
+import { useT } from '../i18n';
 
-const NAV = [
-  { label: 'Inicio', href: '/#inicio' },
-  { label: 'Traslados', href: '/#traslados' },
-  { label: 'Excursiones', href: '/excursiones' },
-  { label: 'Quiénes Somos', href: '/#nosotros' },
-  { label: 'Contacto', href: '/#contacto' },
-];
+const HREFS = ['/#inicio', '/#traslados', '/excursiones', '/#nosotros', '/#contacto'];
 
 const SOCIAL = [
   {
@@ -28,6 +23,10 @@ const SOCIAL = [
 ];
 
 export default function Footer() {
+  const t = useT();
+  const NAV = [t.nav.home, t.nav.transfers, t.nav.excursions, t.nav.about, t.nav.contact].map(
+    (label, i) => ({ label, href: HREFS[i]! }),
+  );
   return (
     <footer className="footer">
       <div className="footer__glow" aria-hidden="true" />
@@ -47,11 +46,11 @@ export default function Footer() {
               width={700}
               height={215}
             />
-            <p className="footer__tagline">Tu aventura comienza aquí.</p>
+            <p className="footer__tagline">{t.footer.tagline}</p>
           </div>,
 
-          <nav key="nav" aria-label="Pie de página">
-            <h3 className="footer__head">Navegación</h3>
+          <nav key="nav" aria-label={t.footer.navAria}>
+            <h3 className="footer__head">{t.footer.navigation}</h3>
             <ul className="footer__links">
               {NAV.map((l) => (
                 <li key={l.href}>
@@ -62,7 +61,7 @@ export default function Footer() {
           </nav>,
 
           <div key="contact">
-            <h3 className="footer__head">Contacto</h3>
+            <h3 className="footer__head">{t.footer.contact}</h3>
             <ul className="footer__links">
               <li>Punta Cana, La Altagracia</li>
               <li>
@@ -71,12 +70,12 @@ export default function Footer() {
               <li>
                 <a href="mailto:dominicanroutes@gmail.com">dominicanroutes@gmail.com</a>
               </li>
-              <li>Atención 24/7</li>
+              <li>{t.footer.hours}</li>
             </ul>
           </div>,
 
           <div key="social">
-            <h3 className="footer__head">Síguenos</h3>
+            <h3 className="footer__head">{t.footer.follow}</h3>
             <div className="footer__social">
               {SOCIAL.map((sn) => (
                 <a
@@ -119,7 +118,7 @@ export default function Footer() {
       <div className="container footer__bar">
         <span>© {new Date().getFullYear()} Dominican Routes</span>
         <span>
-          Diseñado por{' '}
+          {t.footer.designed}{' '}
           <a href="https://www.nexixstudio.com" target="_blank" rel="noopener noreferrer">
             NEXIX Tech Studio
           </a>

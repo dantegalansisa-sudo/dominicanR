@@ -3,8 +3,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import { EASINGS } from '../utils/easings';
+import { useT } from '../i18n';
 
-const TOPICS = ['Traslado', 'Excursión', 'Grupo o evento', 'Otro'] as const;
+/** Lo que recibe el operador: siempre en español, elija lo que elija el visitante. */
+const TOPIC_KEYS = ['Traslado', 'Excursión', 'Grupo o evento', 'Otro'] as const;
 
 // Keyless Google embed centred on Punta Cana — no API key, no billing account.
 const MAP_SRC =
@@ -34,22 +36,23 @@ const PHONE =
   'M21 16.5v2.6a2 2 0 0 1-2.2 2 19.6 19.6 0 0 1-8.5-3A19.3 19.3 0 0 1 4.4 12 19.6 19.6 0 0 1 1.4 3.4 2 2 0 0 1 3.4 1.2H6a2 2 0 0 1 2 1.7c.1 1 .3 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.1 9a15.5 15.5 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.8 2Z';
 const MAIL = 'M3.5 6.5h17v11h-17zM3.7 7l7.3 5.2a2 2 0 0 0 2 0L20.3 7';
 
-const DETAILS = [
-  { icon: PIN, label: 'Ubicación', value: 'Punta Cana, La Altagracia', href: MAP_LINK },
-  { icon: PHONE, label: 'Teléfono', value: '+1 (829) 219-1573', href: 'tel:+18292191573' },
-  {
-    icon: MAIL,
-    label: 'Correo',
-    value: 'dominicanroutes@gmail.com',
-    href: 'mailto:dominicanroutes@gmail.com',
-  },
-];
-
 export default function Contact() {
+  const t = useT();
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
-  const [topic, setTopic] = useState<string>(TOPICS[0]);
+  const [topic, setTopic] = useState<string>(TOPIC_KEYS[0]);
   const formRef = useRef<HTMLFormElement>(null);
+
+  const DETAILS = [
+    { icon: PIN, label: t.contact.location, value: 'Punta Cana, La Altagracia', href: MAP_LINK },
+    { icon: PHONE, label: t.contact.phoneLabel, value: '+1 (829) 219-1573', href: 'tel:+18292191573' },
+    {
+      icon: MAIL,
+      label: t.contact.emailLabel,
+      value: 'dominicanroutes@gmail.com',
+      href: 'mailto:dominicanroutes@gmail.com',
+    },
+  ];
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -76,14 +79,14 @@ export default function Contact() {
       if (res.ok && body.ok) {
         setStatus('sent');
         form.reset();
-        setTopic(TOPICS[0]);
+        setTopic(TOPIC_KEYS[0]);
       } else {
         setStatus('error');
-        setError(body.error || 'No pudimos enviar tu mensaje. Intenta de nuevo.');
+        setError(t.contact.failed);
       }
     } catch {
       setStatus('error');
-      setError('Revisa tu conexión e intenta de nuevo.');
+      setError(t.contact.offline);
     }
   };
 
@@ -91,14 +94,11 @@ export default function Contact() {
     <section className="section contact" id="contacto">
       <div className="container">
         <div className="contact__head">
-          <p className="eyebrow">Hablemos</p>
-          <RevealText tag="h2" className="h2 contact__title">
-            {['Cuéntanos', 'qué', 'viaje', <em key="mente">tienes en mente</em>]}
+          <p className="eyebrow">{t.contact.eyebrow}</p>
+          <RevealText key={t.code} tag="h2" className="h2 contact__title">
+            {t.contact.title}
           </RevealText>
-          <p className="contact__sub">
-            Respondemos por correo el mismo día, con la cotización cerrada y sin
-            cargos sorpresa. Si es urgente, llámanos — atendemos 24/7.
-          </p>
+          <p className="contact__sub">{t.contact.sub}</p>
         </div>
 
         <div className="contact__layout">
@@ -115,23 +115,23 @@ export default function Contact() {
             {/* honeypot — hidden from people, irresistible to bots */}
             <div className="form__trap" aria-hidden="true">
               <label>
-                No llenes este campo
+                {t.contact.trap}
                 <input name="company" tabIndex={-1} autoComplete="off" />
               </label>
             </div>
 
             <div className="form__row">
               <label className="form__field">
-                <span>Nombre</span>
-                <input name="name" required placeholder="Tu nombre" autoComplete="name" />
+                <span>{t.contact.name}</span>
+                <input name="name" required placeholder={t.contact.namePh} autoComplete="name" />
               </label>
               <label className="form__field">
-                <span>Correo</span>
+                <span>{t.contact.email}</span>
                 <input
                   name="email"
                   type="email"
                   required
-                  placeholder="tucorreo@ejemplo.com"
+                  placeholder={t.contact.emailPh}
                   autoComplete="email"
                 />
               </label>
@@ -139,48 +139,50 @@ export default function Contact() {
 
             <div className="form__row">
               <label className="form__field">
-                <span>WhatsApp / teléfono</span>
-                <input name="phone" placeholder="Opcional" autoComplete="tel" />
+                <span>{t.contact.phone}</span>
+                <input name="phone" placeholder={t.contact.optional} autoComplete="tel" />
               </label>
               <label className="form__field">
-                <span>Fecha de viaje</span>
+                <span>{t.contact.travelDate}</span>
                 <input name="date" type="date" />
               </label>
             </div>
 
             <div className="form__field">
-              <span>¿Qué necesitas?</span>
-              <div className="form__chips" role="radiogroup" aria-label="Tipo de solicitud">
-                {TOPICS.map((t) => (
+              <span>{t.contact.need}</span>
+              <div className="form__chips" role="radiogroup" aria-label={t.contact.needAria}>
+                {TOPIC_KEYS.map((key, i) => (
                   <button
-                    key={t}
+                    key={key}
                     type="button"
                     role="radio"
-                    aria-checked={topic === t}
-                    className={`form__chip${topic === t ? ' is-on' : ''}`}
-                    onClick={() => setTopic(t)}
+                    aria-checked={topic === key}
+                    className={`form__chip${topic === key ? ' is-on' : ''}`}
+                    onClick={() => setTopic(key)}
                   >
-                    {topic === t && (
+                    {topic === key && (
                       <motion.span
                         layoutId="topic-pill"
                         className="form__chip-pill"
                         transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                       />
                     )}
-                    {t}
+                    {t.contact.topics[i]}
                   </button>
                 ))}
               </div>
               <input type="hidden" name="topic" value={topic} />
+              {/* El operador sabe en que idioma contestar. */}
+              <input type="hidden" name="lang" value={t.code} />
             </div>
 
             <label className="form__field">
-              <span>Mensaje</span>
+              <span>{t.contact.message}</span>
               <textarea
                 name="message"
                 rows={4}
                 required
-                placeholder="Cuántos son, desde dónde salen y qué les gustaría hacer."
+                placeholder={t.contact.messagePh}
               />
             </label>
 
@@ -192,7 +194,7 @@ export default function Contact() {
                 type="submit"
                 disabled={status === 'sending'}
               >
-                {status === 'sending' ? 'Enviando…' : 'Enviar solicitud'}
+                {status === 'sending' ? t.contact.sending : t.contact.send}
                 {status !== 'sending' && (
                   <Ico d="M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5" />
                 )}
@@ -209,7 +211,7 @@ export default function Contact() {
                   exit={{ opacity: 0 }}
                 >
                   <Ico d="M20 6 9 17l-5-5" />
-                  Recibimos tu solicitud. Te respondemos en breve.
+                  {t.contact.sent}
                 </motion.p>
               )}
               {status === 'error' && (
@@ -236,7 +238,7 @@ export default function Contact() {
           >
             <div className="map">
               <iframe
-                title="Mapa de Punta Cana"
+                title={t.contact.mapTitle}
                 src={MAP_SRC}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
@@ -249,7 +251,7 @@ export default function Contact() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Abrir en Google Maps
+                {t.contact.openMap}
                 <Ico d="M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5" />
               </a>
             </div>

@@ -1,4 +1,5 @@
 import type { CategoryId } from '../data/excursions';
+import { useT } from '../i18n';
 
 const stroke = {
   fill: 'none',
@@ -77,8 +78,10 @@ interface ImagePlaceholderProps {
  */
 export default function ImagePlaceholder({
   category,
-  label = 'Imagen próximamente',
+  label: labelProp,
 }: ImagePlaceholderProps) {
+  const t = useT();
+  const label = labelProp ?? t.excursions.imageSoon;
   return (
     <div className="ph" role="img" aria-label={label}>
       <div className="ph__weave" aria-hidden="true" />

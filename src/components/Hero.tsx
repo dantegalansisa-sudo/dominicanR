@@ -5,6 +5,7 @@ import SearchBar from './SearchBar';
 import { EASINGS } from '../utils/easings';
 import { EXCURSIONS } from '../data/excursions';
 import { FLEET } from '../data/fleet';
+import { useLang } from '../i18n';
 
 // Derived from the real catalogue — nothing here is a made-up figure.
 const AVG_RATING =
@@ -13,7 +14,7 @@ const AVG_RATING =
 const TOTAL_REVIEWS = EXCURSIONS.reduce(
   (sum, e) => sum + Number(e.reviews.replace(/[^0-9]/g, '')),
   0,
-).toLocaleString('es-DO') + '+';
+);
 
 const StarIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -44,6 +45,7 @@ export default function Hero() {
   const [vh, setVh] = useState(900);
   const [still, setStill] = useState(false);
   const { scrollY } = useScroll();
+  const { t } = useLang();
 
   useEffect(() => {
     const measure = () => setVh(window.innerHeight);
@@ -82,18 +84,18 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15, ease: EASINGS.premium }}
           >
-            <p className="eyebrow hero__eyebrow">
-              Punta Cana · República Dominicana
-            </p>
+            <p className="eyebrow hero__eyebrow">{t.hero.eyebrow}</p>
 
             <div className="hero__chips">
               <span className="chip">
                 <StarIcon />
-                <strong>{AVG_RATING.toFixed(1)}</strong> de 5 · {TOTAL_REVIEWS} reseñas
+                <strong>{AVG_RATING.toFixed(1)}</strong> {t.hero.ofFive} ·{' '}
+                {TOTAL_REVIEWS.toLocaleString(t.locale)}+ {t.hero.reviews}
               </span>
               <span className="chip">
                 <RouteIcon />
-                <strong>{EXCURSIONS.length}</strong> excursiones · {FLEET.length} vehículos
+                <strong>{EXCURSIONS.length}</strong> {t.hero.excursions} · {FLEET.length}{' '}
+                {t.hero.vehicles}
               </span>
             </div>
           </motion.div>
@@ -101,12 +103,13 @@ export default function Hero() {
           <h1 className="hero__headline">
             <span className="hero__row hero__row--open">
               <RevealText
+                key={`open-${t.code}`}
                 tag="span"
                 className="hero__word"
                 immediate
                 delay={0.3}
               >
-                Descubre
+                {t.hero.open}
               </RevealText>
 
               <motion.span
@@ -115,8 +118,7 @@ export default function Hero() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 1.2, ease: EASINGS.premium }}
               >
-                Traslados privados y excursiones diseñadas para que solo te
-                preocupes por disfrutar.
+                {t.hero.sub}
               </motion.span>
             </span>
 
@@ -160,12 +162,13 @@ export default function Hero() {
 
             <motion.span className="hero__row hero__row--close" style={{ y: closeY }}>
               <RevealText
+                key={`close-${t.code}`}
                 tag="span"
                 className="hero__word"
                 immediate
                 delay={1.05}
               >
-                como se debe vivir
+                {t.hero.close}
               </RevealText>
             </motion.span>
           </h1>
