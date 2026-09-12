@@ -30,6 +30,12 @@ interface ExcursionRow {
   departures: string;
   tickets: string;
   featured: number;
+  name_en: string | null;
+  duration_en: string | null;
+  description_en: string | null;
+  includes_en: string | null;
+  activities_en: string | null;
+  tickets_en: string | null;
 }
 
 interface VehicleRow {
@@ -44,6 +50,10 @@ interface VehicleRow {
   features: string;
   featured: number;
   standard: number;
+  name_en: string | null;
+  type_en: string | null;
+  summary_en: string | null;
+  features_en: string | null;
 }
 
 export function buildCatalog() {
@@ -76,6 +86,15 @@ export function buildCatalog() {
     departures: parse<string[]>(e.departures, []),
     tickets: parse<unknown[]>(e.tickets, []),
     photos: bySlug.get(e.slug) ?? [],
+    // Lo que tenga en inglés; lo que falte lo suple el front con el español.
+    en: {
+      name: e.name_en,
+      duration: e.duration_en,
+      description: e.description_en,
+      includes: e.includes_en ? parse<string[]>(e.includes_en, []) : null,
+      activities: e.activities_en ? parse<string[]>(e.activities_en, []) : null,
+      tickets: e.tickets_en ? parse<{ name: string; includes: string }[]>(e.tickets_en, []) : null,
+    },
   }));
 
   const featured = (
@@ -98,6 +117,12 @@ export function buildCatalog() {
     features: parse<string[]>(v.features, []),
     featured: Boolean(v.featured),
     standard: Boolean(v.standard),
+    en: {
+      name: v.name_en,
+      type: v.type_en,
+      summary: v.summary_en,
+      features: v.features_en ? parse<string[]>(v.features_en, []) : null,
+    },
   }));
 
   const brackets = (

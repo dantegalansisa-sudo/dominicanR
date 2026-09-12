@@ -27,5 +27,5 @@ Thumbs.db
 # vercel
 .vercel
 
-# base de datos y fotos subidas desde el panel
-data/
+# base de datos y fotos subidas desde el panel (solo la de la raiz: src/data es codigo)
+/data/

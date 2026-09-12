@@ -4,6 +4,8 @@ import { EXCURSIONS, FEATURED_SLUGS } from '../src/data/excursions.ts';
 import { FLEET } from '../src/data/fleet.ts';
 import { SEATS, DRINKS, STOPS } from '../src/data/passengers.ts';
 import { BRACKETS, RULES, ZONES } from '../src/data/pricing.ts';
+import { EXCURSIONS_EN } from '../src/i18n/excursions.en.ts';
+import { FLEET_EN } from '../src/i18n/fleet.en.ts';
 
 /**
  * Pasa a la base de datos lo que hoy vive en src/data. Se ejecuta una sola vez:
@@ -116,6 +118,78 @@ function seedExtras() {
   STOPS.forEach((s, i) => ins.run(s.id, 'stop', s.label, s.price, s.minutes, i));
 }
 
+/**
+ * Rellena los textos en inglés que falten con la traducción que trae el
+ * proyecto. Se ejecuta en cada arranque: una base sembrada antes de que
+ * existieran estas columnas las tiene vacías, y una excursión que el cliente
+ * cree desde el panel sin inglés se queda como está (no hay de dónde sacarlo).
+ */
+function backfillEnglish() {
+  const updEx = db.prepare(`
+    UPDATE excursions SET
+      name_en = COALESCE(name_en, @name_en),
+      duration_en = COALESCE(duration_en, @duration_en),
+      description_en = COALESCE(description_en, @description_en),
+      includes_en = COALESCE(includes_en, @includes_en),
+      activities_en = COALESCE(activities_en, @activities_en),
+      tickets_en = COALESCE(tickets_en, @tickets_en)
+    WHERE slug = @slug
+  `);
+  const exRows = db.prepare('SELECT slug, name, tickets FROM excursions').all() as {
+    slug: string;
+    name: string;
+    tickets: string;
+  }[];
+  let n = 0;
+  for (const row of exRows) {
+    const tr = EXCURSIONS_EN[row.slug];
+    if (!tr) continue;
+    let tickets: { name: string; includes: string }[] = [];
+    try {
+      tickets = JSON.parse(row.tickets) as { name: string; includes: string }[];
+    } catch {
+      tickets = [];
+    }
+    const r = updEx.run({
+      slug: row.slug,
+      name_en: tr.name ?? row.name,
+      duration_en: tr.duration,
+      description_en: tr.description,
+      includes_en: json(tr.includes),
+      activities_en: json(tr.activities),
+      tickets_en: json(
+        tickets.map((t, i) => ({
+          name: tr.tickets?.[i]?.name ?? t.name,
+          includes: tr.tickets?.[i]?.includes ?? t.includes,
+        })),
+      ),
+    });
+    n += r.changes;
+  }
+
+  const updV = db.prepare(`
+    UPDATE vehicles SET
+      name_en = COALESCE(name_en, @name_en),
+      type_en = COALESCE(type_en, @type_en),
+      summary_en = COALESCE(summary_en, @summary_en),
+      features_en = COALESCE(features_en, @features_en)
+    WHERE slug = @slug
+  `);
+  const vRows = db.prepare('SELECT slug, name FROM vehicles').all() as { slug: string; name: string }[];
+  for (const row of vRows) {
+    const tr = FLEET_EN[row.slug];
+    if (!tr) continue;
+    updV.run({
+      slug: row.slug,
+      name_en: tr.name ?? row.name,
+      type_en: tr.type,
+      summary_en: tr.summary,
+      features_en: json(tr.features),
+    });
+  }
+  console.log(`  · textos en inglés revisados (${n} excursiones)`);
+}
+
 function seedAdmin() {
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
@@ -142,6 +216,7 @@ export function seed() {
   migrate();
   if (isSeeded()) {
     console.log('La base ya tiene datos; no se siembra nada.');
+    backfillEnglish();
     seedAdmin();
     return;
   }
@@ -153,6 +228,7 @@ export function seed() {
     seedExtras();
     seedSettings();
   })();
+  backfillEnglish();
   seedAdmin();
 
   const n = (t: string) =>

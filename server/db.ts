@@ -136,6 +136,32 @@ export function migrate() {
       before  TEXT
     );
   `);
+
+  // Columnas en inglés, añadidas después de la primera versión. ADD COLUMN
+  // no admite IF NOT EXISTS en SQLite, así que se mira antes qué hay.
+  addColumns('excursions', {
+    name_en: 'TEXT',
+    duration_en: 'TEXT',
+    description_en: 'TEXT',
+    includes_en: 'TEXT',
+    activities_en: 'TEXT',
+    tickets_en: 'TEXT',
+  });
+  addColumns('vehicles', {
+    name_en: 'TEXT',
+    type_en: 'TEXT',
+    summary_en: 'TEXT',
+    features_en: 'TEXT',
+  });
+}
+
+function addColumns(table: string, cols: Record<string, string>) {
+  const have = new Set(
+    (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name),
+  );
+  for (const [name, type] of Object.entries(cols)) {
+    if (!have.has(name)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${type}`);
+  }
 }
 
 export const isSeeded = () =>

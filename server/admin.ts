@@ -118,6 +118,9 @@ const EXCURSION_FIELDS = [
   'reviews',
   'duration',
   'description',
+  'name_en',
+  'duration_en',
+  'description_en',
 ] as const;
 
 adminRouter.put('/excursions/:slug', (req: AdminRequest, res) => {
@@ -141,6 +144,9 @@ adminRouter.put('/excursions/:slug', (req: AdminRequest, res) => {
     ['activities', 'activities'],
     ['departures', 'departures'],
     ['tickets', 'tickets'],
+    ['includes_en', 'includes_en'],
+    ['activities_en', 'activities_en'],
+    ['tickets_en', 'tickets_en'],
   ] as const) {
     if (req.body?.[key] !== undefined) {
       sets.push(`${field} = ?`);
@@ -320,6 +326,9 @@ adminRouter.put('/vehicles/:slug', (req: AdminRequest, res) => {
     ['price', 'price'],
     ['photo', 'photo'],
     ['summary', 'summary'],
+    ['name_en', 'name_en'],
+    ['type_en', 'type_en'],
+    ['summary_en', 'summary_en'],
   ] as const) {
     if (req.body?.[key] !== undefined) {
       sets.push(`${field} = ?`);
@@ -329,6 +338,10 @@ adminRouter.put('/vehicles/:slug', (req: AdminRequest, res) => {
   if (req.body?.features !== undefined) {
     sets.push('features = ?');
     values.push(json(req.body.features));
+  }
+  if (req.body?.features_en !== undefined) {
+    sets.push('features_en = ?');
+    values.push(json(req.body.features_en));
   }
   for (const [field, key] of [
     ['featured', 'featured'],

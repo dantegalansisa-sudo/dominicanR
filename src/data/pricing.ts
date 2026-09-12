@@ -114,24 +114,6 @@ export const ZONES: Record<string, string[]> = {
   santoDomingo: ['santo domingo', 'zona colonial', 'gazcue', 'naco', 'piantini'],
 };
 
-/**
- * CORRECCIÓN 3: el original daba por buena la coincidencia de 'san juan' a
- * secas, así que "Río San Juan" —costa norte— se detectaba como San Juan de la
- * Maguana, en el suroeste, y un PUJ → Río San Juan cobraba el recargo del
- * suroeste. Ahora San Juan de la Maguana solo coincide con su nombre completo.
- *
- * Aparte, hay zonas que se solapan a propósito y el orden decide: el aeropuerto
- * de Santo Domingo también contiene "las americas", y Comendador pertenece a
- * Elías Piña aunque el original lo listaba además en Jimaní.
- */
-function inZone(text: string, zone: string): boolean {
-  // Santo Domingo ciudad no es el aeropuerto: si es SDQ, no cuenta como ciudad.
-  if (zone === 'santoDomingo' && inZone(text, 'sdq')) return false;
-  return ZONES[zone]!.some((needle) => text.includes(needle));
-}
-
-const inAny = (text: string, zones: string[]) => zones.some((z) => inZone(text, z));
-
 const ZONA_ESTE = ['puj', 'bavaro', 'bayahibe', 'juanDolio', 'laRomana', 'higuey'];
 const ZONA_PUNTA_CANA = ['puj', 'bavaro', 'bayahibe'];
 const SUROESTE = ['barahona', 'sanJuan', 'lagoEnriquillo', 'pedernales', 'jimani'];
@@ -148,7 +130,7 @@ const ZONA_NORTE = [
 ];
 const CAPITAL = ['sdq', 'santoDomingo'];
 
-interface Rule {
+export interface Rule {
   /** Para poder explicar en el correo por qué se aplicó. */
   label: string;
   a: string[];
@@ -187,24 +169,55 @@ export interface Surcharge {
   amount: number;
 }
 
+/**
+ * Las tres tablas juntas. Por defecto son las de este archivo; cuando el
+ * catálogo viene de la base de datos (lo que el cliente edita en el panel) se
+ * pasan las suyas y la lógica es la misma.
+ */
+export interface PricingTables {
+  brackets: { upTo: number | null; prices: Prices }[];
+  zones: Record<string, string[]>;
+  rules: Rule[];
+}
+
+export const DEFAULT_TABLES: PricingTables = { brackets: BRACKETS, zones: ZONES, rules: RULES };
+
+/**
+ * CORRECCIÓN 3: el original daba por buena la coincidencia de 'san juan' a
+ * secas, así que "Río San Juan" —costa norte— se detectaba como San Juan de la
+ * Maguana, en el suroeste, y un PUJ → Río San Juan cobraba el recargo del
+ * suroeste. Ahora San Juan de la Maguana solo coincide con su nombre completo.
+ *
+ * Aparte, hay zonas que se solapan a propósito y el orden decide: el aeropuerto
+ * de Santo Domingo también contiene "las americas", y Comendador pertenece a
+ * Elías Piña aunque el original lo listaba además en Jimaní.
+ */
+function inZoneOf(zones: Record<string, string[]>, text: string, zone: string): boolean {
+  if (zone === 'santoDomingo' && inZoneOf(zones, text, 'sdq')) return false;
+  return (zones[zone] ?? []).some((needle) => text.includes(needle));
+}
+
 /** El recargo que corresponde a una ruta, o null si no hay ninguno. */
 export function routeSurcharge(
   origin: string,
   destination: string,
   key: PriceKey,
+  tables: PricingTables = DEFAULT_TABLES,
 ): Surcharge | null {
   const o = fold(origin);
   const d = fold(destination);
-  for (const rule of RULES) {
-    const hit =
-      (inAny(o, rule.a) && inAny(d, rule.b)) || (inAny(d, rule.a) && inAny(o, rule.b));
+  const any = (text: string, zs: string[]) => zs.some((z) => inZoneOf(tables.zones, text, z));
+  for (const rule of tables.rules) {
+    const hit = (any(o, rule.a) && any(d, rule.b)) || (any(d, rule.a) && any(o, rule.b));
     if (hit) return { label: rule.label, amount: rule.add[key] };
   }
   return null;
 }
 
-export function bracketFor(km: number): Prices {
-  return BRACKETS.find((b) => km <= b.upTo)!.prices;
+export function bracketFor(km: number, tables: PricingTables = DEFAULT_TABLES): Prices {
+  // upTo null es el tramo abierto del final.
+  const hit = tables.brackets.find((b) => b.upTo == null || km <= b.upTo);
+  return (hit ?? tables.brackets[tables.brackets.length - 1])!.prices;
 }
 
 export interface Quote {
@@ -223,11 +236,17 @@ export interface Quote {
  * búsqueda habría devuelto 0 sin avisar y el recargo habría desaparecido. Aquí
  * se busca por el slug, que no cambia.
  */
-export function quote(km: number | null, slug: string, origin: string, destination: string): Quote | null {
+export function quote(
+  km: number | null,
+  slug: string,
+  origin: string,
+  destination: string,
+  tables: PricingTables = DEFAULT_TABLES,
+): Quote | null {
   const key = PRICE_KEY_BY_SLUG[slug];
   if (!key || km == null || !Number.isFinite(km) || km < 0) return null;
 
-  const base = bracketFor(km)[key];
-  const surcharge = routeSurcharge(origin, destination, key);
+  const base = bracketFor(km, tables)[key];
+  const surcharge = routeSurcharge(origin, destination, key, tables);
   return { base, surcharge, total: base + (surcharge?.amount ?? 0) };
 }
