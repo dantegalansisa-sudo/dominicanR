@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { EASINGS } from '../utils/easings';
 import { useT } from '../i18n';
+import { useSettings } from '../catalog/CatalogProvider';
 
 const HREFS = ['/#inicio', '/#traslados', '/excursiones', '/#nosotros', '/#contacto'];
 
@@ -24,6 +25,7 @@ const SOCIAL = [
 
 export default function Footer() {
   const t = useT();
+  const s = useSettings();
   const NAV = [t.nav.home, t.nav.transfers, t.nav.excursions, t.nav.about, t.nav.contact].map(
     (label, i) => ({ label, href: HREFS[i]! }),
   );
@@ -63,12 +65,12 @@ export default function Footer() {
           <div key="contact">
             <h3 className="footer__head">{t.footer.contact}</h3>
             <ul className="footer__links">
-              <li>Punta Cana, La Altagracia</li>
+              <li>{s.location}</li>
               <li>
-                <a href="tel:+18292191573">+1 (829) 219-1573</a>
+                <a href={`tel:${s.phone.replace(/[^\d+]/g, '')}`}>{s.phone}</a>
               </li>
               <li>
-                <a href="mailto:dominicanroutes@gmail.com">dominicanroutes@gmail.com</a>
+                <a href={`mailto:${s.email}`}>{s.email}</a>
               </li>
               <li>{t.footer.hours}</li>
             </ul>

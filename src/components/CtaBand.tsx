@@ -3,10 +3,12 @@ import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import { EASINGS } from '../utils/easings';
 import { useT } from '../i18n';
+import { useSettings } from '../catalog/CatalogProvider';
 
 export default function CtaBand() {
   const t = useT();
-  const WHATSAPP = 'https://wa.me/18292191573?text=' + encodeURIComponent(t.cta.whatsapp);
+  const s = useSettings();
+  const WHATSAPP = `https://wa.me/${s.whatsapp}?text=` + encodeURIComponent(t.cta.whatsapp);
   return (
     <section className="section cta-band">
       <div className="container">
@@ -47,15 +49,15 @@ export default function CtaBand() {
                 </svg>
               </MagneticButton>
 
-              <a className="cta-card__phone" href="tel:+18292191573">
+              <a className="cta-card__phone" href={`tel:${s.phone.replace(/[^\d+]/g, '')}`}>
                 <span>{t.cta.orCall}</span>
-                <strong>+1 (829) 219-1573</strong>
+                <strong>{s.phone}</strong>
               </a>
             </div>
 
             <p className="cta-card__alt">
               {t.cta.also}{' '}
-              <a href="mailto:dominicanroutes@gmail.com">dominicanroutes@gmail.com</a>
+              <a href={`mailto:${s.email}`}>{s.email}</a>
               {' '}{t.cta.or}{' '}
               <a href={WHATSAPP} target="_blank" rel="noopener noreferrer">
                 WhatsApp

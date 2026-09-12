@@ -2,10 +2,9 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import RevealText from './RevealText';
 import ExcursionCard, { ArrowIcon } from './ExcursionCard';
-import { EXCURSIONS } from '../data/excursions';
 import type { Excursion } from '../data/excursions';
 import { useT } from '../i18n';
-import { useFeaturedExcursions } from '../i18n/catalog';
+import { useExcursions, useFeaturedExcursions } from '../i18n/catalog';
 
 /**
  * Home section: only the six the client sells most, laid out 3 + 3 so nothing
@@ -19,6 +18,7 @@ export default function Excursions({
 }) {
   const t = useT();
   const featured = useFeaturedExcursions();
+  const EXCURSIONS = useExcursions();
   return (
     <section className="section excursions" id="excursiones">
       <div className="container">

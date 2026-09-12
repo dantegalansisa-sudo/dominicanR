@@ -1,22 +1,20 @@
 import { motion } from 'framer-motion';
 import AnimatedCounter from './AnimatedCounter';
-import { EXCURSIONS } from '../data/excursions';
-import { FLEET } from '../data/fleet';
 import { EASINGS } from '../utils/easings';
 import { useT } from '../i18n';
-
-// Every figure here is derived from the client's own catalogue rather than
-// invented, so nothing on the page claims more than they can back up.
-const AVG_RATING =
-  EXCURSIONS.reduce((sum, e) => sum + e.rating, 0) / EXCURSIONS.length;
-
-const TOTAL_REVIEWS = EXCURSIONS.reduce(
-  (sum, e) => sum + Number(e.reviews.replace(/[^0-9]/g, '')),
-  0,
-);
+import { useCatalog } from '../catalog/CatalogProvider';
 
 export default function TrustBar() {
   const t = useT();
+  const { excursions: EXCURSIONS, fleet: FLEET } = useCatalog();
+
+  // Every figure here is derived from the client's own catalogue rather than
+  // invented, so nothing on the page claims more than they can back up.
+  const AVG_RATING = EXCURSIONS.reduce((sum, e) => sum + e.rating, 0) / EXCURSIONS.length;
+  const TOTAL_REVIEWS = EXCURSIONS.reduce(
+    (sum, e) => sum + Number(String(e.reviews).replace(/[^0-9]/g, '')),
+    0,
+  );
   const STATS = [
     { node: <AnimatedCounter target={EXCURSIONS.length} />, label: t.trust.excursions },
     { node: <AnimatedCounter target={AVG_RATING} decimals={1} />, label: t.trust.rating },

@@ -22,6 +22,13 @@ export interface Vehicle {
   photo: string | null;
   summary: string;
   features: string[];
+  /** Textos en inglés editados desde el panel; cualquiera puede faltar. */
+  en?: {
+    name?: string | null;
+    type?: string | null;
+    summary?: string | null;
+    features?: string[] | null;
+  };
 }
 
 export const FLEET: Vehicle[] = [

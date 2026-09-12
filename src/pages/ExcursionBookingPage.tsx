@@ -5,13 +5,20 @@ import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
 import ExcursionCarousel from '../components/ExcursionCarousel';
-import { EXCURSIONS as EXCURSIONS_ES, fromPrice } from '../data/excursions';
+import { fromPrice } from '../data/excursions';
 import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal } from '../data/passengers';
 import type { Party } from '../data/passengers';
 import { emptyPlace, placeMapsUrl } from '../data/places';
 import type { PlaceGroup, PlaceValue } from '../data/places';
 import { useLang } from '../i18n';
-import { partyLabelT, prettyDateT, useCategories, useExcursions, usePickupPlaces } from '../i18n/catalog';
+import {
+  partyLabelT,
+  prettyDateT,
+  useCategories,
+  useExcursions,
+  useExcursionsEs,
+  usePickupPlaces,
+} from '../i18n/catalog';
 
 /** Lo que dejan la ficha de excursión o el buscador al navegar hasta aquí. */
 export interface ExcursionSeed {
@@ -71,6 +78,7 @@ export default function ExcursionBookingPage() {
   const seed = (useLocation().state ?? {}) as ExcursionSeed;
   const { lang, t } = useLang();
   const EXCURSIONS = useExcursions();
+  const EXCURSIONS_ES = useExcursionsEs();
   const CATEGORIES = useCategories();
   const PICKUP_PLACES = usePickupPlaces();
   const seeded = seed.slug ? EXCURSIONS.find((e) => e.slug === seed.slug) : undefined;

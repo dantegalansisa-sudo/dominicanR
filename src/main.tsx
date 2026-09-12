@@ -4,12 +4,15 @@ import './styles/index.css'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import { LangProvider } from './i18n'
+import { CatalogProvider } from './catalog/CatalogProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <LangProvider>
-        <App />
+        <CatalogProvider>
+          <App />
+        </CatalogProvider>
       </LangProvider>
     </BrowserRouter>
   </StrictMode>,

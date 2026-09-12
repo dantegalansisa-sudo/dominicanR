@@ -1,20 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FLEET } from '../data/fleet';
 import { partyTotal } from '../data/passengers';
 import type { Party } from '../data/passengers';
+import type { Vehicle } from '../data/fleet';
 import { useT } from '../i18n';
+import { useCatalog } from '../catalog/CatalogProvider';
 
-const MAX_TOTAL = Math.max(...FLEET.filter((v) => v.standard).map((v) => v.maxPax));
+export const maxStandardPax = (fleet: Vehicle[]) =>
+  Math.max(...fleet.filter((v) => v.standard).map((v) => v.maxPax));
 
 /**
  * Smallest standard vehicle that still fits the whole group. Only standard ones
  * qualify: suggesting the wheelchair-adapted van to a family of four just
  * because it seats four would be wrong, and the limo is a choice, not a size.
  */
-export function suggestVehicle(total: number) {
+export function suggestVehicle(fleet: Vehicle[], total: number) {
   return (
-    FLEET.filter((v) => v.standard)
+    fleet
+      .filter((v) => v.standard)
       .sort((a, b) => a.maxPax - b.maxPax)
       .find((v) => v.maxPax >= total) ?? null
   );
@@ -41,6 +44,7 @@ export default function PassengersField({
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const t = useT();
+  const MAX_TOTAL = maxStandardPax(useCatalog().fleet);
 
   // En excursiones cada tramo tiene su tarifa, asi que el rango de edad
   // importa; en traslados se cobra por vehiculo y solo cuenta cuanta gente sube.

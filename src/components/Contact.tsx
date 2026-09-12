@@ -4,6 +4,7 @@ import RevealText from './RevealText';
 import MagneticButton from './MagneticButton';
 import { EASINGS } from '../utils/easings';
 import { useT } from '../i18n';
+import { useSettings } from '../catalog/CatalogProvider';
 
 /** Lo que recibe el operador: siempre en español, elija lo que elija el visitante. */
 const TOPIC_KEYS = ['Traslado', 'Excursión', 'Grupo o evento', 'Otro'] as const;
@@ -43,15 +44,11 @@ export default function Contact() {
   const [topic, setTopic] = useState<string>(TOPIC_KEYS[0]);
   const formRef = useRef<HTMLFormElement>(null);
 
+  const s = useSettings();
   const DETAILS = [
-    { icon: PIN, label: t.contact.location, value: 'Punta Cana, La Altagracia', href: MAP_LINK },
-    { icon: PHONE, label: t.contact.phoneLabel, value: '+1 (829) 219-1573', href: 'tel:+18292191573' },
-    {
-      icon: MAIL,
-      label: t.contact.emailLabel,
-      value: 'dominicanroutes@gmail.com',
-      href: 'mailto:dominicanroutes@gmail.com',
-    },
+    { icon: PIN, label: t.contact.location, value: s.location, href: MAP_LINK },
+    { icon: PHONE, label: t.contact.phoneLabel, value: s.phone, href: `tel:${s.phone.replace(/[^\d+]/g, '')}` },
+    { icon: MAIL, label: t.contact.emailLabel, value: s.email, href: `mailto:${s.email}` },
   ];
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

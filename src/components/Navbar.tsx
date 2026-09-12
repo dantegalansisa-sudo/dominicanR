@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { EASINGS } from '../utils/easings';
 import { useLang } from '../i18n';
+import { useSettings } from '../catalog/CatalogProvider';
 import type { Lang } from '../i18n';
 
 const HREFS = ['/#inicio', '/#traslados', '/excursiones', '/#nosotros', '/#contacto'];
@@ -10,6 +11,7 @@ export default function Navbar() {
   const [solid, setSolid] = useState(false);
   const [open, setOpen] = useState(false);
   const { lang, setLang, t } = useLang();
+  const s = useSettings();
   const { scrollY } = useScroll();
 
   const LINKS = [t.nav.home, t.nav.transfers, t.nav.excursions, t.nav.about, t.nav.contact].map(
@@ -140,8 +142,8 @@ export default function Navbar() {
               exit={{ opacity: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <span>dominicanroutes@gmail.com</span>
-              <span>+1 (829) 219-1573</span>
+              <span>{s.email}</span>
+              <span>{s.phone}</span>
             </motion.div>
           </motion.div>
         )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useT } from '../i18n';
+import { useSettings } from '../catalog/CatalogProvider';
 
 /**
  * Quick line to a person. The structured requests go through the form — every
@@ -12,7 +13,8 @@ export default function FloatingCta() {
   const [atForm, setAtForm] = useState(false);
   const { scrollY } = useScroll();
   const t = useT();
-  const HREF = 'https://wa.me/18292191573?text=' + encodeURIComponent(t.fab.whatsapp);
+  const s = useSettings();
+  const HREF = `https://wa.me/${s.whatsapp}?text=` + encodeURIComponent(t.fab.whatsapp);
 
   // Hold it back until the hero is behind you — the hero has its own search bar.
   useMotionValueEvent(scrollY, 'change', (v) => setPastHero(v > 600));

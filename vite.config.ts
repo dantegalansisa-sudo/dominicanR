@@ -61,5 +61,15 @@ export default defineConfig(({ mode }) => {
       jsonApi('/api/contact', handleContact),
       jsonApi('/api/places', handlePlaces),
     ],
+    server: {
+      // El catálogo, el panel y las fotos subidas viven en el servidor Express
+      // (npm run server). En desarrollo se le reenvían; si no está arrancado,
+      // la web usa los datos empaquetados y el panel no carga.
+      proxy: {
+        '/api/catalog': `http://localhost:${env.SERVER_PORT || 3000}`,
+        '/api/admin': `http://localhost:${env.SERVER_PORT || 3000}`,
+        '/uploads': `http://localhost:${env.SERVER_PORT || 3000}`,
+      },
+    },
   }
 })

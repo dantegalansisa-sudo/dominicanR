@@ -3,18 +3,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import RevealText from './RevealText';
 import SearchBar from './SearchBar';
 import { EASINGS } from '../utils/easings';
-import { EXCURSIONS } from '../data/excursions';
-import { FLEET } from '../data/fleet';
 import { useLang } from '../i18n';
-
-// Derived from the real catalogue — nothing here is a made-up figure.
-const AVG_RATING =
-  EXCURSIONS.reduce((sum, e) => sum + e.rating, 0) / EXCURSIONS.length;
-
-const TOTAL_REVIEWS = EXCURSIONS.reduce(
-  (sum, e) => sum + Number(e.reviews.replace(/[^0-9]/g, '')),
-  0,
-);
+import { useCatalog } from '../catalog/CatalogProvider';
 
 const StarIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -46,6 +36,14 @@ export default function Hero() {
   const [still, setStill] = useState(false);
   const { scrollY } = useScroll();
   const { t } = useLang();
+  const { excursions: EXCURSIONS, fleet: FLEET } = useCatalog();
+
+  // Derived from the real catalogue — nothing here is a made-up figure.
+  const AVG_RATING = EXCURSIONS.reduce((sum, e) => sum + e.rating, 0) / EXCURSIONS.length;
+  const TOTAL_REVIEWS = EXCURSIONS.reduce(
+    (sum, e) => sum + Number(String(e.reviews).replace(/[^0-9]/g, '')),
+    0,
+  );
 
   useEffect(() => {
     const measure = () => setVh(window.innerHeight);

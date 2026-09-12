@@ -5,31 +5,25 @@ import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
 import { suggestVehicle } from '../components/PassengersField';
-import { FLEET } from '../data/fleet';
 import { quote } from '../data/pricing';
 import { fetchDistance } from '../utils/googlePlaces';
 import { emptyPlace, placeMapsUrl } from '../data/places';
 import type { PlaceValue } from '../data/places';
-import {
-  EMPTY_EXTRAS,
-  STOPS,
-  EMPTY_PARTY,
-  partyLabel,
-  partyTotal,
-  extrasLines,
-  extrasTotal,
-  usd,
-} from '../data/passengers';
-import type { Extras, SeatId, DrinkId, Party } from '../data/passengers';
+import { EMPTY_EXTRAS, EMPTY_PARTY, partyLabel, partyTotal, usd } from '../data/passengers';
+import type { Extras, SeatId, DrinkId, StopId, Party } from '../data/passengers';
 import { useLang } from '../i18n';
 import {
-  extrasLinesT,
+  extrasLinesWith,
+  extrasTotalWith,
   partyLabelT,
   prettyDateT,
   useExtrasCatalog,
   useFleet,
+  useFleetEs,
+  usePricing,
   useTransferPlaces,
 } from '../i18n/catalog';
+import { useCatalog } from '../catalog/CatalogProvider';
 
 /** Lo que el buscador del hero deja al navegar hasta aquí. */
 export interface BookingSeed {
@@ -123,8 +117,12 @@ export default function BookingPage() {
   const seed = (useLocation().state ?? {}) as BookingSeed;
   const { lang, t } = useLang();
   const fleet = useFleet();
+  const FLEET = useFleetEs();
+  const tables = usePricing();
   const TRANSFER_PLACES = useTransferPlaces();
   const { seats: SEATS, drinks: DRINKS, stops: STOPS_T } = useExtrasCatalog();
+  const extrasCat = useExtrasCatalog();
+  const extrasEs = useCatalog().extras;
   const uiDate = (iso: string) => prettyDateT(lang, iso);
 
   const [origin, setOrigin] = useState<PlaceValue>(seed.origin ?? emptyPlace());
@@ -195,14 +193,14 @@ export default function BookingPage() {
 
   const total = partyTotal(party);
   const chosen = vehicleSlug ? (fleet.find((v) => v.slug === vehicleSlug) ?? null) : null;
-  const suggestedEs = suggestVehicle(total);
+  const suggestedEs = suggestVehicle(FLEET, total);
   const suggested = suggestedEs ? (fleet.find((v) => v.slug === suggestedEs.slug) ?? null) : null;
   const vehicle = chosen ?? suggested;
   // El correo al operador va en español: nombre y tipo del catálogo original.
   const vehicleEs = vehicle ? (FLEET.find((v) => v.slug === vehicle.slug) ?? vehicle) : null;
   const overCapacity = vehicle != null && total > vehicle.maxPax;
   const priceFor = (slug: string) =>
-    quote(billableKm, slug, origin.text, destination.text);
+    quote(billableKm, slug, origin.text, destination.text, tables);
   const chosenQuote = vehicle ? priceFor(vehicle.slug) : null;
 
   const setSeat = (id: SeatId, n: number) =>
@@ -216,12 +214,12 @@ export default function BookingPage() {
 
   // Clicking the selected block again clears it — otherwise there is no way to
   // undo a stop once you have picked one.
-  const pickStop = (id: (typeof STOPS)[number]['id']) =>
+  const pickStop = (id: StopId) =>
     setExtras((e) => ({ ...e, stop: e.stop === id ? null : id }));
 
-  const extraLines = extrasLines(extras);
-  const extraLinesUi = extrasLinesT(t, extras, usd);
-  const extrasSum = extrasTotal(extras);
+  const extraLines = extrasLinesWith(extrasEs, extras, usd, 'Paradas adicionales');
+  const extraLinesUi = extrasLinesWith(extrasCat, extras, usd, t.extras.stopLine);
+  const extrasSum = extrasTotalWith(extrasEs, extras);
 
   const originMap = placeMapsUrl(origin);
   const destMap = placeMapsUrl(destination);
@@ -570,10 +568,10 @@ export default function BookingPage() {
                       <p className="extras__name">{seat.label}</p>
                       <p className="extras__price">{usd(seat.price)}</p>
                       <Stepper
-                        value={extras.seats[seat.id]}
+                        value={extras.seats[seat.id as SeatId]}
                         min={0}
                         max={6}
-                        onChange={(n) => setSeat(seat.id, n)}
+                        onChange={(n) => setSeat(seat.id as SeatId, n)}
                         label={seat.label.toLowerCase()}
                       />
                     </div>
@@ -587,10 +585,10 @@ export default function BookingPage() {
                       <p className="extras__name">{drink.label}</p>
                       <p className="extras__price">{usd(drink.price)}</p>
                       <Stepper
-                        value={extras.drinks[drink.id]}
+                        value={extras.drinks[drink.id as DrinkId]}
                         min={0}
                         max={40}
-                        onChange={(n) => setDrink(drink.id, n)}
+                        onChange={(n) => setDrink(drink.id as DrinkId, n)}
                         label={drink.label.toLowerCase()}
                       />
                     </div>
@@ -608,7 +606,7 @@ export default function BookingPage() {
                           key={stop.id}
                           type="button"
                           className={`stop${on ? ' is-on' : ''}`}
-                          onClick={() => pickStop(stop.id)}
+                          onClick={() => pickStop(stop.id as StopId)}
                           aria-pressed={on}
                         >
                           {on && (
