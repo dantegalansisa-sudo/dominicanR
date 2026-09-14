@@ -28,6 +28,34 @@ export interface ContactResult {
   body: { ok: boolean; error?: string };
 }
 
+/** Lo que se guarda de cada solicitud, además del texto del correo. */
+export interface NewBooking {
+  kind: 'traslado' | 'excursion' | 'contacto';
+  name: string;
+  email: string;
+  phone: string;
+  lang: 'es' | 'en';
+  date: string;
+  message: string;
+  /** Los campos sueltos que manda el formulario, tal cual, para el panel. */
+  payload?: unknown;
+}
+
+/**
+ * Dónde guardar la solicitud. Lo pone el servidor Express (base de datos);
+ * en Vercel y en el servidor de desarrollo de Vite no hay ninguno y el
+ * formulario funciona como siempre, solo por correo.
+ */
+export interface BookingStore {
+  save(b: NewBooking): number;
+  markEmail(id: number, sent: boolean, error?: string): void;
+}
+
+const KIND_BY_TOPIC: Record<string, NewBooking['kind']> = {
+  Traslado: 'traslado',
+  Excursión: 'excursion',
+};
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
 const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
@@ -83,7 +111,7 @@ async function sendEmail(args: SendArgs): Promise<boolean> {
   }
 }
 
-export async function handleContact(raw: unknown): Promise<ContactResult> {
+export async function handleContact(raw: unknown, store?: BookingStore): Promise<ContactResult> {
   const data = (raw ?? {}) as Record<string, unknown>;
 
   // Honeypot: a real person never fills a field they cannot see. Answer 200 so
@@ -114,11 +142,42 @@ export async function handleContact(raw: unknown): Promise<ContactResult> {
       body: { ok: false, error: 'Cuéntanos un poco más (mínimo 10 caracteres).' },
     };
 
+  // Primero se guarda, después se envía: si el correo falla, la solicitud
+  // sigue existiendo. Y al revés: un fallo al guardar no frena el correo.
+  let bookingId: number | null = null;
+  if (store) {
+    try {
+      bookingId = store.save({
+        kind: KIND_BY_TOPIC[topic] ?? 'contacto',
+        name,
+        email,
+        phone,
+        lang,
+        date,
+        message,
+        payload: data.booking,
+      });
+    } catch (err) {
+      console.error('No se pudo guardar la solicitud en la base:', err);
+    }
+  }
+  const noteEmail = (sent: boolean, error?: string) => {
+    if (bookingId == null || !store) return;
+    try {
+      store.markEmail(bookingId, sent, error);
+    } catch (err) {
+      console.error('No se pudo anotar el estado del correo:', err);
+    }
+  };
+
   const apiKey = process.env.RESEND_API_KEY;
   const to = process.env.CONTACT_TO || 'dominicanroutes@gmail.com';
   const from = process.env.CONTACT_FROM || 'Dominican Routes <onboarding@resend.dev>';
 
   if (!apiKey) {
+    noteEmail(false, 'Sin RESEND_API_KEY');
+    // Guardada aunque sin correo: el visitante no tiene que volver a escribir.
+    if (bookingId != null) return { status: 200, body: { ok: true } };
     return {
       status: 503,
       body: {
@@ -238,7 +297,15 @@ export async function handleContact(raw: unknown): Promise<ContactResult> {
     ].join('\n'),
   });
 
+  noteEmail(internalOk, internalOk ? undefined : 'Resend rechazó el envío al negocio');
+
   if (!internalOk) {
+    // Con la solicitud guardada no se pide reintentar: repetirla solo crearía
+    // un duplicado en la base. Sin guardar, sí hace falta que lo intente.
+    if (bookingId != null) {
+      console.warn('Solicitud', bookingId, 'guardada pero el correo al negocio no salió.');
+      return { status: 200, body: { ok: true } };
+    }
     return {
       status: 502,
       body: { ok: false, error: 'No pudimos enviar tu mensaje. Intenta de nuevo.' },

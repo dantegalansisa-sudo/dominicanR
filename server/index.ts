@@ -7,6 +7,7 @@ import { migrate } from './db.ts';
 import { buildCatalog } from './catalog.ts';
 import { adminRouter } from './admin.ts';
 import { handleContact } from '../api/_contact.ts';
+import { bookingStore } from './bookings.ts';
 import { handlePlaces } from '../api/_places.ts';
 
 /**
@@ -40,7 +41,7 @@ const mount = (handler: (payload: unknown) => Promise<{ status: number; body: un
     }
   };
 
-app.post('/api/contact', mount(handleContact));
+app.post('/api/contact', mount((payload) => handleContact(payload, bookingStore)));
 app.post('/api/places', mount(handlePlaces));
 
 /** El catálogo que lee la web pública. */

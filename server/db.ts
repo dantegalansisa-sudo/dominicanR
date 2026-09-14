@@ -166,6 +166,27 @@ export function migrate() {
       'sedan', sedan, 'minivan', minivan, 'minibus', minibus, 'vip-luxury', vip
     ) WHERE prices IS NULL;
 
+    -- Cada solicitud que llega por la web (traslado, excursión o contacto),
+    -- guardada antes de enviar el correo. email_sent dice si el aviso al
+    -- negocio salió; NULL mientras no se haya intentado.
+    CREATE TABLE IF NOT EXISTS bookings (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+      kind        TEXT NOT NULL,
+      name        TEXT NOT NULL,
+      email       TEXT NOT NULL,
+      phone       TEXT NOT NULL DEFAULT '',
+      lang        TEXT NOT NULL DEFAULT 'es',
+      date        TEXT NOT NULL DEFAULT '',
+      message     TEXT NOT NULL,
+      payload     TEXT,
+      status      TEXT NOT NULL DEFAULT 'nueva',
+      notes       TEXT NOT NULL DEFAULT '',
+      email_sent  INTEGER,
+      email_error TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_bookings_created ON bookings(created_at DESC);
+
     -- Rutas con precio cerrado, creadas desde el panel con Google. Valen en
     -- los dos sentidos; el precio es el total por vehículo.
     CREATE TABLE IF NOT EXISTS fixed_routes (

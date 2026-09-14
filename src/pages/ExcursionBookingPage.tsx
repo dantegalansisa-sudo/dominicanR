@@ -244,7 +244,27 @@ export default function ExcursionBookingPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone: `${dialOf(country)} ${phone}`, topic: 'Excursión', date, message, lang }),
+        body: JSON.stringify({
+          name,
+          email,
+          phone: `${dialOf(country)} ${phone}`,
+          topic: 'Excursión',
+          date,
+          message,
+          lang,
+          // Los mismos datos, sueltos, para el panel.
+          booking: {
+            excursion: excursionEs ? { slug: excursionEs.slug, name: excursionEs.name } : { slug: null, name: choice.text },
+            date,
+            departure,
+            ticket: chosenTicketEs ? { name: chosenTicketEs.name, price: chosenTicketEs.price } : null,
+            pickup,
+            room,
+            party,
+            adultsOnly,
+            notes,
+          },
+        }),
       });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;

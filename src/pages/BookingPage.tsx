@@ -316,6 +316,26 @@ export default function BookingPage() {
           date,
           message,
           lang,
+          // Los mismos datos, sueltos, para que el servidor los guarde y el
+          // panel los pueda mostrar sin tener que leer el texto del correo.
+          booking: {
+            origin,
+            destination,
+            date,
+            time,
+            flight,
+            round,
+            returnDate,
+            returnTime,
+            party,
+            vehicle: vehicleEs ? { slug: vehicleEs.slug, name: vehicleEs.name, chosen: Boolean(chosen) } : null,
+            km,
+            billableKm,
+            quote: chosenQuote,
+            extras,
+            extrasTotal: extrasSum,
+            notes,
+          },
         }),
       });
       const body = (await res.json().catch(() => ({}))) as {
