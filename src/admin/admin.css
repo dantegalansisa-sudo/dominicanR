@@ -133,6 +133,9 @@
 
 .adm__card {
   min-width: 0;
+  /* Una tabla mas ancha que la tarjeta se desplaza dentro de ella, en vez
+     de asomar por el borde y ensanchar la pagina. */
+  overflow-x: auto;
   background: var(--white);
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -353,7 +356,8 @@
 }
 
 .adm-table input[type='number'] {
-  width: 90px;
+  width: 76px;
+  min-width: 0;
 }
 
 .adm-table .is-off {
@@ -452,6 +456,61 @@
 
 .adm-upload input {
   display: none;
+}
+
+/* ---------- zonas de los recargos ---------- */
+
+.adm-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+button.adm-chip {
+  cursor: pointer;
+}
+
+.adm-chip.is-on {
+  background: rgba(var(--coral-rgb), 0.12);
+  border-color: rgba(var(--coral-rgb), 0.4);
+  color: var(--coral);
+}
+
+.adm-chip--edit {
+  color: var(--ink-soft);
+  min-width: 26px;
+  justify-content: center;
+}
+
+.adm-zones {
+  min-width: 160px;
+}
+
+.adm-zones__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.adm-zones__picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--cream);
+  border-radius: 10px;
+  max-width: 420px;
 }
 
 /* ---------- lugar de Google dentro del panel ---------- */

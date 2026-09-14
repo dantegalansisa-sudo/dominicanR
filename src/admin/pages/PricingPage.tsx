@@ -51,29 +51,63 @@ const setPrice = (prices: Prices, slug: string, v: number | undefined): Prices =
   return next;
 };
 
-/** Zonas de un recargo antiguo, como pastillas que se marcan y desmarcan. */
+/**
+ * Zonas de un recargo antiguo. Se ven como fichas ordenadas; el lápiz abre el
+ * selector con todas las zonas para marcar y desmarcar.
+ */
 function ZonesInput({ value, zones, onChange }: { value: string; zones: ZoneRow[]; onChange: (v: string[]) => void }) {
+  const [editing, setEditing] = useState(false);
   const ids = parseJson<string[]>(value, []);
+  const label = (id: string) => zones.find((z) => z.id === id)?.label ?? id;
   const toggle = (id: string) => onChange(ids.includes(id) ? ids.filter((z) => z !== id) : [...ids, id]);
   return (
-    <details>
-      <summary style={{ cursor: 'pointer', fontSize: 13.5 }}>
-        {ids.length ? ids.map((id) => zones.find((z) => z.id === id)?.label ?? id).join(', ') : 'Elegir zonas…'}
-      </summary>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6, maxWidth: 360 }}>
-        {zones.map((z) => (
-          <button
-            key={z.id}
-            type="button"
-            className={`adm-pill${ids.includes(z.id) ? ' adm-pill--on' : ''}`}
-            style={{ cursor: 'pointer', border: 0 }}
-            onClick={() => toggle(z.id)}
-          >
-            {z.label}
-          </button>
+    <div className="adm-zones">
+      <div className="adm-zones__list">
+        {ids.length === 0 && <span className="adm__sub">Sin zonas</span>}
+        {ids.map((id) => (
+          <span key={id} className="adm-chip">
+            {label(id)}
+          </span>
         ))}
+        <button
+          type="button"
+          className={`adm-chip adm-chip--edit${editing ? ' is-on' : ''}`}
+          onClick={() => setEditing((e) => !e)}
+          aria-label={editing ? 'Cerrar' : 'Editar zonas'}
+        >
+          {editing ? '✓' : '✎'}
+        </button>
       </div>
-    </details>
+      {editing && (
+        <div className="adm-zones__picker">
+          {zones.map((z) => (
+            <button
+              key={z.id}
+              type="button"
+              className={`adm-chip${ids.includes(z.id) ? ' is-on' : ''}`}
+              onClick={() => toggle(z.id)}
+            >
+              {z.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Los cuatro principales o el resto: ocho columnas de precio no caben. */
+function FleetToggle({ value, onChange, fleet }: { value: 'main' | 'rest'; onChange: (v: 'main' | 'rest') => void; fleet: VehicleRow[] }) {
+  const rest = fleet.filter((v) => !v.featured).length;
+  return (
+    <div className="adm-tabs" style={{ marginBottom: 0 }}>
+      <button type="button" className={value === 'main' ? 'is-active' : ''} onClick={() => onChange('main')}>
+        Flota principal
+      </button>
+      <button type="button" className={value === 'rest' ? 'is-active' : ''} onClick={() => onChange('rest')}>
+        Más flota ({rest})
+      </button>
+    </div>
   );
 }
 
@@ -86,6 +120,7 @@ export default function PricingPage() {
   const [routeDrafts, setRouteDrafts] = useState<Record<number, Prices>>({});
   const [zones, setZones] = useState<ZoneRow[]>([]);
   const [saving, setSaving] = useState<string | null>(null);
+  const [group, setGroup] = useState<'main' | 'rest'>('main');
 
   const load = useCallback(async () => {
     const [p, v] = await Promise.all([
@@ -121,9 +156,13 @@ export default function PricingPage() {
     }
   };
 
+  // Las columnas que se ven; los precios de las otras siguen en memoria y se
+  // guardan igual, solo que no se muestran.
+  const shown = fleet.filter((v) => (group === 'main' ? v.featured : !v.featured));
+
   const VehicleHeads = () => (
     <>
-      {fleet.map((v) => (
+      {shown.map((v) => (
         <th key={v.slug} title={v.type}>
           {v.name}
         </th>
@@ -141,9 +180,12 @@ export default function PricingPage() {
             <Link to="/admin/nueva-tarifa">Nueva tarifa</Link>. Todo en US$; una casilla vacía = a cotizar.
           </p>
         </div>
-        <Link className="adm-btn adm-btn--primary" to="/admin/nueva-tarifa">
-          + Nueva tarifa
-        </Link>
+        <div className="adm-bar">
+          <FleetToggle value={group} onChange={setGroup} fleet={fleet} />
+          <Link className="adm-btn adm-btn--primary" to="/admin/nueva-tarifa">
+            + Nueva tarifa
+          </Link>
+        </div>
       </div>
 
       {/* ------------------------------------------------------ rutas fijas */}
@@ -179,7 +221,7 @@ export default function PricingPage() {
                       </div>
                     </td>
                     <td>{r.km != null ? Math.round(r.km) : '—'}</td>
-                    {fleet.map((v) => (
+                    {shown.map((v) => (
                       <td key={v.slug}>
                         <PriceCell
                           value={prices[v.slug]}
@@ -249,7 +291,7 @@ export default function PricingPage() {
                     }
                   />
                 </td>
-                {fleet.map((v) => (
+                {shown.map((v) => (
                   <td key={v.slug}>
                     <PriceCell
                       value={b.prices[v.slug]}
@@ -306,7 +348,7 @@ export default function PricingPage() {
                 <td>
                   <input
                     value={s.label}
-                    style={{ minWidth: 170 }}
+                    style={{ minWidth: 140 }}
                     onChange={(e) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
                   />
                 </td>
@@ -316,7 +358,7 @@ export default function PricingPage() {
                 <td>
                   <ZonesInput value={s.zones_b} zones={zones} onChange={(v) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, zones_b: JSON.stringify(v) } : x)))} />
                 </td>
-                {fleet.map((v) => (
+                {shown.map((v) => (
                   <td key={v.slug}>
                     <PriceCell
                       value={s.prices[v.slug]}
