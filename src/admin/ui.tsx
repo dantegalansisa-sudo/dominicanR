@@ -169,5 +169,21 @@ export function UploadButton({
   );
 }
 
+/**
+ * Fecha y hora de SQLite (UTC, "2026-09-14 18:47:08") en hora de República
+ * Dominicana, que es la del operador, venga de donde venga el navegador.
+ */
+export function fmtDR(at: string, withTime = true) {
+  const d = new Date(at.includes('T') ? at : at.replace(' ', 'T') + 'Z');
+  if (Number.isNaN(d.getTime())) return at;
+  return d.toLocaleString('es-DO', {
+    timeZone: 'America/Santo_Domingo',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}),
+  });
+}
+
 /** Número o vacío (null), para precios que pueden ser "a cotizar". */
 export const numOrNull = (v: string) => (v.trim() === '' ? null : Number(v));

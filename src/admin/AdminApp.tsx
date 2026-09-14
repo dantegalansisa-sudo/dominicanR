@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { api, ApiError } from './api';
 import { ToastProvider } from './ui';
 import ExcursionsPage from './pages/ExcursionsPage';
@@ -10,6 +10,8 @@ import NewPricingPage from './pages/NewPricingPage';
 import ExtrasPage from './pages/ExtrasPage';
 import SettingsPage from './pages/SettingsPage';
 import AuditPage from './pages/AuditPage';
+import BookingsPage from './pages/BookingsPage';
+import BookingDetailPage from './pages/BookingDetailPage';
 import './admin.css';
 
 /**
@@ -21,6 +23,7 @@ import './admin.css';
 type Session = { state: 'checking' } | { state: 'out' } | { state: 'in'; email: string };
 
 const LINKS = [
+  { to: '/admin/reservas', label: 'Reservas' },
   { to: '/admin/excursiones', label: 'Excursiones' },
   { to: '/admin/flota', label: 'Flota' },
   { to: '/admin/tarifas', label: 'Tarifas' },
@@ -87,6 +90,24 @@ function Login({ onIn }: { onIn: (email: string) => void }) {
 
 export default function AdminApp() {
   const [session, setSession] = useState<Session>({ state: 'checking' });
+  const [newCount, setNewCount] = useState(0);
+  const location = useLocation();
+
+  // Reservas nuevas para el menú lateral: al entrar, al cambiar de página y
+  // cada minuto, que es lo que tarda en enterarse si llega una mientras
+  // trabaja en otra cosa.
+  const refreshCount = useCallback(() => {
+    api
+      .get<{ counts: Record<string, number> }>('/bookings/counts')
+      .then((r) => setNewCount(r.counts.nueva ?? 0))
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (session.state !== 'in') return;
+    refreshCount();
+    const t = window.setInterval(refreshCount, 60_000);
+    return () => window.clearInterval(t);
+  }, [session.state, location.pathname, refreshCount]);
 
   useEffect(() => {
     document.title = 'Panel — Dominican Routes';
@@ -122,7 +143,7 @@ export default function AdminApp() {
     <ToastProvider>
       <div className="adm">
         <aside className="adm__side">
-          <a className="adm__brand" href="/admin/excursiones">
+          <a className="adm__brand" href="/admin/reservas">
             <img src="/images/logo-dark.png" alt="Dominican Routes" />
             <span>Panel</span>
           </a>
@@ -134,6 +155,11 @@ export default function AdminApp() {
                 className={({ isActive }) => `adm__link${isActive ? ' is-active' : ''}`}
               >
                 {l.label}
+                {l.to === '/admin/reservas' && newCount > 0 && (
+                  <span className="adm-badge" aria-label={`${newCount} nuevas`}>
+                    {newCount}
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>
@@ -150,7 +176,9 @@ export default function AdminApp() {
 
         <main className="adm__main">
           <Routes>
-            <Route index element={<Navigate to="/admin/excursiones" replace />} />
+            <Route index element={<Navigate to="/admin/reservas" replace />} />
+            <Route path="reservas" element={<BookingsPage />} />
+            <Route path="reservas/:id" element={<BookingDetailPage />} />
             <Route path="excursiones" element={<ExcursionsPage />} />
             <Route path="excursiones/:slug" element={<ExcursionEditPage />} />
             <Route path="flota" element={<FleetPage />} />

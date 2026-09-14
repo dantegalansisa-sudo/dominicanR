@@ -458,6 +458,165 @@
   display: none;
 }
 
+/* ---------- reservas ---------- */
+
+.adm-badge {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--coral);
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+}
+
+.adm__link.is-active .adm-badge {
+  background: var(--white);
+  color: var(--coral);
+}
+
+.adm-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.adm-status--nueva {
+  background: rgba(var(--coral-rgb), 0.14);
+  color: var(--coral);
+}
+
+.adm-status--contestada {
+  background: rgba(11, 30, 51, 0.08);
+  color: var(--navy-deep);
+}
+
+.adm-status--confirmada {
+  background: rgba(20, 120, 80, 0.12);
+  color: #146d47;
+}
+
+.adm-status--cancelada {
+  background: var(--cream);
+  color: var(--ink-soft);
+  text-decoration: line-through;
+}
+
+/* Reserva que no salió por correo: se ve a la primera. */
+.adm-flag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid #b3261e;
+  color: #b3261e;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.adm-table--rows tr.is-new td {
+  background: rgba(var(--coral-rgb), 0.035);
+}
+
+.adm-warn {
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(179, 38, 30, 0.35);
+  background: rgba(179, 38, 30, 0.06);
+  color: #7a1a14;
+  font-size: 14px;
+}
+
+.adm-two {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 0 18px;
+  align-items: start;
+}
+
+.adm-kvs {
+  margin: 0;
+}
+
+.adm-kv {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.adm-kv:last-child {
+  border-bottom: 0;
+}
+
+.adm-kv dt {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding-top: 2px;
+}
+
+.adm-kv dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.adm-maplink {
+  display: block;
+  width: fit-content;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--coral);
+}
+
+.adm-pre {
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--cream);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.adm-status-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.adm-status-btns .adm-btn {
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .adm-two {
+    grid-template-columns: 1fr;
+  }
+  .adm-kv {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
 /* ---------- zonas de los recargos ---------- */
 
 .adm-chip {

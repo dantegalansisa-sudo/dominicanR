@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import type { AuditRow } from '../api';
-import { useToast } from '../ui';
+import { fmtDR, useToast } from '../ui';
 
-/** La fecha viene en UTC desde SQLite; se muestra en la hora del navegador. */
-const when = (at: string) => {
-  const d = new Date(at.replace(' ', 'T') + 'Z');
-  return Number.isNaN(d.getTime()) ? at : d.toLocaleString('es-DO');
-};
+const when = (at: string) => fmtDR(at);
 
 export default function AuditPage() {
   const toast = useToast();

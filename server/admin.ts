@@ -622,6 +622,87 @@ adminRouter.put('/settings', (req: AdminRequest, res) => {
   res.json({ ok: true });
 });
 
+/* --------------------------------------------------------------- reservas */
+
+const BOOKING_STATUSES = ['nueva', 'contestada', 'confirmada', 'cancelada'] as const;
+const BOOKING_KINDS = ['traslado', 'excursion', 'contacto'] as const;
+
+/** Cuántas hay en cada estado: el menú lateral enseña las "nueva". */
+adminRouter.get('/bookings/counts', (_req, res) => {
+  const rows = db.prepare('SELECT status, COUNT(*) AS n FROM bookings GROUP BY status').all() as {
+    status: string;
+    n: number;
+  }[];
+  const counts: Record<string, number> = {};
+  for (const r of rows) counts[r.status] = r.n;
+  res.json({ ok: true, counts });
+});
+
+adminRouter.get('/bookings', (req, res) => {
+  const status = String(req.query.status ?? '');
+  const kind = String(req.query.kind ?? '');
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 25));
+  const page = Math.max(1, Number(req.query.page) || 1);
+
+  const where: string[] = [];
+  const args: unknown[] = [];
+  if ((BOOKING_STATUSES as readonly string[]).includes(status)) {
+    where.push('status = ?');
+    args.push(status);
+  }
+  if ((BOOKING_KINDS as readonly string[]).includes(kind)) {
+    where.push('kind = ?');
+    args.push(kind);
+  }
+  const sql = where.length ? ` WHERE ${where.join(' AND ')}` : '';
+
+  const total = (db.prepare(`SELECT COUNT(*) AS n FROM bookings${sql}`).get(...args) as { n: number }).n;
+  const bookings = db
+    .prepare(`SELECT * FROM bookings${sql} ORDER BY id DESC LIMIT ? OFFSET ?`)
+    .all(...args, limit, (page - 1) * limit);
+  res.json({ ok: true, bookings, total, page, limit });
+});
+
+adminRouter.get('/bookings/:id', (req, res) => {
+  const row = db.prepare('SELECT * FROM bookings WHERE id = ?').get(req.params.id);
+  if (!row) {
+    res.status(404).json({ ok: false, error: 'Esa reserva no existe.' });
+    return;
+  }
+  res.json({ ok: true, booking: row });
+});
+
+adminRouter.put('/bookings/:id', (req: AdminRequest, res) => {
+  const before = db.prepare('SELECT * FROM bookings WHERE id = ?').get(req.params.id);
+  if (!before) {
+    res.status(404).json({ ok: false, error: 'Esa reserva no existe.' });
+    return;
+  }
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  if (req.body?.status !== undefined) {
+    const status = String(req.body.status);
+    if (!(BOOKING_STATUSES as readonly string[]).includes(status)) {
+      res.status(400).json({ ok: false, error: 'Estado no válido.' });
+      return;
+    }
+    sets.push('status = ?');
+    values.push(status);
+  }
+  if (req.body?.notes !== undefined) {
+    sets.push('notes = ?');
+    values.push(String(req.body.notes).slice(0, 4000));
+  }
+  if (sets.length === 0) {
+    res.json({ ok: true, sinCambios: true });
+    return;
+  }
+  values.push(req.params.id);
+  db.prepare(`UPDATE bookings SET ${sets.join(', ')} WHERE id = ?`).run(...values);
+  audit(req.admin!, 'editar reserva', `reserva:${req.params.id}`, before);
+  res.json({ ok: true });
+});
+
 /* -------------------------------------------------------------- historial */
 
 adminRouter.get('/audit', (_req, res) => {

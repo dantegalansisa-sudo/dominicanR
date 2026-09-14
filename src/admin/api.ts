@@ -150,6 +150,23 @@ export interface ExtraRow {
   visible: number;
 }
 
+export interface BookingRow {
+  id: number;
+  created_at: string;
+  kind: 'traslado' | 'excursion' | 'contacto';
+  name: string;
+  email: string;
+  phone: string;
+  lang: 'es' | 'en';
+  date: string;
+  message: string;
+  payload: string | null;
+  status: 'nueva' | 'contestada' | 'confirmada' | 'cancelada';
+  notes: string;
+  email_sent: number | null;
+  email_error: string | null;
+}
+
 export interface AuditRow {
   id: number;
   at: string;
