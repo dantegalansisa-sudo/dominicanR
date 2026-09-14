@@ -73,6 +73,7 @@ interface RemoteCatalog {
     brackets: { upTo: number | null; prices: PricingTables['brackets'][number]['prices'] }[];
     zones: Record<string, string[]>;
     rules: PricingTables['rules'];
+    routes?: PricingTables['routes'];
   };
   extras: { seats: ExtraItem[]; drinks: ExtraItem[]; stops: ExtraItem[] };
   settings: Partial<Settings>;
@@ -87,6 +88,7 @@ function fromRemote(r: RemoteCatalog): Catalog {
       brackets: r.pricing.brackets,
       zones: r.pricing.zones,
       rules: r.pricing.rules,
+      routes: r.pricing.routes ?? [],
     },
     extras: r.extras,
     settings: { ...DEFAULT_SETTINGS, ...r.settings },

@@ -196,7 +196,7 @@ export default function FleetPage() {
         <div>
           <h1 className="adm__title">Flota</h1>
           <p className="adm__sub">
-            Los precios cerrados por distancia (Sedán, Miniván, Minibús y VIP) se editan en Tarifas.
+            Los precios por distancia y por ruta de cada vehículo se editan en Tarifas.
           </p>
         </div>
       </div>

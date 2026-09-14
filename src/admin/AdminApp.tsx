@@ -6,6 +6,7 @@ import ExcursionsPage from './pages/ExcursionsPage';
 import ExcursionEditPage from './pages/ExcursionEditPage';
 import FleetPage from './pages/FleetPage';
 import PricingPage from './pages/PricingPage';
+import NewPricingPage from './pages/NewPricingPage';
 import ExtrasPage from './pages/ExtrasPage';
 import SettingsPage from './pages/SettingsPage';
 import AuditPage from './pages/AuditPage';
@@ -23,6 +24,7 @@ const LINKS = [
   { to: '/admin/excursiones', label: 'Excursiones' },
   { to: '/admin/flota', label: 'Flota' },
   { to: '/admin/tarifas', label: 'Tarifas' },
+  { to: '/admin/nueva-tarifa', label: 'Nueva tarifa' },
   { to: '/admin/adicionales', label: 'Adicionales' },
   { to: '/admin/ajustes', label: 'Ajustes' },
   { to: '/admin/historial', label: 'Historial' },
@@ -153,6 +155,7 @@ export default function AdminApp() {
             <Route path="excursiones/:slug" element={<ExcursionEditPage />} />
             <Route path="flota" element={<FleetPage />} />
             <Route path="tarifas" element={<PricingPage />} />
+            <Route path="nueva-tarifa" element={<NewPricingPage />} />
             <Route path="adicionales" element={<ExtrasPage />} />
             <Route path="ajustes" element={<SettingsPage email={session.email} />} />
             <Route path="historial" element={<AuditPage />} />

@@ -102,6 +102,8 @@ export interface BracketRow {
   minivan: number;
   minibus: number;
   vip: number;
+  /** JSON {slug: importe}; manda sobre las cuatro columnas de arriba. */
+  prices: string | null;
 }
 
 export interface SurchargeRow {
@@ -113,6 +115,23 @@ export interface SurchargeRow {
   minivan: number;
   minibus: number;
   vip: number;
+  prices: string | null;
+}
+
+export interface RouteRow {
+  id: number;
+  label: string;
+  a_text: string;
+  a_lat: number | null;
+  a_lng: number | null;
+  b_text: string;
+  b_lat: number | null;
+  b_lng: number | null;
+  km: number | null;
+  radius_km: number;
+  prices: string;
+  position: number;
+  visible: number;
 }
 
 export interface ZoneRow {

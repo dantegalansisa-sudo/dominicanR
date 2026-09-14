@@ -125,6 +125,13 @@ export function buildCatalog() {
     },
   }));
 
+  const legacy = (r: { sedan: number; minivan: number; minibus: number; vip: number }) => ({
+    sedan: r.sedan,
+    minivan: r.minivan,
+    minibus: r.minibus,
+    'vip-luxury': r.vip,
+  });
+
   const brackets = (
     db.prepare('SELECT * FROM price_brackets ORDER BY position').all() as {
       up_to: number | null;
@@ -132,13 +139,14 @@ export function buildCatalog() {
       minivan: number;
       minibus: number;
       vip: number;
+      prices: string | null;
     }[]
   ).map((b) => ({
     // Se manda null, no Infinity: JSON no sabe representar el infinito y lo
     // convertiria en null igualmente, pero por el camino pareceria un fallo.
     // Quien lo consume traduce null a "sin limite".
     upTo: b.up_to,
-    prices: { sedan: b.sedan, minivan: b.minivan, minibus: b.minibus, vip: b.vip },
+    prices: b.prices ? parse<Record<string, number>>(b.prices, legacy(b)) : legacy(b),
   }));
 
   const zones = Object.fromEntries(
@@ -156,12 +164,37 @@ export function buildCatalog() {
       minivan: number;
       minibus: number;
       vip: number;
+      prices: string | null;
     }[]
   ).map((r) => ({
     label: r.label,
     a: parse<string[]>(r.zones_a, []),
     b: parse<string[]>(r.zones_b, []),
-    add: { sedan: r.sedan, minivan: r.minivan, minibus: r.minibus, vip: r.vip },
+    add: r.prices ? parse<Record<string, number>>(r.prices, legacy(r)) : legacy(r),
+  }));
+
+  const routes = (
+    db.prepare('SELECT * FROM fixed_routes WHERE visible = 1 ORDER BY position, id').all() as {
+      id: number;
+      label: string;
+      a_text: string;
+      a_lat: number | null;
+      a_lng: number | null;
+      b_text: string;
+      b_lat: number | null;
+      b_lng: number | null;
+      km: number | null;
+      radius_km: number;
+      prices: string;
+    }[]
+  ).map((r) => ({
+    id: r.id,
+    label: r.label,
+    a: { text: r.a_text, lat: r.a_lat, lng: r.a_lng },
+    b: { text: r.b_text, lat: r.b_lat, lng: r.b_lng },
+    km: r.km,
+    radiusKm: r.radius_km,
+    prices: parse<Record<string, number>>(r.prices, {}),
   }));
 
   const extrasOf = (kind: string) =>
@@ -179,7 +212,7 @@ export function buildCatalog() {
     excursions,
     featured,
     fleet,
-    pricing: { brackets, zones, rules },
+    pricing: { brackets, zones, rules, routes },
     extras: {
       seats: extrasOf('seat'),
       drinks: extrasOf('drink'),

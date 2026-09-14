@@ -6,24 +6,29 @@
  * cosas que allí fallan; van señaladas una a una más abajo.
  */
 
-/** Los cuatro con tarifa cerrada. El resto se cotiza a mano. */
-export type PriceKey = 'sedan' | 'minivan' | 'minibus' | 'vip';
+/**
+ * Precio por vehículo, con el slug de la flota como clave. Un vehículo que no
+ * aparece se cotiza a mano. Los cuatro de siempre vienen del código del
+ * cliente; el resto (bus, autobús, limusina, van adaptada) los pone él desde
+ * el panel cuando quiera cerrarlos.
+ */
+export type Prices = Record<string, number>;
 
-export type Prices = Record<PriceKey, number>;
+/** Nombre antiguo de la columna VIP en la base y en el código del cliente. */
+export const LEGACY_KEYS: Record<string, string> = { 'vip-luxury': 'vip' };
 
-/** Del slug de nuestra flota a la columna de la tabla. */
-export const PRICE_KEY_BY_SLUG: Record<string, PriceKey> = {
-  sedan: 'sedan',
-  minivan: 'minivan',
-  minibus: 'minibus',
-  'vip-luxury': 'vip',
-};
+/** El importe de un vehículo en una tabla de precios, admitiendo la clave vieja. */
+export function priceOf(prices: Prices | undefined, slug: string): number | null {
+  if (!prices) return null;
+  const v = prices[slug] ?? prices[LEGACY_KEYS[slug] ?? ''];
+  return typeof v === 'number' && Number.isFinite(v) ? v : null;
+}
 
 const p = (sedan: number, minivan: number, minibus: number, vip: number): Prices => ({
   sedan,
   minivan,
   minibus,
-  vip,
+  'vip-luxury': vip,
 });
 
 /**
@@ -169,6 +174,77 @@ export interface Surcharge {
   amount: number;
 }
 
+/** Un punto tal como llega del formulario: texto y, si se eligió en Google, coordenadas. */
+export interface PlaceLike {
+  text: string;
+  lat?: number;
+  lng?: number;
+}
+
+/**
+ * Ruta con precio cerrado, creada desde el panel con Google: dos puntos con
+ * coordenadas y un precio total por vehículo. Vale en los dos sentidos.
+ */
+export interface FixedRoute {
+  id: number;
+  label: string;
+  a: { text: string; lat: number | null; lng: number | null };
+  b: { text: string; lat: number | null; lng: number | null };
+  /** Kilómetros calculados al crearla, solo informativos. */
+  km: number | null;
+  /** Hasta qué distancia del punto guardado cuenta como "el mismo sitio". */
+  radiusKm: number;
+  prices: Prices;
+}
+
+/** Distancia en línea recta, suficiente para decidir si dos puntos son el mismo sitio. */
+export function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(bLat - aLat);
+  const dLng = toRad(bLng - aLng);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/** El nombre principal de un lugar de Google: lo que va antes de la primera coma. */
+const mainName = (s: string) => fold(s.split(',')[0] ?? s);
+
+/**
+ * ¿Este punto del formulario es el punto guardado en la ruta? Con coordenadas
+ * en los dos lados se mira la distancia; si no, se compara el nombre.
+ */
+function samePlace(p: PlaceLike, saved: FixedRoute['a'], radiusKm: number): boolean {
+  if (
+    typeof p.lat === 'number' &&
+    typeof p.lng === 'number' &&
+    typeof saved.lat === 'number' &&
+    typeof saved.lng === 'number'
+  ) {
+    return haversineKm(p.lat, p.lng, saved.lat, saved.lng) <= radiusKm;
+  }
+  const a = mainName(p.text);
+  const b = mainName(saved.text);
+  return a.length > 2 && b.length > 2 && (a.includes(b) || b.includes(a));
+}
+
+/** La ruta cerrada que cubre este viaje, en cualquiera de los dos sentidos. */
+export function fixedRouteFor(
+  origin: PlaceLike,
+  destination: PlaceLike,
+  routes: FixedRoute[],
+): FixedRoute | null {
+  for (const r of routes) {
+    const hit =
+      (samePlace(origin, r.a, r.radiusKm) && samePlace(destination, r.b, r.radiusKm)) ||
+      (samePlace(origin, r.b, r.radiusKm) && samePlace(destination, r.a, r.radiusKm));
+    if (hit) return r;
+  }
+  return null;
+}
+
 /**
  * Las tres tablas juntas. Por defecto son las de este archivo; cuando el
  * catálogo viene de la base de datos (lo que el cliente edita en el panel) se
@@ -178,9 +254,15 @@ export interface PricingTables {
   brackets: { upTo: number | null; prices: Prices }[];
   zones: Record<string, string[]>;
   rules: Rule[];
+  routes: FixedRoute[];
 }
 
-export const DEFAULT_TABLES: PricingTables = { brackets: BRACKETS, zones: ZONES, rules: RULES };
+export const DEFAULT_TABLES: PricingTables = {
+  brackets: BRACKETS,
+  zones: ZONES,
+  rules: RULES,
+  routes: [],
+};
 
 /**
  * CORRECCIÓN 3: el original daba por buena la coincidencia de 'san juan' a
@@ -201,7 +283,7 @@ function inZoneOf(zones: Record<string, string[]>, text: string, zone: string): 
 export function routeSurcharge(
   origin: string,
   destination: string,
-  key: PriceKey,
+  slug: string,
   tables: PricingTables = DEFAULT_TABLES,
 ): Surcharge | null {
   const o = fold(origin);
@@ -209,7 +291,7 @@ export function routeSurcharge(
   const any = (text: string, zs: string[]) => zs.some((z) => inZoneOf(tables.zones, text, z));
   for (const rule of tables.rules) {
     const hit = (any(o, rule.a) && any(d, rule.b)) || (any(d, rule.a) && any(o, rule.b));
-    if (hit) return { label: rule.label, amount: rule.add[key] };
+    if (hit) return { label: rule.label, amount: priceOf(rule.add, slug) ?? 0 };
   }
   return null;
 }
@@ -224,6 +306,8 @@ export interface Quote {
   base: number;
   surcharge: Surcharge | null;
   total: number;
+  /** Nombre de la ruta cerrada que fijó el precio, si fue una. */
+  route?: string;
 }
 
 /**
@@ -239,14 +323,22 @@ export interface Quote {
 export function quote(
   km: number | null,
   slug: string,
-  origin: string,
-  destination: string,
+  origin: PlaceLike,
+  destination: PlaceLike,
   tables: PricingTables = DEFAULT_TABLES,
 ): Quote | null {
-  const key = PRICE_KEY_BY_SLUG[slug];
-  if (!key || km == null || !Number.isFinite(km) || km < 0) return null;
+  // Una ruta cerrada desde el panel manda sobre el cálculo por kilómetros, y
+  // no necesita saber la distancia: el cliente ya fijó el total.
+  const fixed = fixedRouteFor(origin, destination, tables.routes);
+  if (fixed) {
+    const total = priceOf(fixed.prices, slug);
+    if (total != null) return { base: total, surcharge: null, total, route: fixed.label };
+  }
 
-  const base = bracketFor(km, tables)[key];
-  const surcharge = routeSurcharge(origin, destination, key, tables);
+  if (km == null || !Number.isFinite(km) || km < 0) return null;
+  const base = priceOf(bracketFor(km, tables), slug);
+  if (base == null) return null;
+
+  const surcharge = routeSurcharge(origin.text, destination.text, slug, tables);
   return { base, surcharge, total: base + (surcharge?.amount ?? 0) };
 }

@@ -454,6 +454,19 @@
   display: none;
 }
 
+/* ---------- lugar de Google dentro del panel ---------- */
+
+.adm-route-place .search__field {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+.adm-route-place .search__field:focus-within {
+  border-color: var(--coral);
+}
+
 /* ---------- avisos ---------- */
 
 .adm-toast {

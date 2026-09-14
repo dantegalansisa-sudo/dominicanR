@@ -153,6 +153,37 @@ export function migrate() {
     summary_en: 'TEXT',
     features_en: 'TEXT',
   });
+
+  // Precios por vehículo como JSON {slug: importe}. Las cuatro columnas
+  // fijas se quedan por compatibilidad y se copian a la nueva la primera vez.
+  addColumns('price_brackets', { prices: 'TEXT' });
+  addColumns('route_surcharges', { prices: 'TEXT' });
+  db.exec(`
+    UPDATE price_brackets SET prices = json_object(
+      'sedan', sedan, 'minivan', minivan, 'minibus', minibus, 'vip-luxury', vip
+    ) WHERE prices IS NULL;
+    UPDATE route_surcharges SET prices = json_object(
+      'sedan', sedan, 'minivan', minivan, 'minibus', minibus, 'vip-luxury', vip
+    ) WHERE prices IS NULL;
+
+    -- Rutas con precio cerrado, creadas desde el panel con Google. Valen en
+    -- los dos sentidos; el precio es el total por vehículo.
+    CREATE TABLE IF NOT EXISTS fixed_routes (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      label     TEXT NOT NULL,
+      a_text    TEXT NOT NULL,
+      a_lat     REAL,
+      a_lng     REAL,
+      b_text    TEXT NOT NULL,
+      b_lat     REAL,
+      b_lng     REAL,
+      km        REAL,
+      radius_km REAL NOT NULL DEFAULT 8,
+      prices    TEXT NOT NULL DEFAULT '{}',
+      position  INTEGER NOT NULL DEFAULT 0,
+      visible   INTEGER NOT NULL DEFAULT 1
+    );
+  `);
 }
 
 function addColumns(table: string, cols: Record<string, string>) {

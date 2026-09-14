@@ -200,7 +200,7 @@ export default function BookingPage() {
   const vehicleEs = vehicle ? (FLEET.find((v) => v.slug === vehicle.slug) ?? vehicle) : null;
   const overCapacity = vehicle != null && total > vehicle.maxPax;
   const priceFor = (slug: string) =>
-    quote(billableKm, slug, origin.text, destination.text, tables);
+    quote(billableKm, slug, origin, destination, tables);
   const chosenQuote = vehicle ? priceFor(vehicle.slug) : null;
 
   const setSeat = (id: SeatId, n: number) =>
@@ -277,11 +277,13 @@ export default function BookingPage() {
         ...(chosenQuote
           ? [
               `Precio calculado: US$${chosenQuote.total}`,
-              ...(chosenQuote.surcharge
-                ? [
-                    `  Base US$${chosenQuote.base} + recargo US$${chosenQuote.surcharge.amount} (${chosenQuote.surcharge.label})`,
-                  ]
-                : [`  Sin recargo de ruta.`]),
+              ...(chosenQuote.route
+                ? [`  Ruta con precio cerrado: ${chosenQuote.route}`]
+                : chosenQuote.surcharge
+                  ? [
+                      `  Base US$${chosenQuote.base} + recargo US$${chosenQuote.surcharge.amount} (${chosenQuote.surcharge.label})`,
+                    ]
+                  : [`  Sin recargo de ruta.`]),
             ]
           : ['Precio: a cotizar.']),
       ],

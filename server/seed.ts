@@ -79,16 +79,17 @@ function seedFleet() {
 
 function seedPricing() {
   const insBracket = db.prepare(
-    'INSERT INTO price_brackets (up_to, sedan, minivan, minibus, vip, position) VALUES (?, ?, ?, ?, ?, ?)',
+    'INSERT INTO price_brackets (up_to, sedan, minivan, minibus, vip, prices, position) VALUES (?, ?, ?, ?, ?, ?, ?)',
   );
   BRACKETS.forEach((b, i) =>
     // El tramo abierto del final se guarda como NULL: Infinity no existe en SQL.
     insBracket.run(
-      Number.isFinite(b.upTo) ? b.upTo : null,
-      b.prices.sedan,
-      b.prices.minivan,
-      b.prices.minibus,
-      b.prices.vip,
+      b.upTo != null && Number.isFinite(b.upTo) ? b.upTo : null,
+      b.prices.sedan ?? 0,
+      b.prices.minivan ?? 0,
+      b.prices.minibus ?? 0,
+      b.prices['vip-luxury'] ?? 0,
+      json(b.prices),
       i,
     ),
   );
@@ -101,11 +102,21 @@ function seedPricing() {
   }
 
   const insRule = db.prepare(`
-    INSERT INTO route_surcharges (label, zones_a, zones_b, sedan, minivan, minibus, vip, position)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO route_surcharges (label, zones_a, zones_b, sedan, minivan, minibus, vip, prices, position)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   RULES.forEach((r, i) =>
-    insRule.run(r.label, json(r.a), json(r.b), r.add.sedan, r.add.minivan, r.add.minibus, r.add.vip, i),
+    insRule.run(
+      r.label,
+      json(r.a),
+      json(r.b),
+      r.add.sedan ?? 0,
+      r.add.minivan ?? 0,
+      r.add.minibus ?? 0,
+      r.add['vip-luxury'] ?? 0,
+      json(r.add),
+      i,
+    ),
   );
 }
 

@@ -371,25 +371,69 @@ adminRouter.get('/pricing', (_req, res) => {
     brackets: db.prepare('SELECT * FROM price_brackets ORDER BY position').all(),
     surcharges: db.prepare('SELECT * FROM route_surcharges ORDER BY position').all(),
     zones: db.prepare('SELECT * FROM zones ORDER BY id').all(),
+    routes: db.prepare('SELECT * FROM fixed_routes ORDER BY position, id').all(),
   });
 });
 
+/**
+ * Precios por vehículo tal como llegan del panel: {slug: importe}. Solo se
+ * guardan números; una casilla vacía es "a cotizar" y no entra. Las cuatro
+ * columnas antiguas se rellenan por compatibilidad.
+ */
+function cleanPrices(raw: unknown): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (raw && typeof raw === 'object') {
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+      if (v === '' || v === null || v === undefined) continue;
+      const n = Number(v);
+      if (Number.isFinite(n) && n >= 0) out[k] = n;
+    }
+  }
+  return out;
+}
+const legacyCols = (p: Record<string, number>) => [
+  p.sedan ?? 0,
+  p.minivan ?? 0,
+  p.minibus ?? 0,
+  p['vip-luxury'] ?? p.vip ?? 0,
+];
+
 adminRouter.put('/pricing/brackets', (req: AdminRequest, res) => {
-  const rows = req.body?.brackets;
-  if (!Array.isArray(rows) || rows.length === 0) {
+  const raw = req.body?.brackets;
+  if (!Array.isArray(raw) || raw.length === 0) {
     res.status(400).json({ ok: false, error: 'Hacen falta los tramos.' });
     return;
   }
+  const rows = raw.map((b: Record<string, unknown>) => ({
+    up_to: b.up_to === null || b.up_to === '' || b.up_to === undefined ? null : Number(b.up_to),
+    prices: cleanPrices(b.prices),
+  }));
+
+  // Ordenados por kilómetros: el abierto (sin límite) siempre al final. Así
+  // el tramo añadido desde "Nueva tarifa" cae en su sitio sin más.
+  rows.sort((a, b) => (a.up_to ?? Infinity) - (b.up_to ?? Infinity));
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i]!.up_to != null && rows[i]!.up_to === rows[i - 1]!.up_to) {
+      res.status(400).json({ ok: false, error: `Hay dos tramos hasta ${rows[i]!.up_to} km.` });
+      return;
+    }
+  }
+
   // Un tramo cuyo precio baje respecto al anterior haría que un viaje más
   // largo saliera más barato. Es el fallo que ya venía del código del cliente,
   // asi que aqui se bloquea en vez de repetirse.
-  const keys = ['sedan', 'minivan', 'minibus', 'vip'] as const;
+  const names = new Map(
+    (db.prepare('SELECT slug, name FROM vehicles').all() as { slug: string; name: string }[]).map(
+      (v) => [v.slug, v.name],
+    ),
+  );
   for (let i = 1; i < rows.length; i++) {
-    for (const k of keys) {
-      if (Number(rows[i][k]) < Number(rows[i - 1][k])) {
+    for (const [k, v] of Object.entries(rows[i]!.prices)) {
+      const prev = rows[i - 1]!.prices[k];
+      if (prev !== undefined && v < prev) {
         res.status(400).json({
           ok: false,
-          error: `El tramo ${i + 1} cobra menos que el anterior en ${k}. Un viaje más largo no puede salir más barato.`,
+          error: `El tramo ${i + 1} (hasta ${rows[i]!.up_to ?? '∞'} km) cobra menos que el anterior en ${names.get(k) ?? k}. Un viaje más largo no puede salir más barato.`,
         });
         return;
       }
@@ -400,18 +444,9 @@ adminRouter.put('/pricing/brackets', (req: AdminRequest, res) => {
   db.transaction(() => {
     db.prepare('DELETE FROM price_brackets').run();
     const ins = db.prepare(
-      'INSERT INTO price_brackets (up_to, sedan, minivan, minibus, vip, position) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO price_brackets (up_to, sedan, minivan, minibus, vip, prices, position) VALUES (?, ?, ?, ?, ?, ?, ?)',
     );
-    rows.forEach((b: Record<string, unknown>, i: number) =>
-      ins.run(
-        b.up_to === null || b.up_to === '' ? null : Number(b.up_to),
-        Number(b.sedan),
-        Number(b.minivan),
-        Number(b.minibus),
-        Number(b.vip),
-        i,
-      ),
-    );
+    rows.forEach((b, i) => ins.run(b.up_to, ...legacyCols(b.prices), json(b.prices), i));
   })();
   audit(req.admin!, 'editar tarifas', 'tramos', before);
   res.json({ ok: true });
@@ -427,22 +462,113 @@ adminRouter.put('/pricing/surcharges', (req: AdminRequest, res) => {
   db.transaction(() => {
     db.prepare('DELETE FROM route_surcharges').run();
     const ins = db.prepare(
-      'INSERT INTO route_surcharges (label, zones_a, zones_b, sedan, minivan, minibus, vip, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO route_surcharges (label, zones_a, zones_b, sedan, minivan, minibus, vip, prices, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
     );
-    rows.forEach((r: Record<string, unknown>, i: number) =>
+    rows.forEach((r: Record<string, unknown>, i: number) => {
+      // Acepta tanto el objeto nuevo como las cuatro columnas de antes.
+      const prices = cleanPrices(
+        r.prices ?? { sedan: r.sedan, minivan: r.minivan, minibus: r.minibus, 'vip-luxury': r.vip },
+      );
       ins.run(
         String(r.label ?? ''),
         typeof r.zones_a === 'string' ? r.zones_a : json(r.zones_a),
         typeof r.zones_b === 'string' ? r.zones_b : json(r.zones_b),
-        Number(r.sedan ?? 0),
-        Number(r.minivan ?? 0),
-        Number(r.minibus ?? 0),
-        Number(r.vip ?? 0),
+        ...legacyCols(prices),
+        json(prices),
         i,
-      ),
-    );
+      );
+    });
   })();
   audit(req.admin!, 'editar tarifas', 'recargos', before);
+  res.json({ ok: true });
+});
+
+/* ------------------------------------------------- rutas con precio cerrado */
+
+const num = (v: unknown) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+adminRouter.post('/pricing/routes', (req: AdminRequest, res) => {
+  const b = req.body ?? {};
+  const aText = String(b.a?.text ?? '').trim();
+  const bText = String(b.b?.text ?? '').trim();
+  if (!aText || !bText) {
+    res.status(400).json({ ok: false, error: 'Hacen falta el origen y el destino.' });
+    return;
+  }
+  const prices = cleanPrices(b.prices);
+  if (Object.keys(prices).length === 0) {
+    res.status(400).json({ ok: false, error: 'Pon el precio de al menos un vehículo.' });
+    return;
+  }
+  const label = String(b.label ?? '').trim() || `${aText.split(',')[0]} ↔ ${bText.split(',')[0]}`;
+  const max =
+    (db.prepare('SELECT MAX(position) AS m FROM fixed_routes').get() as { m: number | null }).m ?? -1;
+  const r = db
+    .prepare(
+      `INSERT INTO fixed_routes (label, a_text, a_lat, a_lng, b_text, b_lat, b_lng, km, radius_km, prices, position)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(
+      label,
+      aText,
+      num(b.a?.lat),
+      num(b.a?.lng),
+      bText,
+      num(b.b?.lat),
+      num(b.b?.lng),
+      num(b.km),
+      num(b.radiusKm) ?? 8,
+      json(prices),
+      max + 1,
+    );
+  audit(req.admin!, 'crear ruta', label);
+  res.json({ ok: true, id: Number(r.lastInsertRowid) });
+});
+
+adminRouter.put('/pricing/routes/:id', (req: AdminRequest, res) => {
+  const before = db.prepare('SELECT * FROM fixed_routes WHERE id = ?').get(req.params.id);
+  if (!before) {
+    res.status(404).json({ ok: false, error: 'Esa ruta no existe.' });
+    return;
+  }
+  const b = req.body ?? {};
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  if (b.label !== undefined) {
+    sets.push('label = ?');
+    values.push(String(b.label));
+  }
+  if (b.prices !== undefined) {
+    sets.push('prices = ?');
+    values.push(json(cleanPrices(b.prices)));
+  }
+  if (b.radiusKm !== undefined) {
+    sets.push('radius_km = ?');
+    values.push(num(b.radiusKm) ?? 8);
+  }
+  if (b.visible !== undefined) {
+    sets.push('visible = ?');
+    values.push(b.visible ? 1 : 0);
+  }
+  if (sets.length) {
+    values.push(req.params.id);
+    db.prepare(`UPDATE fixed_routes SET ${sets.join(', ')} WHERE id = ?`).run(...values);
+    audit(req.admin!, 'editar ruta', `ruta:${req.params.id}`, before);
+  }
+  res.json({ ok: true });
+});
+
+adminRouter.delete('/pricing/routes/:id', (req: AdminRequest, res) => {
+  const before = db.prepare('SELECT * FROM fixed_routes WHERE id = ?').get(req.params.id);
+  if (!before) {
+    res.status(404).json({ ok: false, error: 'Esa ruta no existe.' });
+    return;
+  }
+  db.prepare('DELETE FROM fixed_routes WHERE id = ?').run(req.params.id);
+  audit(req.admin!, 'borrar ruta', `ruta:${req.params.id}`, before);
   res.json({ ok: true });
 });
 
