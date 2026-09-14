@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import type { ExcursionRow, PhotoRow } from '../api';
@@ -14,6 +14,7 @@ export default function ExcursionsPage() {
   const [busy, setBusy] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
+  const nameRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     const r = await api.get<{ excursions: ExcursionRow[]; photos: PhotoRow[] }>('/excursions');
@@ -52,7 +53,13 @@ export default function ExcursionsPage() {
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName.trim()) return;
+    // El botón siempre responde: sin nombre, pide el nombre en vez de quedarse
+    // apagado sin explicar por qué.
+    if (!newName.trim()) {
+      toast('Escribe primero el nombre de la excursión en la casilla.', true);
+      nameRef.current?.focus();
+      return;
+    }
     setBusy(true);
     try {
       const r = await api.post<{ slug: string }>('/excursions', { name: newName.trim() });
@@ -77,14 +84,15 @@ export default function ExcursionsPage() {
         </div>
         <form className="adm-bar" onSubmit={create}>
           <input
+            ref={nameRef}
             className="adm-field-inline"
-            style={{ padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 10, minWidth: 240 }}
-            placeholder="Nombre de la nueva excursión"
+            style={{ padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 10, minWidth: 260, background: 'var(--white)' }}
+            placeholder="Escribe el nombre y pulsa el botón"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
           />
-          <button className="adm-btn adm-btn--primary" type="submit" disabled={busy || !newName.trim()}>
-            + Nueva excursión
+          <button className="adm-btn adm-btn--primary" type="submit" disabled={busy}>
+            {busy ? 'Creando…' : '+ Nueva excursión'}
           </button>
         </form>
       </div>
