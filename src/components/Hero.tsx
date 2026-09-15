@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import RevealText from './RevealText';
 import HeroWord from './HeroWord';
+import HeroLettering from './HeroLettering';
 import SearchBar from './SearchBar';
 import { EASINGS } from '../utils/easings';
 import { useLang } from '../i18n';
@@ -10,7 +11,6 @@ export default function Hero() {
   // Pixel-driven so the parallax behaves before the page is tall enough to
   // produce a meaningful scroll progress.
   const [vh, setVh] = useState(900);
-  const [still, setStill] = useState(false);
   const { scrollY } = useScroll();
   const { t } = useLang();
 
@@ -18,17 +18,7 @@ export default function Hero() {
     const measure = () => setVh(window.innerHeight);
     measure();
     window.addEventListener('resize', measure);
-
-    // Hold the poster frame instead of looping the landscape.
-    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const syncMotion = () => setStill(motionQuery.matches);
-    syncMotion();
-    motionQuery.addEventListener('change', syncMotion);
-
-    return () => {
-      window.removeEventListener('resize', measure);
-      motionQuery.removeEventListener('change', syncMotion);
-    };
+    return () => window.removeEventListener('resize', measure);
   }, []);
 
   // Taste Skill level 3 — the lettering drifts and swells as you leave the hero.
@@ -61,43 +51,7 @@ export default function Hero() {
               <HeroWord key={`open-${t.code}`} text={t.hero.open} delay={0.3} />
             </span>
 
-            <motion.span
-              className="hero__lettering"
-              style={{ y: letterY, scale: letterScale }}
-              initial={{ clipPath: 'inset(0 100% 0 0)' }}
-              animate={{ clipPath: 'inset(0 0% 0 0)' }}
-              transition={{ duration: 1.35, delay: 0.42, ease: EASINGS.premium }}
-            >
-              {/* Sets the box size, and is the visible layer if the browser
-                  has no mask support. Otherwise it is hidden and the masked
-                  video takes over. */}
-              <img
-                className="hero__lettering-still"
-                src="/images/punta-cana-lettering.webp"
-                alt="Punta Cana"
-                width={1718}
-                height={482}
-                fetchPriority="high"
-              />
-
-              <span className="hero__lettering-video" aria-hidden="true">
-                <video
-                  autoPlay={!still}
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  poster="/images/punta-cana-poster.jpg"
-                >
-                  <source
-                    src="/video/punta-cana-sm.mp4"
-                    type="video/mp4"
-                    media="(max-width: 760px)"
-                  />
-                  <source src="/video/punta-cana-lg.mp4" type="video/mp4" />
-                </video>
-              </span>
-            </motion.span>
+            <HeroLettering style={{ y: letterY, scale: letterScale }} />
 
             <motion.span className="hero__row hero__row--close" style={{ y: closeY }}>
               <RevealText
