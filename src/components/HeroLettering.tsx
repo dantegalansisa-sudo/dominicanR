@@ -61,7 +61,23 @@ const FONT = '"Anton", "Impact", "Arial Narrow", sans-serif';
 interface Fit {
   size: number;
   lines: { text: string; baseline: number }[];
+  /** Ancho al que se comprime la línea (solo con una línea), o null. */
+  textLength: number | null;
 }
+
+/**
+ * Las letras no pasan de la altura del lettering de Punta Cana, que ocupa
+ * unos dos tercios de la caja: así las cortas (HIGÜEY, SAMANÁ) no salen más
+ * grandes que él y todas se mueven en la misma escala.
+ */
+const MAX_CAP = 0.68;
+
+/**
+ * Las largas se estrechan un poco para acercarse a esa altura: hasta un 20%
+ * (Anton ya es condensada y más se notaría). SANTO DOMINGO sigue sin llegar,
+ * pero gana bastante respecto a dejarla al ancho natural.
+ */
+const CONDENSE_MAX = 0.8;
 
 /** Separación entre dos líneas, como fracción de la altura de mayúsculas. */
 const LINE_GAP = 0.14;
@@ -75,22 +91,33 @@ const LINE_GAP = 0.14;
 const TWO_LINES = false;
 
 function fitFont(word: string, w: number, h: number, ready: boolean): Fit {
-  if (!w || !h) return { size: 0, lines: [] };
+  if (!w || !h) return { size: 0, lines: [], textLength: null };
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  if (!ctx) return { size: h * 0.9, lines: [{ text: word, baseline: h * 0.9 }] };
+  if (!ctx) return { size: h * 0.9, lines: [{ text: word, baseline: h * 0.9 }], textLength: null };
   // Se mide a 100px y se escala: la relación ancho/alto de la fuente es fija.
   ctx.font = `100px ${ready ? FONT : 'Impact, sans-serif'}`;
-  const capH = ctx.measureText(word).actualBoundingBoxAscent || 72;
+  // La altura de referencia es la de las mayúsculas sin acento: HIGÜEY y
+  // SAMANÁ no deben salir más pequeñas por llevar diéresis o tilde. Lo que
+  // sobresalga por arriba solo se comprueba contra el techo de la caja.
+  const capH = ctx.measureText('H').actualBoundingBoxAscent || 72;
+  const ascent = ctx.measureText(word).actualBoundingBoxAscent || capH;
   const widthOf = (t: string) => ctx.measureText(t).width || 1;
 
   const layout = (lines: string[]): Fit => {
     const n = lines.length;
     // Un 2% de aire a los lados para que el trazo de los extremos no se corte.
-    const byWidth = Math.min(...lines.map((l) => (w * 0.98) / widthOf(l)));
+    const maxW = w * 0.98;
+    const byWidth = Math.min(...lines.map((l) => maxW / widthOf(l)));
     const blockH = capH * (n + LINE_GAP * (n - 1));
-    const byHeight = (h * 0.96) / blockH;
-    const scale = Math.min(byWidth, byHeight);
+    const byHeight = Math.min(
+      (h * 0.96) / (blockH + (ascent - capH)),
+      (h * MAX_CAP) / capH,
+    );
+    // A una línea se permite comprimir hasta CONDENSE_MAX; a dos, no.
+    const scale = n === 1 ? Math.min(byWidth / CONDENSE_MAX, byHeight) : Math.min(byWidth, byHeight);
+    const natural = widthOf(lines[0]!) * scale;
+    const textLength = n === 1 && natural > maxW ? maxW : null;
     // Centrado en vertical: la misma holgura arriba y abajo del bloque.
     const top = (h - blockH * scale) / 2;
     return {
@@ -99,6 +126,7 @@ function fitFont(word: string, w: number, h: number, ready: boolean): Fit {
         text,
         baseline: top + capH * scale * (1 + i * (1 + LINE_GAP)),
       })),
+      textLength,
     };
   };
 
@@ -147,12 +175,17 @@ function Slide({
                 fontSize={fit.size}
                 fontWeight={400}
                 letterSpacing={fit.size * 0.01}
+                {...(fit.textLength
+                  ? { x: w * 0.01, y: fit.lines[0]!.baseline, textLength: fit.textLength, lengthAdjust: 'spacingAndGlyphs' as const }
+                  : {})}
               >
-                {fit.lines.map((l) => (
-                  <tspan key={l.text} x={w * 0.01} y={l.baseline}>
-                    {l.text}
-                  </tspan>
-                ))}
+                {fit.textLength
+                  ? fit.lines[0]!.text
+                  : fit.lines.map((l) => (
+                      <tspan key={l.text} x={w * 0.01} y={l.baseline}>
+                        {l.text}
+                      </tspan>
+                    ))}
               </text>
             </clipPath>
           </defs>
