@@ -483,6 +483,45 @@ ul {
   justify-content: flex-end;
 }
 
+/* "Descubre": letras que suben una a una y un trazo coral a mano alzada que
+   se dibuja debajo cuando terminan de colocarse. */
+.hero__word--open {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  /* Sitio para el trazo, que cuelga por debajo de la linea base. */
+  padding-bottom: 0.12em;
+}
+
+.hero__letter-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Las descendentes (la "p" de "Descubre" no, pero "Discover" tampoco) y la
+     rotacion de entrada necesitan un poco de aire por abajo y por los lados. */
+  padding: 0 0.02em 0.1em;
+  margin: 0 -0.02em -0.1em;
+}
+
+.hero__letter {
+  display: inline-block;
+  transform-origin: 20% 100%;
+  will-change: transform;
+}
+
+.hero__stroke {
+  position: absolute;
+  left: -0.04em;
+  bottom: -0.02em;
+  /* Un SVG es un elemento reemplazado: left/right no lo estiran, hay que
+     darle el ancho a mano. */
+  width: calc(100% + 0.08em);
+  height: 0.2em;
+  color: var(--coral);
+  overflow: visible;
+  pointer-events: none;
+}
+
 .hero__row--close .hero__word {
   font-style: italic;
   font-weight: 400;
@@ -901,6 +940,10 @@ ul {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  .hero__letter {
+    transform: none !important;
+    opacity: 1 !important;
   }
   *,
   *::before,

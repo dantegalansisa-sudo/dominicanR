@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import RevealText from './RevealText';
+import HeroWord from './HeroWord';
 import SearchBar from './SearchBar';
 import { EASINGS } from '../utils/easings';
 import { useLang } from '../i18n';
@@ -57,15 +58,7 @@ export default function Hero() {
 
           <h1 className="hero__headline">
             <span className="hero__row hero__row--open">
-              <RevealText
-                key={`open-${t.code}`}
-                tag="span"
-                className="hero__word"
-                immediate
-                delay={0.3}
-              >
-                {t.hero.open}
-              </RevealText>
+              <HeroWord key={`open-${t.code}`} text={t.hero.open} delay={0.3} />
             </span>
 
             <motion.span
