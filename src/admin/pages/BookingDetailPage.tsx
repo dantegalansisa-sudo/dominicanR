@@ -277,6 +277,7 @@ export default function BookingDetailPage() {
               <Row label="Estado">
                 <PayPill b={b} />
               </Row>
+              {b.payment_method && <Row label="Forma de pago">{b.payment_method === 'efectivo' ? 'En efectivo, el día del servicio' : 'PayPal'}</Row>}
               {b.amount != null && <Row label="Importe">US${b.amount}</Row>}
               {b.payment_status === 'pagada' && (
                 <>
@@ -298,6 +299,25 @@ export default function BookingDetailPage() {
                 <Row label="Nota">Solicitud sin cobro online: se cotiza y se cobra aparte.</Row>
               )}
             </dl>
+            {b.payment_method === 'efectivo' && b.payment_status !== 'pagada' && (
+              <div className="adm-bar adm-bar--end">
+                <button
+                  className="adm-btn adm-btn--primary"
+                  type="button"
+                  disabled={saving === 'cash'}
+                  onClick={() => save({ paid: true, paidAmount: b.amount }, 'cash', 'Marcada como pagada en efectivo.')}
+                >
+                  Marcar como pagada en efectivo
+                </button>
+              </div>
+            )}
+            {b.payment_method === 'efectivo' && b.payment_status === 'pagada' && (
+              <div className="adm-bar adm-bar--end">
+                <button className="adm-btn adm-btn--sm" type="button" disabled={saving === 'cash'} onClick={() => save({ paid: false }, 'cash', 'Vuelve a pendiente.')}>
+                  Deshacer
+                </button>
+              </div>
+            )}
           </section>
 
           <section className="adm__card">

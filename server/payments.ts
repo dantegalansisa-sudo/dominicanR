@@ -69,6 +69,8 @@ const money = (n: number) => Math.round(n * 100) / 100;
 interface Priced {
   amount: number;
   description: string;
+  /** Si esta reserva admite pagarse en efectivo el día del servicio. */
+  cashAllowed: boolean;
 }
 
 /**
@@ -114,6 +116,7 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     return {
       amount: money(q.total + extras),
       description: `Traslado ${str(origin.text)} → ${str(destination.text)} (${vehicle.name ?? vehicle.slug})`.slice(0, 127),
+      cashAllowed: true,
     };
   }
 
@@ -139,6 +142,7 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     return {
       amount: money(adultUnit * adults + (e.childPrice ?? 0) * children),
       description: `${e.name}${ticket ? ` · ${ticket.name}` : ''} · ${adults} adultos${children ? `, ${children} niños` : ''}`.slice(0, 127),
+      cashAllowed: e.cashAllowed !== false,
     };
   }
 
@@ -262,11 +266,11 @@ payRouter.post('/create', async (req, res) => {
   let bookingId: number;
   if (reusable && reusable.email === str(data.email) && reusable.payment_status !== 'pagada') {
     bookingId = reusable.id;
-    db.prepare("UPDATE bookings SET payment_status = 'pendiente' WHERE id = ?").run(bookingId);
+    db.prepare("UPDATE bookings SET payment_status = 'pendiente', payment_method = 'paypal' WHERE id = ?").run(bookingId);
   } else {
     // La reserva primero, con el correo de "pendiente": si el visitante no
     // termina en PayPal, el contacto ya está guardado y avisado.
-    const saved = await handleContact(data, bookingStore, { status: 'pendiente', amount: priced.amount });
+    const saved = await handleContact(data, bookingStore, { status: 'pendiente', amount: priced.amount, method: 'paypal' });
     if (!saved.body.ok || saved.body.bookingId == null) {
       res.status(saved.status === 200 ? 500 : saved.status).json({
         ok: false,
@@ -302,6 +306,48 @@ payRouter.post('/create', async (req, res) => {
     console.error('Error creando la orden de PayPal:', err);
     res.status(502).json({ ok: false, error: 'PayPal no respondió. Tu reserva quedó registrada; puedes intentarlo de nuevo.', bookingId });
   }
+});
+
+/**
+ * Reserva con pago en efectivo el día del servicio. El importe se calcula
+ * igual que para PayPal y queda anotado; el operador la marca como pagada
+ * desde el panel cuando cobra. Las excursiones que no lo admiten se rechazan
+ * aquí aunque el navegador lo pidiera.
+ */
+payRouter.post('/cash', async (req, res) => {
+  const data = (req.body ?? {}) as Record<string, unknown>;
+  const kind = str(data.topic) === 'Excursión' ? 'excursion' : str(data.topic) === 'Traslado' ? 'traslado' : '';
+  let priced: Priced | null = null;
+  try {
+    priced = await priceOf(kind, data.booking);
+  } catch (err) {
+    console.error('No se pudo calcular el importe:', err);
+  }
+  if (!priced || priced.amount <= 0) {
+    res.status(400).json({ ok: false, error: 'Esta reserva no tiene precio cerrado; te la cotizamos por correo.' });
+    return;
+  }
+  if (!priced.cashAllowed) {
+    res.status(400).json({ ok: false, error: 'Esta excursión solo se puede pagar por adelantado.' });
+    return;
+  }
+  const reuseId = Number(data.bookingId);
+  const reusable = Number.isFinite(reuseId)
+    ? (db.prepare('SELECT id, email, payment_status FROM bookings WHERE id = ?').get(reuseId) as
+        | { id: number; email: string; payment_status: string }
+        | undefined)
+    : undefined;
+  if (reusable && reusable.email === str(data.email) && reusable.payment_status !== 'pagada') {
+    db.prepare("UPDATE bookings SET payment_method = 'efectivo', payment_status = 'pendiente', amount = ? WHERE id = ?").run(priced.amount, reusable.id);
+    res.json({ ok: true, bookingId: reusable.id, amount: priced.amount });
+    return;
+  }
+  const saved = await handleContact(data, bookingStore, { status: 'pendiente', amount: priced.amount, method: 'efectivo' });
+  if (!saved.body.ok) {
+    res.status(saved.status).json({ ok: false, error: saved.body.error ?? 'No se pudo registrar la reserva.' });
+    return;
+  }
+  res.json({ ok: true, bookingId: saved.body.bookingId ?? null, amount: priced.amount });
 });
 
 /**

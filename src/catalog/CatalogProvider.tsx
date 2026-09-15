@@ -50,7 +50,11 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 const BUNDLED: Catalog = {
-  excursions: EXCURSIONS.map((e) => ({ ...e, childPrice: e.adultsOnly ? null : CHILD_PRICE_DEFAULT })),
+  excursions: EXCURSIONS.map((e) => ({
+    ...e,
+    childPrice: e.adultsOnly ? null : CHILD_PRICE_DEFAULT,
+    cashAllowed: !['coco-bongo', 'imagine-punta-cana', 'dolphin-explorer'].includes(e.slug),
+  })),
   featuredSlugs: [...FEATURED_SLUGS],
   fleet: FLEET,
   pricing: DEFAULT_TABLES,

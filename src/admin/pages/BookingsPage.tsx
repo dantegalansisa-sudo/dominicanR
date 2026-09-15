@@ -17,10 +17,12 @@ export function StatusPill({ status }: { status: BookingRow['status'] }) {
 
 /** Estado del cobro: verde si PayPal lo confirmó, rojo si lo rechazó. */
 export function PayPill({ b }: { b: BookingRow }) {
+  const via = b.payment_method === 'efectivo' ? 'efectivo' : b.payment_method === 'paypal' ? 'PayPal' : '';
   if (b.payment_status === 'pagada')
-    return <span className="adm-status adm-status--confirmada">Pagada · US${b.paid_amount ?? b.amount}</span>;
+    return <span className="adm-status adm-status--confirmada">Pagada · US${b.paid_amount ?? b.amount}{via ? ` · ${via}` : ''}</span>;
   if (b.payment_status === 'fallida') return <span className="adm-flag">Pago fallido</span>;
-  return <span className="adm-pill">{b.amount != null ? `Pendiente · US$${b.amount}` : 'Sin pago'}</span>;
+  if (b.amount == null) return <span className="adm-pill">Sin pago</span>;
+  return <span className="adm-pill">{via === 'efectivo' ? `Efectivo · US$${b.amount} pendiente` : `Pendiente · US$${b.amount}`}</span>;
 }
 
 /** Marca de correo: solo se enseña cuando el aviso al negocio no salió. */

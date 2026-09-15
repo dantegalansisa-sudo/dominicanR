@@ -255,7 +255,7 @@ export const en: typeof es = {
   },
 
   pay: {
-    title: 'Pay now with PayPal',
+    title: 'Choose how to pay',
     total: (a: number) => `Total US$${a}`,
     lead: 'Secure payment with your PayPal account or a card. No extra fees.',
     orPlain: 'or send the request without paying',
@@ -269,6 +269,11 @@ export const en: typeof es = {
     whatsappText: (id: number) => `Hi, I have booking #${id} pending payment on the website and would like to complete it.`,
     error: 'We could not start the payment. Check your details and try again.',
     fine: 'Pay now and your booking is confirmed right away. Or send the request and we email you the fixed price.',
+    cash: 'Pay in cash on the day',
+    cashHint: 'Book now and pay in cash (US$) to the driver or guide.',
+    cashOnlyPrepaid: 'This experience must be paid in advance.',
+    cashSentTitle: 'Booking registered',
+    cashSent: (a: number, id: number) => `You will pay US$${a} in cash on the day of the service. Your booking is #${id}; we will confirm by email.`,
   },
 
   carousel: {

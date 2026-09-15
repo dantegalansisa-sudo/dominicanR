@@ -3647,6 +3647,32 @@ ul {
   margin-top: 4px;
 }
 
+/* Segunda forma de pago: efectivo el dia del servicio. Perfilado en blanco
+   sobre la tarjeta oscura, a la misma altura que el boton de PayPal. */
+.paypal__cash {
+  margin-top: 6px;
+}
+
+.btn--cash {
+  justify-content: center;
+  min-height: 48px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  background: transparent;
+  color: var(--white);
+  font-weight: 600;
+}
+
+.btn--cash:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--white);
+}
+
+.paypal__prepaid {
+  margin-top: 8px;
+  font-style: italic;
+}
+
 /* El camino sin cobro, discreto debajo de PayPal. */
 .paypal__plain {
   align-self: center;

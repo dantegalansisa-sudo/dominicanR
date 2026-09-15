@@ -257,7 +257,7 @@ export const es = {
   },
 
   pay: {
-    title: 'Pagar ahora con PayPal',
+    title: 'Elige cómo pagar',
     total: (a: number) => `Total US$${a}`,
     lead: 'Pago seguro con tu cuenta de PayPal o con tarjeta. Sin cargos extra.',
     orPlain: 'o enviar la solicitud sin pagar',
@@ -271,6 +271,11 @@ export const es = {
     whatsappText: (id: number) => `Hola, tengo la reserva #${id} pendiente de pago en la web y quiero cerrarla.`,
     error: 'No pudimos iniciar el pago. Revisa tus datos e inténtalo de nuevo.',
     fine: 'Si pagas ahora, tu reserva queda confirmada al momento. Si prefieres, envía la solicitud y te mandamos el precio cerrado por correo.',
+    cash: 'Pagar en efectivo el día del servicio',
+    cashHint: 'Reservas ahora y pagas en efectivo (US$) al conductor o al guía.',
+    cashOnlyPrepaid: 'Esta experiencia se paga por adelantado.',
+    cashSentTitle: 'Reserva registrada',
+    cashSent: (a: number, id: number) => `Pagarás US$${a} en efectivo el día del servicio. Tu reserva es la #${id}; te confirmamos por correo.`,
   },
 
   carousel: {

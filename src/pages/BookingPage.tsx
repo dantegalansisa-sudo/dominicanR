@@ -40,7 +40,7 @@ export interface BookingSeed {
   vehicle?: string;
 }
 
-type Status = 'idle' | 'sending' | 'sent' | 'error' | 'paid' | 'pending';
+type Status = 'idle' | 'sending' | 'sent' | 'error' | 'paid' | 'pending' | 'cash';
 
 const Ico = ({
   d,
@@ -155,6 +155,37 @@ export default function BookingPage() {
   const [error, setError] = useState('');
   const [pay, setPay] = useState<{ amount: number; bookingId: number | null }>({ amount: 0, bookingId: null });
   const [payOn, setPayOn] = useState(false);
+
+  /** Reserva con pago en efectivo el día del servicio: se registra y avisa. */
+  const payCash = async () => {
+    if (status === 'sending') return;
+    const miss = missingContact();
+    if (miss) {
+      setStatus('error');
+      setError(miss);
+      return;
+    }
+    setStatus('sending');
+    setError('');
+    try {
+      const res = await fetch('/api/pay/cash', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...buildPayload(), bookingId: pay.bookingId }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; bookingId?: number; amount?: number; error?: string };
+      if (res.ok && body.ok) {
+        setPay({ amount: body.amount ?? 0, bookingId: body.bookingId ?? null });
+        setStatus('cash');
+      } else {
+        setStatus('error');
+        setError(body.error || t.booking.failed);
+      }
+    } catch {
+      setStatus('error');
+      setError(t.booking.offline);
+    }
+  };
   const [km, setKm] = useState<number | null>(null);
   const [pricing, setPricing] = useState<'idle' | 'loading' | 'ready' | 'none'>('idle');
 
@@ -795,7 +826,7 @@ export default function BookingPage() {
               {/* Con precio cerrado se puede pagar aquí mismo; sin él, solo
                   se pide presupuesto. Pagada o pendiente, el bloque de abajo
                   sustituye a los botones. */}
-              {status === 'paid' || status === 'pending' ? null : chosenQuote ? (
+              {status === 'paid' || status === 'pending' || status === 'cash' ? null : chosenQuote ? (
                 <PayPalCheckout
                   amount={chosenQuote.total + extrasSum}
                   buildPayload={buildPayload}
@@ -803,6 +834,9 @@ export default function BookingPage() {
                   sending={status === 'sending'}
                   bookingId={pay.bookingId}
                   onReady={setPayOn}
+                  cashAllowed={true}
+                  onCash={payCash}
+                  busy={status === 'sending'}
                   fallback={
                     <MagneticButton
                       className="btn btn--primary btn--block"
@@ -827,7 +861,7 @@ export default function BookingPage() {
                   }}
                 />
               ) : null}
-              {status !== 'paid' && status !== 'pending' && !chosenQuote && (
+              {status !== 'paid' && status !== 'pending' && status !== 'cash' && !chosenQuote && (
                 <MagneticButton
                   className="btn btn--primary btn--block"
                   block
@@ -845,6 +879,12 @@ export default function BookingPage() {
                   <motion.div key="paid" className="pay-result pay-result--ok" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
                     <strong>{t.pay.paidTitle}</strong>
                     <p>{t.pay.paid(pay.amount, pay.bookingId ?? 0)}</p>
+                  </motion.div>
+                )}
+                {status === 'cash' && (
+                  <motion.div key="cash" className="pay-result pay-result--ok" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+                    <strong>{t.pay.cashSentTitle}</strong>
+                    <p>{t.pay.cashSent(pay.amount, pay.bookingId ?? 0)}</p>
                   </motion.div>
                 )}
                 {status === 'pending' && (
@@ -895,7 +935,7 @@ export default function BookingPage() {
                 )}
               </AnimatePresence>
 
-              <p className="bcard__fine">{payOn && status !== 'paid' ? t.pay.fine : t.booking.fine}</p>
+              <p className="bcard__fine">{payOn && status !== 'paid' && status !== 'cash' ? t.pay.fine : t.booking.fine}</p>
             </div>
           </aside>
         </form>

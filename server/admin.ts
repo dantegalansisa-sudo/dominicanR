@@ -103,7 +103,7 @@ adminRouter.post('/excursions', (req: AdminRequest, res) => {
     (db.prepare('SELECT MAX(position) AS m FROM excursions').get() as { m: number | null }).m ?? -1;
 
   db.prepare(
-    `INSERT INTO excursions (slug, name, category, position, child_price) VALUES (?, ?, ?, ?, 65)`,
+    `INSERT INTO excursions (slug, name, category, position, child_price, cash_allowed) VALUES (?, ?, ?, ?, 65, 1)`,
   ).run(slug, name, String(req.body?.category ?? 'islas'), maxPos + 1);
 
   audit(req.admin!, 'crear', `excursion:${slug}`);
@@ -158,6 +158,7 @@ adminRouter.put('/excursions/:slug', (req: AdminRequest, res) => {
     ['adults_only', 'adultsOnly'],
     ['featured', 'featured'],
     ['visible', 'visible'],
+    ['cash_allowed', 'cashAllowed'],
   ] as const) {
     if (req.body?.[key] !== undefined) {
       sets.push(`${field} = ?`);
@@ -699,6 +700,13 @@ adminRouter.put('/bookings/:id', (req: AdminRequest, res) => {
   if (req.body?.notes !== undefined) {
     sets.push('notes = ?');
     values.push(String(req.body.notes).slice(0, 4000));
+  }
+  // Cobro en efectivo anotado a mano por el operador (o deshecho).
+  if (req.body?.paid !== undefined) {
+    const paid = Boolean(req.body.paid);
+    const amount = Number(req.body.paidAmount);
+    sets.push('payment_status = ?', 'paid_amount = ?', "paid_at = CASE WHEN ? THEN datetime('now') ELSE NULL END");
+    values.push(paid ? 'pagada' : 'pendiente', paid && Number.isFinite(amount) ? amount : null, paid ? 1 : 0);
   }
   if (sets.length === 0) {
     res.json({ ok: true, sinCambios: true });

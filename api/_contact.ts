@@ -33,6 +33,7 @@ export interface PaymentInfo {
   status: 'pendiente' | 'pagada';
   amount: number;
   orderId?: string;
+  method?: 'paypal' | 'efectivo';
 }
 
 /** Lo que se guarda de cada solicitud, además del texto del correo. */
@@ -213,9 +214,11 @@ export async function handleContact(
       ? ([
           [
             'Pago',
-            payment.status === 'pagada'
-              ? `PAGADA · US$${payment.amount} por PayPal`
-              : `Pendiente · US$${payment.amount} por PayPal (el cliente está en la pasarela)`,
+            payment.method === 'efectivo'
+              ? `EN EFECTIVO · US$${payment.amount} pendiente, se cobra el día del servicio`
+              : payment.status === 'pagada'
+                ? `PAGADA · US$${payment.amount} por PayPal`
+                : `Pendiente · US$${payment.amount} por PayPal (el cliente está en la pasarela)`,
           ],
         ] as Array<[string, string]>)
       : []),
@@ -223,13 +226,17 @@ export async function handleContact(
 
   // Lo que se le dice al visitante sobre el cobro, en su idioma.
   const payLine = payment
-    ? lang === 'en'
-      ? payment.status === 'pagada'
-        ? `Payment received: US$${payment.amount} via PayPal. Your booking is confirmed.`
-        : `Amount: US$${payment.amount}. If the PayPal payment did not go through, you can pay later or contact us.`
-      : payment.status === 'pagada'
-        ? `Pago recibido: US$${payment.amount} por PayPal. Tu reserva queda confirmada.`
-        : `Importe: US$${payment.amount}. Si el pago por PayPal no se completó, puedes pagar más tarde o escribirnos.`
+    ? payment.method === 'efectivo'
+      ? lang === 'en'
+        ? `Payment in cash: US$${payment.amount}, paid on the day of the service. We will confirm your booking by email.`
+        : `Pago en efectivo: US$${payment.amount}, se paga el día del servicio. Te confirmamos la reserva por correo.`
+      : lang === 'en'
+        ? payment.status === 'pagada'
+          ? `Payment received: US$${payment.amount} via PayPal. Your booking is confirmed.`
+          : `Amount: US$${payment.amount}. If the PayPal payment did not go through, you can pay later or contact us.`
+        : payment.status === 'pagada'
+          ? `Pago recibido: US$${payment.amount} por PayPal. Tu reserva queda confirmada.`
+          : `Importe: US$${payment.amount}. Si el pago por PayPal no se completó, puedes pagar más tarde o escribirnos.`
     : '';
   const payHtml = payLine
     ? `<p style="margin:0 0 18px;padding:12px 16px;background:${payment?.status === 'pagada' ? '#e6f4ec' : BRAND.cream};border-radius:12px;font-weight:600">${escapeHtml(payLine)}</p>`

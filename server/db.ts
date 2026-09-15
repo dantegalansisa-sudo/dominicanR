@@ -217,6 +217,18 @@ export function migrate() {
     paid_at: 'TEXT',
   });
   db.exec("UPDATE bookings SET payment_status = 'pendiente' WHERE payment_status IS NULL");
+  // Cómo va a pagar: 'paypal', 'efectivo' o NULL (solicitud sin forma de pago).
+  addColumns('bookings', { payment_method: 'TEXT' });
+
+  // Excursiones que no admiten pago en efectivo (barra libre y delfines: el
+  // proveedor exige el pago por adelantado). El resto sí, y el cliente lo
+  // cambia desde el panel.
+  addColumns('excursions', { cash_allowed: 'INTEGER' });
+  db.exec(`
+    UPDATE excursions SET cash_allowed = CASE
+      WHEN slug IN ('coco-bongo', 'imagine-punta-cana', 'dolphin-explorer') THEN 0 ELSE 1 END
+    WHERE cash_allowed IS NULL;
+  `);
 
   addColumns('price_brackets', { prices: 'TEXT' });
   addColumns('route_surcharges', { prices: 'TEXT' });

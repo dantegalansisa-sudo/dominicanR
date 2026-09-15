@@ -26,6 +26,7 @@ interface Draft {
   duration: string;
   description: string;
   adultsOnly: boolean;
+  cashAllowed: boolean;
   featured: boolean;
   visible: boolean;
   includes: string[];
@@ -50,6 +51,7 @@ const toDraft = (r: ExcursionRow): Draft => ({
   duration: r.duration,
   description: r.description,
   adultsOnly: Boolean(r.adults_only),
+  cashAllowed: r.cash_allowed !== 0,
   featured: Boolean(r.featured),
   visible: Boolean(r.visible),
   includes: parseJson<string[]>(r.includes, []),
@@ -290,6 +292,7 @@ export default function ExcursionEditPage() {
             />
             <div className="adm-field--full">
               <Check label="Solo para adultos (18+)" checked={draft.adultsOnly} onChange={(v) => set('adultsOnly', v)} />
+              <Check label="Acepta pago en efectivo el día del servicio (si no, solo PayPal por adelantado)" checked={draft.cashAllowed} onChange={(v) => set('cashAllowed', v)} />
               <Check label="En la portada (las 6 más solicitadas)" checked={draft.featured} onChange={(v) => set('featured', v)} />
               <Check label="Publicada en la web" checked={draft.visible} onChange={(v) => set('visible', v)} />
             </div>

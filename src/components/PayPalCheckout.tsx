@@ -38,9 +38,10 @@ function loadSdk(clientId: string, currency: string, locale: string): Promise<Pa
     const w = window as unknown as { paypal?: PayPalNS };
     if (w.paypal) return resolve(w.paypal);
     const s = document.createElement('script');
-    // Solo PayPal y tarjeta; sin "pagar después" ni financiación, que no
-    // aplican a una reserva de viaje.
-    s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=${currency}&intent=capture&components=buttons&disable-funding=paylater,credit&locale=${locale}`;
+    // Solo el botón de PayPal: el formulario de tarjeta incrustado lo pinta
+    // PayPal con su propio estilo y no encaja en la tarjeta oscura. La
+    // tarjeta sigue disponible dentro de la ventana de PayPal, sin cuenta.
+    s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=${currency}&intent=capture&components=buttons&disable-funding=card,paylater,credit&locale=${locale}`;
     s.async = true;
     s.onload = () => resolve(w.paypal ?? null);
     s.onerror = () => resolve(null);
@@ -63,6 +64,9 @@ export default function PayPalCheckout({
   fallback,
   bookingId,
   onReady,
+  cashAllowed,
+  onCash,
+  busy,
 }: {
   /** Total estimado por la web; el servidor lo recalcula, esto es solo lo que se ve. */
   amount: number;
@@ -80,6 +84,10 @@ export default function PayPalCheckout({
   bookingId?: number | null;
   /** Avisa a la página de si el pago online está disponible. */
   onReady?: (on: boolean) => void;
+  /** Segunda forma de pago: en efectivo el día del servicio. */
+  cashAllowed: boolean;
+  onCash: () => void;
+  busy?: boolean;
 }) {
   const { t, lang } = useLang();
   const [ready, setReady] = useState<'checking' | 'off' | 'loading' | 'on'>('checking');
@@ -191,7 +199,17 @@ export default function PayPalCheckout({
           {error}
         </p>
       )}
-      <button type="button" className="paypal__plain" onClick={onPlainSubmit} disabled={sending}>
+      {cashAllowed ? (
+        <div className="paypal__cash">
+          <button type="button" className="btn btn--cash btn--block" onClick={onCash} disabled={sending || busy}>
+            {t.pay.cash}
+          </button>
+          <p className="paypal__lead">{t.pay.cashHint}</p>
+        </div>
+      ) : (
+        <p className="paypal__lead paypal__prepaid">{t.pay.cashOnlyPrepaid}</p>
+      )}
+      <button type="button" className="paypal__plain" onClick={onPlainSubmit} disabled={sending || busy}>
         {t.pay.orPlain}
       </button>
     </div>

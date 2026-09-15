@@ -34,6 +34,8 @@ export interface Excursion {
    * a consultar. Los infantes no pagan.
    */
   childPrice?: number | null;
+  /** false = solo pago por adelantado (barra libre, delfines). Por defecto sí. */
+  cashAllowed?: boolean;
   rating: number;
   reviews: string;
   duration: string;

@@ -55,6 +55,7 @@ export interface ExcursionRow {
   description: string;
   adults_only: number;
   child_price: number | null;
+  cash_allowed: number | null;
   includes: string;
   activities: string;
   departures: string;
@@ -167,6 +168,7 @@ export interface BookingRow {
   email_sent: number | null;
   email_error: string | null;
   payment_status: 'pendiente' | 'pagada' | 'fallida';
+  payment_method: 'paypal' | 'efectivo' | null;
   paypal_order_id: string | null;
   paypal_capture_id: string | null;
   amount: number | null;
