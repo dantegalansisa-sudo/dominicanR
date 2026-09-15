@@ -166,6 +166,12 @@ export interface BookingRow {
   notes: string;
   email_sent: number | null;
   email_error: string | null;
+  payment_status: 'pendiente' | 'pagada' | 'fallida';
+  paypal_order_id: string | null;
+  paypal_capture_id: string | null;
+  amount: number | null;
+  paid_amount: number | null;
+  paid_at: string | null;
 }
 
 export interface AuditRow {

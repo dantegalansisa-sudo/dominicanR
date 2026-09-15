@@ -7,10 +7,20 @@ import { KIND_LABEL, STATUS_LABEL, bookingPrice, bookingSummary } from '../booki
 
 const STATUSES = ['', 'nueva', 'contestada', 'confirmada', 'cancelada'] as const;
 const KINDS = ['', 'traslado', 'excursion', 'contacto'] as const;
+const PAYMENTS = ['', 'pagada', 'pendiente', 'fallida'] as const;
+const PAYMENT_LABEL: Record<string, string> = { pagada: 'Pagadas', pendiente: 'Pendientes de pago', fallida: 'Pago fallido' };
 const LIMIT = 25;
 
 export function StatusPill({ status }: { status: BookingRow['status'] }) {
   return <span className={`adm-status adm-status--${status}`}>{STATUS_LABEL[status]}</span>;
+}
+
+/** Estado del cobro: verde si PayPal lo confirmó, rojo si lo rechazó. */
+export function PayPill({ b }: { b: BookingRow }) {
+  if (b.payment_status === 'pagada')
+    return <span className="adm-status adm-status--confirmada">Pagada · US${b.paid_amount ?? b.amount}</span>;
+  if (b.payment_status === 'fallida') return <span className="adm-flag">Pago fallido</span>;
+  return <span className="adm-pill">{b.amount != null ? `Pendiente · US$${b.amount}` : 'Sin pago'}</span>;
 }
 
 /** Marca de correo: solo se enseña cuando el aviso al negocio no salió. */
@@ -28,23 +38,24 @@ export default function BookingsPage() {
   const [params, setParams] = useSearchParams();
   const status = params.get('estado') ?? '';
   const kind = params.get('tipo') ?? '';
+  const payment = params.get('pago') ?? '';
   const page = Math.max(1, Number(params.get('pagina')) || 1);
 
   const [rows, setRows] = useState<BookingRow[] | null>(null);
   const [total, setTotal] = useState(0);
 
   const load = useCallback(async () => {
-    const q = new URLSearchParams({ status, kind, page: String(page), limit: String(LIMIT) });
+    const q = new URLSearchParams({ status, kind, payment, page: String(page), limit: String(LIMIT) });
     const r = await api.get<{ bookings: BookingRow[]; total: number }>(`/bookings?${q}`);
     setRows(r.bookings);
     setTotal(r.total);
-  }, [status, kind, page]);
+  }, [status, kind, payment, page]);
 
   useEffect(() => {
     load().catch((e) => toast(e.message, true));
   }, [load, toast]);
 
-  const setFilter = (key: 'estado' | 'tipo', value: string) => {
+  const setFilter = (key: 'estado' | 'tipo' | 'pago', value: string) => {
     const next = new URLSearchParams(params);
     if (value) next.set(key, value);
     else next.delete(key);
@@ -86,6 +97,13 @@ export default function BookingsPage() {
             </button>
           ))}
         </div>
+        <div className="adm-tabs" style={{ marginBottom: 0 }}>
+          {PAYMENTS.map((p) => (
+            <button key={p} type="button" className={payment === p ? 'is-active' : ''} onClick={() => setFilter('pago', p)}>
+              {p ? PAYMENT_LABEL[p] : 'Cualquier pago'}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="adm__card">
@@ -102,6 +120,7 @@ export default function BookingsPage() {
                 <th>Cliente</th>
                 <th>Ruta / excursión</th>
                 <th>Precio</th>
+                <th>Pago</th>
                 <th>Estado</th>
                 <th />
               </tr>
@@ -125,6 +144,9 @@ export default function BookingsPage() {
                     </td>
                     <td style={{ maxWidth: 300 }}>{bookingSummary(b)}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{price == null ? '—' : `US$${price}`}</td>
+                    <td>
+                      <PayPill b={b} />
+                    </td>
                     <td>
                       <StatusPill status={b.status} />
                       <EmailFlag b={b} />

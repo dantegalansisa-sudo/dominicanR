@@ -183,6 +183,18 @@ async function distance(
   };
 }
 
+/** Kilómetros por carretera entre dos puntos, para tarificar en el servidor. */
+export async function roadDistanceKm(
+  origin: Record<string, unknown>,
+  destination: Record<string, unknown>,
+): Promise<number | null> {
+  const key = process.env.GOOGLE_PLACES_API_KEY;
+  if (!key) return null;
+  const r = await distance(key, origin, destination);
+  const km = (r.body as { km?: number | null }).km;
+  return typeof km === 'number' && Number.isFinite(km) ? km : null;
+}
+
 export async function handlePlaces(payload: unknown): Promise<PlacesResult> {
   const key = process.env.GOOGLE_PLACES_API_KEY;
   // Sin key la web sigue funcionando con la lista fija de aeropuertos y zonas,

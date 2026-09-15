@@ -31,6 +31,8 @@ servidor Node propio que debe quedarse corriendo.
 | `RESEND_API_KEY` | Sí | Envío de correos de reserva y contacto. |
 | `CONTACT_TO` | Sí | Correo que recibe las reservas: `dominicanroutes@gmail.com`. |
 | `CONTACT_FROM` | Sí | Remitente. Con dominio verificado en Resend: `Dominican Routes <reservas@DOMINIO>`. |
+| `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` | Para cobrar online | Credenciales de la app REST en developer.paypal.com. Sin ellas la web funciona igual, sin el botón de pago. |
+| `PAYPAL_MODE` | Para cobrar online | `sandbox` (pruebas) o `live` (cobros reales), con las credenciales de ese modo. |
 | `NODE_ENV` | Sí | `production` (activa la cookie segura del panel; requiere HTTPS). |
 | `PORT` | No | Por defecto 3000. |
 | `DATA_DIR` | No | Dónde guardar la base y las fotos. Por defecto `./data`. |

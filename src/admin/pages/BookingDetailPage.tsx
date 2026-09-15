@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { api } from '../api';
 import type { BookingRow } from '../api';
 import { fmtDR, useToast } from '../ui';
-import { EmailFlag, StatusPill } from './BookingsPage';
+import { EmailFlag, PayPill, StatusPill } from './BookingsPage';
 import {
   KIND_LABEL,
   STATUS_LABEL,
@@ -112,6 +112,7 @@ export default function BookingDetailPage() {
           </p>
         </div>
         <div className="adm-bar">
+          <PayPill b={b} />
           <StatusPill status={b.status} />
           <EmailFlag b={b} />
         </div>
@@ -270,6 +271,35 @@ export default function BookingDetailPage() {
 
         {/* -------------------------------------------------------- gestión */}
         <aside>
+          <section className="adm__card">
+            <h2 className="adm__card-title">Pago</h2>
+            <dl className="adm-kvs">
+              <Row label="Estado">
+                <PayPill b={b} />
+              </Row>
+              {b.amount != null && <Row label="Importe">US${b.amount}</Row>}
+              {b.payment_status === 'pagada' && (
+                <>
+                  <Row label="Cobrado">US${b.paid_amount}</Row>
+                  {b.paid_at && <Row label="Fecha">{fmtDR(b.paid_at)}</Row>}
+                </>
+              )}
+              {b.paypal_order_id && (
+                <Row label="Orden PayPal">
+                  <code style={{ fontSize: 12 }}>{b.paypal_order_id}</code>
+                </Row>
+              )}
+              {b.paypal_capture_id && (
+                <Row label="Captura">
+                  <code style={{ fontSize: 12 }}>{b.paypal_capture_id}</code>
+                </Row>
+              )}
+              {b.payment_status !== 'pagada' && b.amount == null && (
+                <Row label="Nota">Solicitud sin cobro online: se cotiza y se cobra aparte.</Row>
+              )}
+            </dl>
+          </section>
+
           <section className="adm__card">
             <h2 className="adm__card-title">Estado</h2>
             <div className="adm-status-btns">

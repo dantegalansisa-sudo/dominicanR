@@ -25,7 +25,14 @@ export type Topic = (typeof TOPICS)[number];
 
 export interface ContactResult {
   status: number;
-  body: { ok: boolean; error?: string };
+  body: { ok: boolean; error?: string; bookingId?: number };
+}
+
+/** Estado del cobro que acompaña a la solicitud, si la web lo gestiona. */
+export interface PaymentInfo {
+  status: 'pendiente' | 'pagada';
+  amount: number;
+  orderId?: string;
 }
 
 /** Lo que se guarda de cada solicitud, además del texto del correo. */
@@ -39,6 +46,8 @@ export interface NewBooking {
   message: string;
   /** Los campos sueltos que manda el formulario, tal cual, para el panel. */
   payload?: unknown;
+  /** Importe a cobrar y orden de PayPal, cuando la reserva se paga online. */
+  payment?: PaymentInfo;
 }
 
 /**
@@ -58,14 +67,14 @@ const KIND_BY_TOPIC: Record<string, NewBooking['kind']> = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
-const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+export const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
 
-const escapeHtml = (v: string) =>
+export const escapeHtml = (v: string) =>
   v.replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
   );
 
-const BRAND = {
+export const BRAND = {
   ink: '#1C1814',
   soft: '#5B5147',
   cream: '#F7F3EC',
@@ -83,7 +92,7 @@ interface SendArgs {
   text: string;
 }
 
-async function sendEmail(args: SendArgs): Promise<boolean> {
+export async function sendEmail(args: SendArgs): Promise<boolean> {
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -111,7 +120,11 @@ async function sendEmail(args: SendArgs): Promise<boolean> {
   }
 }
 
-export async function handleContact(raw: unknown, store?: BookingStore): Promise<ContactResult> {
+export async function handleContact(
+  raw: unknown,
+  store?: BookingStore,
+  payment?: PaymentInfo,
+): Promise<ContactResult> {
   const data = (raw ?? {}) as Record<string, unknown>;
 
   // Honeypot: a real person never fills a field they cannot see. Answer 200 so
@@ -156,6 +169,7 @@ export async function handleContact(raw: unknown, store?: BookingStore): Promise
         date,
         message,
         payload: data.booking,
+        payment,
       });
     } catch (err) {
       console.error('No se pudo guardar la solicitud en la base:', err);
@@ -177,7 +191,7 @@ export async function handleContact(raw: unknown, store?: BookingStore): Promise
   if (!apiKey) {
     noteEmail(false, 'Sin RESEND_API_KEY');
     // Guardada aunque sin correo: el visitante no tiene que volver a escribir.
-    if (bookingId != null) return { status: 200, body: { ok: true } };
+    if (bookingId != null) return { status: 200, body: { ok: true, bookingId } };
     return {
       status: 503,
       body: {
@@ -195,7 +209,31 @@ export async function handleContact(raw: unknown, store?: BookingStore): Promise
     ['Solicitud', topic],
     ['Fecha de viaje', date || '—'],
     ['Idioma', lang === 'en' ? 'Inglés (contestar en inglés)' : 'Español'],
+    ...(payment
+      ? ([
+          [
+            'Pago',
+            payment.status === 'pagada'
+              ? `PAGADA · US$${payment.amount} por PayPal`
+              : `Pendiente · US$${payment.amount} por PayPal (el cliente está en la pasarela)`,
+          ],
+        ] as Array<[string, string]>)
+      : []),
   ];
+
+  // Lo que se le dice al visitante sobre el cobro, en su idioma.
+  const payLine = payment
+    ? lang === 'en'
+      ? payment.status === 'pagada'
+        ? `Payment received: US$${payment.amount} via PayPal. Your booking is confirmed.`
+        : `Amount: US$${payment.amount}. If the PayPal payment did not go through, you can pay later or contact us.`
+      : payment.status === 'pagada'
+        ? `Pago recibido: US$${payment.amount} por PayPal. Tu reserva queda confirmada.`
+        : `Importe: US$${payment.amount}. Si el pago por PayPal no se completó, puedes pagar más tarde o escribirnos.`
+    : '';
+  const payHtml = payLine
+    ? `<p style="margin:0 0 18px;padding:12px 16px;background:${payment?.status === 'pagada' ? '#e6f4ec' : BRAND.cream};border-radius:12px;font-weight:600">${escapeHtml(payLine)}</p>`
+    : '';
 
   const table = rows
     .map(
@@ -243,6 +281,7 @@ export async function handleContact(raw: unknown, store?: BookingStore): Promise
           We received your <strong>${escapeHtml(TOPIC_EN[topic] ?? topic.toLowerCase())}</strong> request.
           We reply to this same email, usually the same day.
         </p>
+        ${payHtml}
         <p style="margin:0 0 8px;color:${BRAND.soft}">This is what you sent us:</p>
         <p style="margin:0 0 22px;padding:16px;background:${BRAND.cream};border-radius:12px;white-space:pre-wrap">${escapeHtml(message)}</p>
         <p style="margin:0 0 6px;color:${BRAND.soft};font-size:14px">Need something urgently?</p>
@@ -255,6 +294,7 @@ export async function handleContact(raw: unknown, store?: BookingStore): Promise
           `Thank you, ${name.split(' ')[0]}`,
           '',
           `We received your ${TOPIC_EN[topic] ?? topic.toLowerCase()} request. We reply to this same email, usually the same day.`,
+          ...(payLine ? ['', payLine] : []),
           '',
           'This is what you sent us:',
           message,
@@ -276,6 +316,7 @@ export async function handleContact(raw: unknown, store?: BookingStore): Promise
           Recibimos tu solicitud de <strong>${escapeHtml(topic.toLowerCase())}</strong>.
           Te respondemos a este mismo correo, normalmente el mismo día.
         </p>
+        ${payHtml}
         <p style="margin:0 0 8px;color:${BRAND.soft}">Esto fue lo que nos enviaste:</p>
         <p style="margin:0 0 22px;padding:16px;background:${BRAND.cream};border-radius:12px;white-space:pre-wrap">${escapeHtml(message)}</p>
         <p style="margin:0 0 6px;color:${BRAND.soft};font-size:14px">¿Necesitas algo urgente?</p>
@@ -288,6 +329,7 @@ export async function handleContact(raw: unknown, store?: BookingStore): Promise
       `Gracias, ${name.split(' ')[0]}`,
       '',
       `Recibimos tu solicitud de ${topic.toLowerCase()}. Te respondemos a este mismo correo, normalmente el mismo día.`,
+      ...(payLine ? ['', payLine] : []),
       '',
       'Esto fue lo que nos enviaste:',
       message,
@@ -304,7 +346,7 @@ export async function handleContact(raw: unknown, store?: BookingStore): Promise
     // un duplicado en la base. Sin guardar, sí hace falta que lo intente.
     if (bookingId != null) {
       console.warn('Solicitud', bookingId, 'guardada pero el correo al negocio no salió.');
-      return { status: 200, body: { ok: true } };
+      return { status: 200, body: { ok: true, bookingId } };
     }
     return {
       status: 502,
@@ -316,5 +358,5 @@ export async function handleContact(raw: unknown, store?: BookingStore): Promise
     console.warn('La solicitud llegó al negocio pero el acuse a', email, 'no salió.');
   }
 
-  return { status: 200, body: { ok: true } };
+  return { status: 200, body: { ok: true, ...(bookingId != null ? { bookingId } : {}) } };
 }

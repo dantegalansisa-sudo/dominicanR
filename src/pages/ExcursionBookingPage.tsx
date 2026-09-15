@@ -4,6 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
+import PayPalCheckout from '../components/PayPalCheckout';
+import { useSettings } from '../catalog/CatalogProvider';
 import ExcursionCarousel from '../components/ExcursionCarousel';
 import { fromPrice } from '../data/excursions';
 import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal } from '../data/passengers';
@@ -28,7 +30,7 @@ export interface ExcursionSeed {
   pickup?: PlaceValue;
 }
 
-type Status = 'idle' | 'sending' | 'sent' | 'error';
+type Status = 'idle' | 'sending' | 'sent' | 'error' | 'paid' | 'pending';
 
 /** Máximo por salida; para grupos mayores el cliente coordina aparte. */
 const MAX_PARTY = 50;
@@ -118,6 +120,9 @@ export default function ExcursionBookingPage() {
   const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
+  const [pay, setPay] = useState<{ amount: number; bookingId: number | null }>({ amount: 0, bookingId: null });
+  const [payOn, setPayOn] = useState(false);
+  const settings = useSettings();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -190,17 +195,13 @@ export default function ExcursionBookingPage() {
     setParty((p) => ({ ...p, [key]: Math.max(band.min, p[key] + delta) }));
   };
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (status === 'sending') return;
+  // El formulario lleva noValidate, asi que `required` no lo aplica el
+  // navegador: hay que comprobarlo aqui o el telefono se colaria vacio.
+  const missingContact = () =>
+    !name.trim() || !email.trim() || !phone.trim() ? t.exBooking.missingContact : null;
 
-    // El formulario lleva noValidate, asi que `required` no lo aplica el
-    // navegador: hay que comprobarlo aqui o el telefono se colaria vacio.
-    if (!name.trim() || !email.trim() || !phone.trim()) {
-      setStatus('error');
-      setError(t.exBooking.missingContact);
-      return;
-    }
+  /** Lo que se manda al servidor, igual para la solicitud y para el cobro. */
+  const buildPayload = () => {
 
     // Los tramos van desglosados y con su rango de edad al lado: es
     // exactamente lo que el operador necesita para cotizar la salida.
@@ -258,14 +259,7 @@ export default function ExcursionBookingPage() {
       .map((b) => b.join(String.fromCharCode(10)))
       .join(String.fromCharCode(10, 10));
 
-    setStatus('sending');
-    setError('');
-
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+    return {
           name,
           email,
           phone: `${dialOf(country)} ${phone}`,
@@ -288,7 +282,33 @@ export default function ExcursionBookingPage() {
             estimate,
             notes,
           },
-        }),
+    };
+  };
+
+  const submit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (status === 'sending') return;
+    const miss = missingContact();
+    if (miss) {
+      setStatus('error');
+      setError(miss);
+      return;
+    }
+    // Si ya se registró al intentar pagar, la solicitud existe y los correos
+    // salieron: no se crea otra.
+    if (pay.bookingId != null) {
+      setStatus('sent');
+      return;
+    }
+
+    setStatus('sending');
+    setError('');
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPayload()),
       });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
@@ -622,18 +642,77 @@ export default function ExcursionBookingPage() {
                 )}
               </dl>
 
-              <MagneticButton
-                className="btn btn--primary btn--block"
-                block
-                type="submit"
-                magnetStrength={0.14}
-                disabled={status === 'sending'}
-              >
-                {status === 'sending' ? t.exBooking.sending : t.exBooking.send}
-                {status !== 'sending' && <Ico d={ARROW} />}
-              </MagneticButton>
+              {status === 'paid' || status === 'pending' ? null : estimate != null && excursion ? (
+                <PayPalCheckout
+                  amount={estimate}
+                  buildPayload={buildPayload}
+                  validate={missingContact}
+                  sending={status === 'sending'}
+                  bookingId={pay.bookingId}
+                  onReady={setPayOn}
+                  fallback={
+                    <MagneticButton
+                      className="btn btn--primary btn--block"
+                      block
+                      type="submit"
+                      magnetStrength={0.14}
+                      disabled={status === 'sending'}
+                    >
+                      {status === 'sending' ? t.exBooking.sending : t.exBooking.send}
+                      {status !== 'sending' && <Ico d={ARROW} />}
+                    </MagneticButton>
+                  }
+                  onPlainSubmit={() => submit()}
+                  onOutcome={(o) => {
+                    if (o.kind === 'paid') {
+                      setPay({ amount: o.amount, bookingId: o.bookingId });
+                      setStatus('paid');
+                    } else {
+                      setPay({ amount: estimate, bookingId: o.bookingId });
+                      setStatus('pending');
+                    }
+                  }}
+                />
+              ) : null}
+              {status !== 'paid' && status !== 'pending' && !(estimate != null && excursion) && (
+                <MagneticButton
+                  className="btn btn--primary btn--block"
+                  block
+                  type="submit"
+                  magnetStrength={0.14}
+                  disabled={status === 'sending'}
+                >
+                  {status === 'sending' ? t.exBooking.sending : t.exBooking.send}
+                  {status !== 'sending' && <Ico d={ARROW} />}
+                </MagneticButton>
+              )}
 
               <AnimatePresence mode="wait">
+                {status === 'paid' && (
+                  <motion.div key="paid" className="pay-result pay-result--ok" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+                    <strong>{t.pay.paidTitle}</strong>
+                    <p>{t.pay.paid(pay.amount, pay.bookingId ?? 0)}</p>
+                  </motion.div>
+                )}
+                {status === 'pending' && (
+                  <motion.div key="pending" className="pay-result pay-result--warn" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+                    <strong>{t.pay.pendingTitle}</strong>
+                    <p>{t.pay.pending(pay.bookingId ?? 0)}</p>
+                    <div className="pay-result__actions">
+                      <button type="button" className="btn btn--primary" onClick={() => setStatus('idle')}>
+                        {t.pay.retry}
+                      </button>
+                      <a
+                        className="btn btn--ghost-dark"
+                        href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(t.pay.whatsappText(pay.bookingId ?? 0))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {t.pay.whatsapp}
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
                 {status === 'sent' && (
                   <motion.p
                     key="ok"
@@ -663,7 +742,7 @@ export default function ExcursionBookingPage() {
                 )}
               </AnimatePresence>
 
-              <p className="bcard__fine">{t.exBooking.fine}</p>
+              <p className="bcard__fine">{payOn && status !== 'paid' ? t.pay.fine : t.exBooking.fine}</p>
             </div>
           </aside>
         </form>

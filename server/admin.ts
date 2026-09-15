@@ -627,6 +627,7 @@ adminRouter.put('/settings', (req: AdminRequest, res) => {
 
 const BOOKING_STATUSES = ['nueva', 'contestada', 'confirmada', 'cancelada'] as const;
 const BOOKING_KINDS = ['traslado', 'excursion', 'contacto'] as const;
+const PAYMENT_STATUSES = ['pendiente', 'pagada', 'fallida'] as const;
 
 /** Cuántas hay en cada estado: el menú lateral enseña las "nueva". */
 adminRouter.get('/bookings/counts', (_req, res) => {
@@ -642,6 +643,7 @@ adminRouter.get('/bookings/counts', (_req, res) => {
 adminRouter.get('/bookings', (req, res) => {
   const status = String(req.query.status ?? '');
   const kind = String(req.query.kind ?? '');
+  const payment = String(req.query.payment ?? '');
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 25));
   const page = Math.max(1, Number(req.query.page) || 1);
 
@@ -654,6 +656,10 @@ adminRouter.get('/bookings', (req, res) => {
   if ((BOOKING_KINDS as readonly string[]).includes(kind)) {
     where.push('kind = ?');
     args.push(kind);
+  }
+  if ((PAYMENT_STATUSES as readonly string[]).includes(payment)) {
+    where.push('payment_status = ?');
+    args.push(payment);
   }
   const sql = where.length ? ` WHERE ${where.join(' AND ')}` : '';
 

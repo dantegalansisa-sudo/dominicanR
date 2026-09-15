@@ -10,8 +10,8 @@ export const bookingStore: BookingStore = {
   save(b: NewBooking) {
     const r = db
       .prepare(
-        `INSERT INTO bookings (kind, name, email, phone, lang, date, message, payload)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO bookings (kind, name, email, phone, lang, date, message, payload, payment_status, amount, paypal_order_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         b.kind,
@@ -22,6 +22,9 @@ export const bookingStore: BookingStore = {
         b.date,
         b.message,
         b.payload === undefined ? null : JSON.stringify(b.payload),
+        b.payment?.status ?? 'pendiente',
+        b.payment?.amount ?? null,
+        b.payment?.orderId ?? null,
       );
     return Number(r.lastInsertRowid);
   },

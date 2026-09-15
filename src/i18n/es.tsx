@@ -256,6 +256,23 @@ export const es = {
     stopLine: 'Paradas adicionales',
   },
 
+  pay: {
+    title: 'Pagar ahora con PayPal',
+    total: (a: number) => `Total US$${a}`,
+    lead: 'Pago seguro con tu cuenta de PayPal o con tarjeta. Sin cargos extra.',
+    orPlain: 'o enviar la solicitud sin pagar',
+    loading: 'Cargando PayPal…',
+    paidTitle: '¡Pago recibido!',
+    paid: (a: number, id: number) => `Cobramos US$${a}. Tu reserva #${id} queda confirmada; te llega el comprobante por correo.`,
+    pendingTitle: 'El pago no se completó',
+    pending: (id: number) => `Tu reserva #${id} quedó registrada como pendiente. Puedes intentar el pago de nuevo o escribirnos y lo cerramos contigo.`,
+    retry: 'Intentar de nuevo',
+    whatsapp: 'Escribirnos por WhatsApp',
+    whatsappText: (id: number) => `Hola, tengo la reserva #${id} pendiente de pago en la web y quiero cerrarla.`,
+    error: 'No pudimos iniciar el pago. Revisa tus datos e inténtalo de nuevo.',
+    fine: 'Si pagas ahora, tu reserva queda confirmada al momento. Si prefieres, envía la solicitud y te mandamos el precio cerrado por correo.',
+  },
+
   carousel: {
     role: 'carrusel',
     photosOf: (name: string) => `Fotos de ${name}`,

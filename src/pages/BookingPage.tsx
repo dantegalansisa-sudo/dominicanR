@@ -4,6 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
+import PayPalCheckout from '../components/PayPalCheckout';
+import { useSettings } from '../catalog/CatalogProvider';
 import { suggestVehicle } from '../components/PassengersField';
 import { quote } from '../data/pricing';
 import { fetchDistance } from '../utils/googlePlaces';
@@ -38,7 +40,7 @@ export interface BookingSeed {
   vehicle?: string;
 }
 
-type Status = 'idle' | 'sending' | 'sent' | 'error';
+type Status = 'idle' | 'sending' | 'sent' | 'error' | 'paid' | 'pending';
 
 const Ico = ({
   d,
@@ -124,6 +126,7 @@ export default function BookingPage() {
   const extrasCat = useExtrasCatalog();
   const extrasEs = useCatalog().extras;
   const uiDate = (iso: string) => prettyDateT(lang, iso);
+  const settings = useSettings();
 
   const [origin, setOrigin] = useState<PlaceValue>(seed.origin ?? emptyPlace());
   const [destination, setDestination] = useState<PlaceValue>(
@@ -150,6 +153,8 @@ export default function BookingPage() {
   const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
+  const [pay, setPay] = useState<{ amount: number; bookingId: number | null }>({ amount: 0, bookingId: null });
+  const [payOn, setPayOn] = useState(false);
   const [km, setKm] = useState<number | null>(null);
   const [pricing, setPricing] = useState<'idle' | 'loading' | 'ready' | 'none'>('idle');
 
@@ -224,17 +229,13 @@ export default function BookingPage() {
   const originMap = placeMapsUrl(origin);
   const destMap = placeMapsUrl(destination);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (status === 'sending') return;
+  // El formulario lleva noValidate, asi que `required` no lo aplica el
+  // navegador: hay que comprobarlo aqui o el telefono se colaria vacio.
+  const missingContact = () =>
+    !name.trim() || !email.trim() || !phone.trim() ? t.booking.missingContact : null;
 
-    // El formulario lleva noValidate, asi que `required` no lo aplica el
-    // navegador: hay que comprobarlo aqui o el telefono se colaria vacio.
-    if (!name.trim() || !email.trim() || !phone.trim()) {
-      setStatus('error');
-      setError(t.booking.missingContact);
-      return;
-    }
+  /** Lo que se manda al servidor, igual para la solicitud y para el cobro. */
+  const buildPayload = () => {
 
     const blocks = [
       [
@@ -301,14 +302,7 @@ export default function BookingPage() {
       String.fromCharCode(10, 10),
     );
 
-    setStatus('sending');
-    setError('');
-
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+    return {
           name,
           email,
           phone: `${dialOf(country)} ${phone}`,
@@ -336,7 +330,33 @@ export default function BookingPage() {
             extrasTotal: extrasSum,
             notes,
           },
-        }),
+    };
+  };
+
+  const submit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (status === 'sending') return;
+    const miss = missingContact();
+    if (miss) {
+      setStatus('error');
+      setError(miss);
+      return;
+    }
+    // Si ya se registró al intentar pagar, la solicitud existe y los correos
+    // salieron: no se crea otra.
+    if (pay.bookingId != null) {
+      setStatus('sent');
+      return;
+    }
+
+    setStatus('sending');
+    setError('');
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPayload()),
       });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
@@ -772,18 +792,80 @@ export default function BookingPage() {
                 )}
               </dl>
 
-              <MagneticButton
-                className="btn btn--primary btn--block"
-                block
-                type="submit"
-                magnetStrength={0.14}
-                disabled={status === 'sending'}
-              >
-                {status === 'sending' ? t.booking.sending : t.booking.send}
-                {status !== 'sending' && <Ico d={ARROW} />}
-              </MagneticButton>
+              {/* Con precio cerrado se puede pagar aquí mismo; sin él, solo
+                  se pide presupuesto. Pagada o pendiente, el bloque de abajo
+                  sustituye a los botones. */}
+              {status === 'paid' || status === 'pending' ? null : chosenQuote ? (
+                <PayPalCheckout
+                  amount={chosenQuote.total + extrasSum}
+                  buildPayload={buildPayload}
+                  validate={missingContact}
+                  sending={status === 'sending'}
+                  bookingId={pay.bookingId}
+                  onReady={setPayOn}
+                  fallback={
+                    <MagneticButton
+                      className="btn btn--primary btn--block"
+                      block
+                      type="submit"
+                      magnetStrength={0.14}
+                      disabled={status === 'sending'}
+                    >
+                      {status === 'sending' ? t.booking.sending : t.booking.send}
+                      {status !== 'sending' && <Ico d={ARROW} />}
+                    </MagneticButton>
+                  }
+                  onPlainSubmit={() => submit()}
+                  onOutcome={(o) => {
+                    if (o.kind === 'paid') {
+                      setPay({ amount: o.amount, bookingId: o.bookingId });
+                      setStatus('paid');
+                    } else {
+                      setPay({ amount: chosenQuote.total + extrasSum, bookingId: o.bookingId });
+                      setStatus('pending');
+                    }
+                  }}
+                />
+              ) : null}
+              {status !== 'paid' && status !== 'pending' && !chosenQuote && (
+                <MagneticButton
+                  className="btn btn--primary btn--block"
+                  block
+                  type="submit"
+                  magnetStrength={0.14}
+                  disabled={status === 'sending'}
+                >
+                  {status === 'sending' ? t.booking.sending : t.booking.send}
+                  {status !== 'sending' && <Ico d={ARROW} />}
+                </MagneticButton>
+              )}
 
               <AnimatePresence mode="wait">
+                {status === 'paid' && (
+                  <motion.div key="paid" className="pay-result pay-result--ok" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+                    <strong>{t.pay.paidTitle}</strong>
+                    <p>{t.pay.paid(pay.amount, pay.bookingId ?? 0)}</p>
+                  </motion.div>
+                )}
+                {status === 'pending' && (
+                  <motion.div key="pending" className="pay-result pay-result--warn" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+                    <strong>{t.pay.pendingTitle}</strong>
+                    <p>{t.pay.pending(pay.bookingId ?? 0)}</p>
+                    <div className="pay-result__actions">
+                      <button type="button" className="btn btn--primary" onClick={() => setStatus('idle')}>
+                        {t.pay.retry}
+                      </button>
+                      <a
+                        className="btn btn--ghost-dark"
+                        href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(t.pay.whatsappText(pay.bookingId ?? 0))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {t.pay.whatsapp}
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
                 {status === 'sent' && (
                   <motion.p
                     key="ok"
@@ -813,7 +895,7 @@ export default function BookingPage() {
                 )}
               </AnimatePresence>
 
-              <p className="bcard__fine">{t.booking.fine}</p>
+              <p className="bcard__fine">{payOn && status !== 'paid' ? t.pay.fine : t.booking.fine}</p>
             </div>
           </aside>
         </form>

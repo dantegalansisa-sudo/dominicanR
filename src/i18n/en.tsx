@@ -254,6 +254,23 @@ export const en: typeof es = {
     stopLine: 'Extra stops',
   },
 
+  pay: {
+    title: 'Pay now with PayPal',
+    total: (a: number) => `Total US$${a}`,
+    lead: 'Secure payment with your PayPal account or a card. No extra fees.',
+    orPlain: 'or send the request without paying',
+    loading: 'Loading PayPal…',
+    paidTitle: 'Payment received!',
+    paid: (a: number, id: number) => `We charged US$${a}. Your booking #${id} is confirmed; the receipt is on its way to your email.`,
+    pendingTitle: 'The payment did not go through',
+    pending: (id: number) => `Your booking #${id} is saved as pending. You can try the payment again or message us and we will close it with you.`,
+    retry: 'Try again',
+    whatsapp: 'Message us on WhatsApp',
+    whatsappText: (id: number) => `Hi, I have booking #${id} pending payment on the website and would like to complete it.`,
+    error: 'We could not start the payment. Check your details and try again.',
+    fine: 'Pay now and your booking is confirmed right away. Or send the request and we email you the fixed price.',
+  },
+
   carousel: {
     role: 'carousel',
     photosOf: (name: string) => `Photos of ${name}`,

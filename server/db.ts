@@ -135,47 +135,6 @@ export function migrate() {
       target  TEXT NOT NULL,
       before  TEXT
     );
-  `);
-
-  // Columnas en inglés, añadidas después de la primera versión. ADD COLUMN
-  // no admite IF NOT EXISTS en SQLite, así que se mira antes qué hay.
-  addColumns('excursions', {
-    name_en: 'TEXT',
-    duration_en: 'TEXT',
-    description_en: 'TEXT',
-    includes_en: 'TEXT',
-    activities_en: 'TEXT',
-    tickets_en: 'TEXT',
-  });
-  addColumns('vehicles', {
-    name_en: 'TEXT',
-    type_en: 'TEXT',
-    summary_en: 'TEXT',
-    features_en: 'TEXT',
-  });
-
-  // Precios por vehículo como JSON {slug: importe}. Las cuatro columnas
-  // fijas se quedan por compatibilidad y se copian a la nueva la primera vez.
-  // Precio por niño de cada excursión. La primera vez se rellena con 65 US$
-  // en las que admiten niños (cifra provisional: el cliente la ajusta desde
-  // el panel); después se respeta lo que haya, también el vacío.
-  addColumns('excursions', { child_price: 'REAL' });
-  if (!db.prepare("SELECT 1 FROM settings WHERE key = 'child_price_seeded'").get()) {
-    db.exec(`
-      UPDATE excursions SET child_price = 65 WHERE child_price IS NULL AND adults_only = 0;
-      INSERT OR REPLACE INTO settings (key, value) VALUES ('child_price_seeded', '1');
-    `);
-  }
-
-  addColumns('price_brackets', { prices: 'TEXT' });
-  addColumns('route_surcharges', { prices: 'TEXT' });
-  db.exec(`
-    UPDATE price_brackets SET prices = json_object(
-      'sedan', sedan, 'minivan', minivan, 'minibus', minibus, 'vip-luxury', vip
-    ) WHERE prices IS NULL;
-    UPDATE route_surcharges SET prices = json_object(
-      'sedan', sedan, 'minivan', minivan, 'minibus', minibus, 'vip-luxury', vip
-    ) WHERE prices IS NULL;
 
     -- Cada solicitud que llega por la web (traslado, excursión o contacto),
     -- guardada antes de enviar el correo. email_sent dice si el aviso al
@@ -215,6 +174,60 @@ export function migrate() {
       position  INTEGER NOT NULL DEFAULT 0,
       visible   INTEGER NOT NULL DEFAULT 1
     );
+  `);
+
+  // Columnas en inglés, añadidas después de la primera versión. ADD COLUMN
+  // no admite IF NOT EXISTS en SQLite, así que se mira antes qué hay.
+  addColumns('excursions', {
+    name_en: 'TEXT',
+    duration_en: 'TEXT',
+    description_en: 'TEXT',
+    includes_en: 'TEXT',
+    activities_en: 'TEXT',
+    tickets_en: 'TEXT',
+  });
+  addColumns('vehicles', {
+    name_en: 'TEXT',
+    type_en: 'TEXT',
+    summary_en: 'TEXT',
+    features_en: 'TEXT',
+  });
+
+  // Precios por vehículo como JSON {slug: importe}. Las cuatro columnas
+  // fijas se quedan por compatibilidad y se copian a la nueva la primera vez.
+  // Precio por niño de cada excursión. La primera vez se rellena con 65 US$
+  // en las que admiten niños (cifra provisional: el cliente la ajusta desde
+  // el panel); después se respeta lo que haya, también el vacío.
+  addColumns('excursions', { child_price: 'REAL' });
+  if (!db.prepare("SELECT 1 FROM settings WHERE key = 'child_price_seeded'").get()) {
+    db.exec(`
+      UPDATE excursions SET child_price = 65 WHERE child_price IS NULL AND adults_only = 0;
+      INSERT OR REPLACE INTO settings (key, value) VALUES ('child_price_seeded', '1');
+    `);
+  }
+
+  // Cobro online (PayPal). Toda reserva nace "pendiente"; pasa a "pagada"
+  // solo cuando PayPal confirma la captura, y a "fallida" si la rechaza.
+  addColumns('bookings', {
+    payment_status: 'TEXT',
+    paypal_order_id: 'TEXT',
+    paypal_capture_id: 'TEXT',
+    amount: 'REAL',
+    paid_amount: 'REAL',
+    paid_at: 'TEXT',
+  });
+  db.exec("UPDATE bookings SET payment_status = 'pendiente' WHERE payment_status IS NULL");
+
+  addColumns('price_brackets', { prices: 'TEXT' });
+  addColumns('route_surcharges', { prices: 'TEXT' });
+  db.exec(`
+    UPDATE price_brackets SET prices = json_object(
+      'sedan', sedan, 'minivan', minivan, 'minibus', minibus, 'vip-luxury', vip
+    ) WHERE prices IS NULL;
+    UPDATE route_surcharges SET prices = json_object(
+      'sedan', sedan, 'minivan', minivan, 'minibus', minibus, 'vip-luxury', vip
+    ) WHERE prices IS NULL;
+
   `);
 }
 

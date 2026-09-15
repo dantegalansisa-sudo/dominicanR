@@ -3609,6 +3609,107 @@ ul {
   display: inline-flex;
 }
 
+/* ---------- pago con PayPal ---------- */
+
+.paypal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.paypal__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 19px;
+  color: var(--white);
+}
+
+.paypal__total {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--coral-soft, #f0a58f);
+}
+
+.paypal__lead,
+.paypal__loading {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 6px;
+}
+
+.paypal__buttons {
+  /* El SDK pinta sus botones aqui; el ancho lo da el contenedor. */
+  min-height: 48px;
+}
+
+.paypal__error {
+  margin-top: 4px;
+}
+
+/* El camino sin cobro, discreto debajo de PayPal. */
+.paypal__plain {
+  align-self: center;
+  margin-top: 6px;
+  background: none;
+  border: 0;
+  padding: 6px 4px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.paypal__plain:hover {
+  color: var(--white);
+}
+
+.pay-result {
+  border-radius: 14px;
+  padding: 16px 18px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.pay-result strong {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 19px;
+  margin-bottom: 4px;
+}
+
+.pay-result--ok {
+  background: rgba(46, 160, 100, 0.18);
+  border: 1px solid rgba(46, 160, 100, 0.5);
+  color: var(--white);
+}
+
+.pay-result--warn {
+  background: rgba(var(--coral-rgb), 0.14);
+  border: 1px solid rgba(var(--coral-rgb), 0.45);
+  color: var(--white);
+}
+
+.pay-result__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.pay-result__actions .btn {
+  justify-content: center;
+}
+
+.pay-result__actions .btn--ghost-dark {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: var(--white);
+}
+
 /* ---------- adicionales ---------- */
 
 .extras {

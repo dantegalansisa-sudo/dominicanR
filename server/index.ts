@@ -8,6 +8,7 @@ import { buildCatalog } from './catalog.ts';
 import { adminRouter } from './admin.ts';
 import { handleContact } from '../api/_contact.ts';
 import { bookingStore } from './bookings.ts';
+import { payRouter } from './payments.ts';
 import { handlePlaces } from '../api/_places.ts';
 
 /**
@@ -15,6 +16,15 @@ import { handlePlaces } from '../api/_places.ts';
  * lógica: los manejadores de contacto y de Google ya recibían un objeto y
  * devolvían { status, body }, así que se montan tal cual.
  */
+
+// En local las variables salen del .env de la raíz (copia de .env.example);
+// en el VPS las pone Dokploy y no hay archivo, así que se ignora si falta.
+// No pisa lo que ya venga en el entorno.
+try {
+  process.loadEnvFile();
+} catch {
+  // sin .env
+}
 
 const PORT = Number(process.env.PORT ?? 3000);
 
@@ -54,6 +64,7 @@ app.get('/api/catalog', (_req, res) => {
   }
 });
 
+app.use('/api/pay', payRouter);
 app.use('/api/admin', adminRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
