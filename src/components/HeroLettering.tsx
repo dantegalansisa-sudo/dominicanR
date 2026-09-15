@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { MotionStyle } from 'framer-motion';
 import { EASINGS } from '../utils/easings';
@@ -11,8 +11,8 @@ import { EASINGS } from '../utils/easings';
  *  - `mask`: una ilustración PNG (letras dibujadas a mano) que recorta el
  *    vídeo, como el "PUNTA CANA" original. Es la vía para los lettering por
  *    encargo: basta con añadir la ruta del PNG y el resto no cambia.
- *  - sin `mask`: la palabra se compone con la fuente (Anton) y se recorta el
- *    vídeo con un clipPath SVG del propio texto.
+ *  - sin `mask`: la palabra se compone con la fuente (Anton), se dibuja en un
+ *    canvas y esa imagen hace de máscara, igual que la dibujada.
  */
 
 export interface Province {
@@ -137,6 +137,42 @@ function fitFont(word: string, w: number, h: number, ready: boolean): Fit {
   return twoLines.size > single.size ? twoLines : single;
 }
 
+/**
+ * Dibuja la palabra en blanco sobre transparente, al tamaño de la caja y a la
+ * resolución de la pantalla, y la devuelve como PNG. Se usa igual que la
+ * máscara dibujada: `mask-image` funciona sobre <video> en todos los
+ * navegadores, incluido Safari en iPhone, mientras que `clip-path: url()`
+ * con un <text> SVG ahí no se aplica y las palabras no se veían.
+ */
+function wordMask(w: number, h: number, fit: Fit): string | null {
+  if (!w || !h || !fit.size) return null;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#fff';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = `${fit.size}px ${FONT}`;
+  const x = w * 0.01;
+  for (const line of fit.lines) {
+    ctx.save();
+    if (fit.textLength) {
+      // Comprimida: el mismo estrechamiento que hacía textLength en SVG.
+      const natural = ctx.measureText(line.text).width || 1;
+      ctx.translate(x, line.baseline);
+      ctx.scale(fit.textLength / natural, 1);
+      ctx.fillText(line.text, 0, 0);
+    } else {
+      ctx.fillText(line.text, x, line.baseline);
+    }
+    ctx.restore();
+  }
+  return canvas.toDataURL('image/png');
+}
+
 function Slide({
   p,
   w,
@@ -152,8 +188,12 @@ function Slide({
   playing: boolean;
   reduced: boolean;
 }) {
-  const clipId = useId().replace(/:/g, '');
-  const fit = p.mask ? null : fitFont(p.word, w, h, fontReady);
+  // La máscara se calcula una vez por tamaño de caja y estado de la fuente.
+  const mask = useMemo(() => {
+    if (p.mask) return p.mask;
+    const fit = fitFont(p.word, w, h, fontReady);
+    return wordMask(w, h, fit);
+  }, [p, w, h, fontReady]);
 
   return (
     <motion.div
@@ -163,42 +203,9 @@ function Slide({
       exit={{ opacity: 0, transition: { duration: 0.55, ease: EASINGS.smooth } }}
       transition={{ duration: 0.95, ease: EASINGS.premium }}
     >
-      {!p.mask && fit && w > 0 && (
-        <svg className="hero__clip-defs" aria-hidden="true">
-          <defs>
-            <clipPath id={clipId} clipPathUnits="objectBoundingBox">
-              {/* En unidades de la caja (0..1): se compone en píxeles y se
-                  escala, que es más fácil que pensar en fracciones. */}
-              <text
-                transform={`scale(${1 / w} ${1 / h})`}
-                fontFamily={FONT}
-                fontSize={fit.size}
-                fontWeight={400}
-                letterSpacing={fit.size * 0.01}
-                {...(fit.textLength
-                  ? { x: w * 0.01, y: fit.lines[0]!.baseline, textLength: fit.textLength, lengthAdjust: 'spacingAndGlyphs' as const }
-                  : {})}
-              >
-                {fit.textLength
-                  ? fit.lines[0]!.text
-                  : fit.lines.map((l) => (
-                      <tspan key={l.text} x={w * 0.01} y={l.baseline}>
-                        {l.text}
-                      </tspan>
-                    ))}
-              </text>
-            </clipPath>
-          </defs>
-        </svg>
-      )}
-
       <div
-        className={`hero__slide-media${p.mask ? ' hero__slide-media--mask' : ''}`}
-        style={
-          p.mask
-            ? { maskImage: `url(${p.mask})`, WebkitMaskImage: `url(${p.mask})` }
-            : { clipPath: `url(#${clipId})` }
-        }
+        className={`hero__slide-media${p.mask ? ' hero__slide-media--drawn' : ''}`}
+        style={mask ? { maskImage: `url(${mask})`, WebkitMaskImage: `url(${mask})` } : { opacity: 0 }}
       >
         <video
           key={p.id}

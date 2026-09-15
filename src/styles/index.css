@@ -553,27 +553,24 @@ ul {
   inset: 0;
 }
 
-.hero__clip-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
+/* El video siempre va enmascarado: con la palabra generada (del tamano exacto
+   de la caja) o con el dibujo. */
 .hero__slide-media {
   position: absolute;
   inset: 0;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
 }
 
 /* La mascara dibujada guarda su proporcion (la de Punta Cana es 3,56:1) y se
    centra en la caja: estirarla deformaria el trazo. */
-.hero__slide-media--mask {
+.hero__slide-media--drawn {
   mask-size: 100% auto;
   -webkit-mask-size: 100% auto;
   mask-position: left center;
   -webkit-mask-position: left center;
-  mask-repeat: no-repeat;
-  -webkit-mask-repeat: no-repeat;
 }
 
 .hero__slide-media video {
