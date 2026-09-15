@@ -4,30 +4,6 @@ import RevealText from './RevealText';
 import SearchBar from './SearchBar';
 import { EASINGS } from '../utils/easings';
 import { useLang } from '../i18n';
-import { useCatalog } from '../catalog/CatalogProvider';
-
-const StarIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8L12 3Z" />
-  </svg>
-);
-
-const RouteIcon = () => (
-  <svg
-    width="13"
-    height="13"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.9"
-    strokeLinecap="round"
-    aria-hidden="true"
-  >
-    <circle cx="6" cy="18" r="2.6" />
-    <circle cx="18" cy="6" r="2.6" />
-    <path d="M8.6 18h5.4a3.4 3.4 0 0 0 0-6.8h-4a3.4 3.4 0 0 1 0-6.8h5.4" />
-  </svg>
-);
 
 export default function Hero() {
   // Pixel-driven so the parallax behaves before the page is tall enough to
@@ -36,14 +12,6 @@ export default function Hero() {
   const [still, setStill] = useState(false);
   const { scrollY } = useScroll();
   const { t } = useLang();
-  const { excursions: EXCURSIONS, fleet: FLEET } = useCatalog();
-
-  // Derived from the real catalogue — nothing here is a made-up figure.
-  const AVG_RATING = EXCURSIONS.reduce((sum, e) => sum + e.rating, 0) / EXCURSIONS.length;
-  const TOTAL_REVIEWS = EXCURSIONS.reduce(
-    (sum, e) => sum + Number(String(e.reviews).replace(/[^0-9]/g, '')),
-    0,
-  );
 
   useEffect(() => {
     const measure = () => setVh(window.innerHeight);
@@ -82,20 +50,9 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15, ease: EASINGS.premium }}
           >
+            {/* Los chips de cifras y la frase de apoyo se fueron al pie, a
+                peticion del cliente: el hero se queda con las tres lineas. */}
             <p className="eyebrow hero__eyebrow">{t.hero.eyebrow}</p>
-
-            <div className="hero__chips">
-              <span className="chip">
-                <StarIcon />
-                <strong>{AVG_RATING.toFixed(1)}</strong> {t.hero.ofFive} ·{' '}
-                {TOTAL_REVIEWS.toLocaleString(t.locale)}+ {t.hero.reviews}
-              </span>
-              <span className="chip">
-                <RouteIcon />
-                <strong>{EXCURSIONS.length}</strong> {t.hero.excursions} · {FLEET.length}{' '}
-                {t.hero.vehicles}
-              </span>
-            </div>
           </motion.div>
 
           <h1 className="hero__headline">
@@ -109,15 +66,6 @@ export default function Hero() {
               >
                 {t.hero.open}
               </RevealText>
-
-              <motion.span
-                className="hero__sub"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.2, ease: EASINGS.premium }}
-              >
-                {t.hero.sub}
-              </motion.span>
             </span>
 
             <motion.span

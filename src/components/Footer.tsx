@@ -49,6 +49,7 @@ export default function Footer() {
               height={215}
             />
             <p className="footer__tagline">{t.footer.tagline}</p>
+            <p className="footer__blurb">{t.footer.blurb}</p>
           </div>,
 
           <nav key="nav" aria-label={t.footer.navAria}>

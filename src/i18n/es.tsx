@@ -29,12 +29,7 @@ export const es = {
 
   hero: {
     eyebrow: 'Punta Cana · República Dominicana',
-    ofFive: 'de 5',
-    reviews: 'reseñas',
-    excursions: 'excursiones',
-    vehicles: 'vehículos',
     open: 'Descubre',
-    sub: 'Traslados privados y excursiones diseñadas para que solo te preocupes por disfrutar.',
     close: 'como se debe vivir',
   },
 
@@ -220,6 +215,7 @@ export const es = {
 
   footer: {
     tagline: 'Tu aventura comienza aquí.',
+    blurb: 'Traslados privados y excursiones diseñadas para que solo te preocupes por disfrutar.',
     navAria: 'Pie de página',
     navigation: 'Navegación',
     contact: 'Contacto',

@@ -28,12 +28,7 @@ export const en: typeof es = {
 
   hero: {
     eyebrow: 'Punta Cana · Dominican Republic',
-    ofFive: 'out of 5',
-    reviews: 'reviews',
-    excursions: 'excursions',
-    vehicles: 'vehicles',
     open: 'Discover',
-    sub: 'Private transfers and excursions designed so the only thing you worry about is enjoying yourself.',
     close: 'the way it should be lived',
   },
 
@@ -218,6 +213,7 @@ export const en: typeof es = {
 
   footer: {
     tagline: 'Your adventure starts here.',
+    blurb: 'Private transfers and excursions designed so the only thing you worry about is enjoying yourself.',
     navAria: 'Footer',
     navigation: 'Navigation',
     contact: 'Contact',
