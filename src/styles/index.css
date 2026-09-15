@@ -565,9 +565,13 @@ ul {
   inset: 0;
 }
 
+/* La mascara dibujada guarda su proporcion (la de Punta Cana es 3,56:1) y se
+   centra en la caja: estirarla deformaria el trazo. */
 .hero__slide-media--mask {
-  mask-size: 100% 100%;
-  -webkit-mask-size: 100% 100%;
+  mask-size: 100% auto;
+  -webkit-mask-size: 100% auto;
+  mask-position: left center;
+  -webkit-mask-position: left center;
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
 }

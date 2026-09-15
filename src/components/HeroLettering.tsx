@@ -34,16 +34,21 @@ const V = (id: string) => ({
 });
 
 export const PROVINCES: Province[] = [
+  // Punta Cana conserva su lettering dibujado a mano (la máscara original).
+  {
+    id: 'punta-cana',
+    word: 'PUNTA CANA',
+    videoLg: '/video/punta-cana-lg.mp4',
+    videoSm: '/video/punta-cana-sm.mp4',
+    poster: '/images/punta-cana-poster.jpg',
+    mask: '/images/punta-cana-mask.png',
+  },
   { id: 'higuey', word: 'HIGÜEY', ...V('higuey') },
   { id: 'la-romana', word: 'LA ROMANA', ...V('la-romana') },
   { id: 'pedernales', word: 'PEDERNALES', ...V('pedernales') },
   { id: 'puerto-plata', word: 'PUERTO PLATA', ...V('puerto-plata') },
   { id: 'samana', word: 'SAMANÁ', ...V('samana') },
   { id: 'santo-domingo', word: 'SANTO DOMINGO', ...V('santo-domingo') },
-  // Así entraría un lettering dibujado (el de Punta Cana sigue en /images):
-  // { id: 'punta-cana', word: 'PUNTA CANA', videoLg: '/video/punta-cana-lg.mp4',
-  //   videoSm: '/video/punta-cana-sm.mp4', poster: '/images/punta-cana-poster.jpg',
-  //   mask: '/images/punta-cana-mask.png' },
 ];
 
 /** Lo que se queda cada provincia antes de dar paso a la siguiente. */
