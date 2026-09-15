@@ -103,7 +103,7 @@ adminRouter.post('/excursions', (req: AdminRequest, res) => {
     (db.prepare('SELECT MAX(position) AS m FROM excursions').get() as { m: number | null }).m ?? -1;
 
   db.prepare(
-    `INSERT INTO excursions (slug, name, category, position) VALUES (?, ?, ?, ?)`,
+    `INSERT INTO excursions (slug, name, category, position, child_price) VALUES (?, ?, ?, ?, 65)`,
   ).run(slug, name, String(req.body?.category ?? 'islas'), maxPos + 1);
 
   audit(req.admin!, 'crear', `excursion:${slug}`);
@@ -118,6 +118,7 @@ const EXCURSION_FIELDS = [
   'reviews',
   'duration',
   'description',
+  'child_price',
   'name_en',
   'duration_en',
   'description_en',

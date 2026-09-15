@@ -25,6 +25,7 @@ interface ExcursionRow {
   duration: string;
   description: string;
   adults_only: number;
+  child_price: number | null;
   includes: string;
   activities: string;
   departures: string;
@@ -81,6 +82,7 @@ export function buildCatalog() {
     duration: e.duration,
     description: e.description,
     ...(e.adults_only ? { adultsOnly: true } : {}),
+    childPrice: e.adults_only ? null : e.child_price,
     includes: parse<string[]>(e.includes, []),
     activities: parse<string[]>(e.activities, []),
     departures: parse<string[]>(e.departures, []),

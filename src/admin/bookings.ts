@@ -36,6 +36,9 @@ export interface ExcursionPayload {
   room?: string;
   party?: { adults: number; children: number; infants: number };
   adultsOnly?: boolean;
+  adultPrice?: number | null;
+  childPrice?: number | null;
+  estimate?: number | null;
   notes?: string;
 }
 
@@ -80,6 +83,7 @@ export function bookingPrice(b: BookingRow): number | null {
   }
   if (b.kind === 'excursion') {
     const e = p as ExcursionPayload;
+    if (typeof e.estimate === 'number') return e.estimate;
     if (!e.ticket) return null;
     const n = (e.party?.adults ?? 0) + (e.party?.children ?? 0);
     return e.ticket.price * (n || 1);

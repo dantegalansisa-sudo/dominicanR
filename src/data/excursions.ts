@@ -28,6 +28,12 @@ export interface Excursion {
   category: Exclude<CategoryId, 'todas'>;
   /** null = "Consultar": el cliente cotiza esa excursion a medida. */
   price: number | null;
+  /**
+   * Precio por nino (5 a 10 anos). Sale de la base; en los datos empaquetados
+   * se rellena con CHILD_PRICE_DEFAULT para las que admiten ninos. null =
+   * a consultar. Los infantes no pagan.
+   */
+  childPrice?: number | null;
   rating: number;
   reviews: string;
   duration: string;
@@ -69,6 +75,12 @@ export interface Excursion {
  * Precio "desde" que se muestra. Con entradas manda la mas barata: si no, la
  * tarjeta anunciaria una cifra que ningun paquete cumple.
  */
+/**
+ * Precio por nino provisional para todas las excursiones que admiten ninos.
+ * No es real: el cliente lo ajusta desde el panel excursion por excursion.
+ */
+export const CHILD_PRICE_DEFAULT = 65;
+
 export function fromPrice(e: Excursion): number | null {
   if (e.tickets && e.tickets.length > 0) {
     return Math.min(...e.tickets.map((t) => t.price));

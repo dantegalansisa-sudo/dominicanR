@@ -166,9 +166,20 @@ export default function ExcursionBookingPage() {
 
   // Con barra libre el tramo de adultos no es el del catalogo, que empieza a
   // los 11: decir "solo para mayores" y debajo "11 anos o mas" se contradice.
+  // Precio unitario: el de la entrada elegida (o la más barata) para adultos y
+  // el de niño de la ficha. Ninguno es obligatorio; sin ellos no hay estimado.
+  const adultUnit = chosenTicket ? chosenTicket.price : excursion ? fromPrice(excursion) : null;
+  const childUnit = adultsOnly ? null : (excursion?.childPrice ?? null);
+  const estimate =
+    excursion && adultUnit != null && (party.children === 0 || childUnit != null)
+      ? adultUnit * party.adults + (childUnit ?? 0) * party.children
+      : null;
+
   const bands = adultsOnly
     ? [{ ...BANDS[0]!, hint: t.passengers.adultsOnlyHint }]
-    : BANDS;
+    : BANDS.map((b) =>
+        b.key === 'children' && childUnit != null ? { ...b, hint: `${b.hint} · ${t.exBooking.perChild(childUnit)}` } : b,
+      );
   const total = partyTotal(party);
   const atMax = total >= MAX_PARTY;
   const pickupMap = placeMapsUrl(pickup);
@@ -230,6 +241,16 @@ export default function ExcursionBookingPage() {
             `  ${AGE_BANDS.children.label} (${AGE_BANDS.children.hint}): ${party.children}`,
             `  ${AGE_BANDS.infants.label} (${AGE_BANDS.infants.hint}): ${party.infants}`,
           ],
+      ...(estimate != null
+        ? [
+            [
+              `Precio estimado por la web: US$${estimate}`,
+              `  ${party.adults} × US$${adultUnit} por adulto${
+                party.children ? ` + ${party.children} × US$${childUnit} por niño` : ''
+              }${party.infants ? ` (${party.infants} infante${party.infants > 1 ? 's' : ''} sin cargo)` : ''}`,
+            ],
+          ]
+        : []),
       ...(notes ? [[`Notas: ${notes}`]] : []),
     ];
 
@@ -262,6 +283,9 @@ export default function ExcursionBookingPage() {
             room,
             party,
             adultsOnly,
+            adultPrice: adultUnit,
+            childPrice: childUnit,
+            estimate,
             notes,
           },
         }),
@@ -586,6 +610,16 @@ export default function ExcursionBookingPage() {
                   <dt>{t.exBooking.passengersRow}</dt>
                   <dd>{partyLabelT(t, party)}</dd>
                 </div>
+                {estimate != null && (
+                  <div>
+                    <dt>{t.exBooking.estimate}</dt>
+                    <dd>
+                      US${estimate}
+                      <br />
+                      <span className="summary__fine">{t.exBooking.estimateNote}</span>
+                    </dd>
+                  </div>
+                )}
               </dl>
 
               <MagneticButton

@@ -156,6 +156,17 @@ export function migrate() {
 
   // Precios por vehículo como JSON {slug: importe}. Las cuatro columnas
   // fijas se quedan por compatibilidad y se copian a la nueva la primera vez.
+  // Precio por niño de cada excursión. La primera vez se rellena con 65 US$
+  // en las que admiten niños (cifra provisional: el cliente la ajusta desde
+  // el panel); después se respeta lo que haya, también el vacío.
+  addColumns('excursions', { child_price: 'REAL' });
+  if (!db.prepare("SELECT 1 FROM settings WHERE key = 'child_price_seeded'").get()) {
+    db.exec(`
+      UPDATE excursions SET child_price = 65 WHERE child_price IS NULL AND adults_only = 0;
+      INSERT OR REPLACE INTO settings (key, value) VALUES ('child_price_seeded', '1');
+    `);
+  }
+
   addColumns('price_brackets', { prices: 'TEXT' });
   addColumns('route_surcharges', { prices: 'TEXT' });
   db.exec(`

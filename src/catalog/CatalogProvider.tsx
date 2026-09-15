@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { EXCURSIONS, FEATURED_SLUGS } from '../data/excursions';
+import { CHILD_PRICE_DEFAULT, EXCURSIONS, FEATURED_SLUGS } from '../data/excursions';
 import type { Excursion } from '../data/excursions';
 import { FLEET } from '../data/fleet';
 import type { Vehicle } from '../data/fleet';
@@ -50,7 +50,7 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 const BUNDLED: Catalog = {
-  excursions: EXCURSIONS,
+  excursions: EXCURSIONS.map((e) => ({ ...e, childPrice: e.adultsOnly ? null : CHILD_PRICE_DEFAULT })),
   featuredSlugs: [...FEATURED_SLUGS],
   fleet: FLEET,
   pricing: DEFAULT_TABLES,

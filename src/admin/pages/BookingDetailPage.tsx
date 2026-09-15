@@ -242,6 +242,12 @@ export default function BookingDetailPage() {
                         {partyText(e.party)}
                         {e.adultsOnly && ' · solo adultos'}
                       </Row>
+                      {e.adultPrice != null && (
+                        <Row label="Precio unitario">
+                          US${e.adultPrice} por adulto
+                          {e.childPrice != null ? ` · US$${e.childPrice} por niño` : ''} · infantes sin cargo
+                        </Row>
+                      )}
                       {e.notes && <Row label="Notas del cliente">{e.notes}</Row>}
                     </>
                   );

@@ -20,6 +20,7 @@ interface Draft {
   name: string;
   category: string;
   price: number | null;
+  child_price: number | null;
   rating: number;
   reviews: string;
   duration: string;
@@ -43,6 +44,7 @@ const toDraft = (r: ExcursionRow): Draft => ({
   name: r.name,
   category: r.category,
   price: r.price,
+  child_price: r.child_price,
   rating: r.rating,
   reviews: r.reviews,
   duration: r.duration,
@@ -264,6 +266,9 @@ export default function ExcursionEditPage() {
             </Field>
             <Field label="Precio por adulto (US$)" hint="Vacío = “Consultar”. Si hay entradas, manda la más barata.">
               <input type="number" min={0} value={draft.price ?? ''} onChange={(e) => set('price', numOrNull(e.target.value))} />
+            </Field>
+            <Field label="Precio por niño (US$)" hint="De 5 a 10 años. Vacío = a consultar. Los infantes (0 a 4) no pagan.">
+              <input type="number" min={0} value={draft.child_price ?? ''} onChange={(e) => set('child_price', numOrNull(e.target.value))} disabled={draft.adultsOnly} />
             </Field>
             <Field label="Valoración (0 a 5)">
               <input type="number" min={0} max={5} step={0.1} value={draft.rating} onChange={(e) => set('rating', Number(e.target.value))} />
