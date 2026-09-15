@@ -43,7 +43,7 @@ export const PROVINCES: Province[] = [
     poster: '/images/punta-cana-poster.jpg',
     mask: '/images/punta-cana-mask.png',
   },
-  { id: 'higuey', word: 'HIGÜEY', ...V('higuey') },
+  { id: 'bayahibe', word: 'BAYAHÍBE', ...V('bayahibe') },
   { id: 'la-romana', word: 'LA ROMANA', ...V('la-romana') },
   { id: 'pedernales', word: 'PEDERNALES', ...V('pedernales') },
   { id: 'puerto-plata', word: 'PUERTO PLATA', ...V('puerto-plata') },
@@ -67,7 +67,7 @@ interface Fit {
 
 /**
  * Las letras no pasan de la altura del lettering de Punta Cana, que ocupa
- * unos dos tercios de la caja: así las cortas (HIGÜEY, SAMANÁ) no salen más
+ * unos dos tercios de la caja: así las cortas (BAYAHÍBE, SAMANÁ) no salen más
  * grandes que él y todas se mueven en la misma escala.
  */
 const MAX_CAP = 0.68;
@@ -97,7 +97,7 @@ function fitFont(word: string, w: number, h: number, ready: boolean): Fit {
   if (!ctx) return { size: h * 0.9, lines: [{ text: word, baseline: h * 0.9 }], textLength: null };
   // Se mide a 100px y se escala: la relación ancho/alto de la fuente es fija.
   ctx.font = `100px ${ready ? FONT : 'Impact, sans-serif'}`;
-  // La altura de referencia es la de las mayúsculas sin acento: HIGÜEY y
+  // La altura de referencia es la de las mayúsculas sin acento: BAYAHÍBE y
   // SAMANÁ no deben salir más pequeñas por llevar diéresis o tilde. Lo que
   // sobresalga por arriba solo se comprueba contra el techo de la caja.
   const capH = ctx.measureText('H').actualBoundingBoxAscent || 72;
