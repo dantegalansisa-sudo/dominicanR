@@ -13,6 +13,8 @@ import FloatingCta from './components/FloatingCta';
 import ExcursionsPage from './pages/ExcursionsPage';
 import BookingPage from './pages/BookingPage';
 import ExcursionBookingPage from './pages/ExcursionBookingPage';
+import LegalPage from './pages/LegalPage';
+import { LEGAL_PATHS } from './legal/content';
 // El panel solo lo carga quien entra en /admin: el visitante no se lo baja.
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 import type { Excursion } from './data/excursions';
@@ -96,6 +98,11 @@ export default function App() {
           />
           <Route path="/reservar" element={<BookingPage />} />
           <Route path="/reservar-excursion" element={<ExcursionBookingPage />} />
+          <Route path={LEGAL_PATHS.privacy} element={<LegalPage kind="privacy" />} />
+          <Route path={LEGAL_PATHS.terms} element={<LegalPage kind="terms" />} />
+          {/* Alias en inglés, por si alguien los escribe a mano o Google Ads los pide así. */}
+          <Route path="/privacy" element={<LegalPage kind="privacy" />} />
+          <Route path="/terms" element={<LegalPage kind="terms" />} />
         </Routes>
       </main>
       <Footer />

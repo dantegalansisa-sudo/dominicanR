@@ -224,6 +224,14 @@ export const es = {
     designed: 'Diseñado por',
   },
 
+  legal: {
+    eyebrow: 'Información legal',
+    privacy: 'Política de privacidad',
+    terms: 'Términos y condiciones',
+    /** Aviso junto al pago; los dos huecos son enlaces. */
+    consent: 'Al pagar o enviar tu reserva aceptas los {terms} y la {privacy}.',
+  },
+
   phone: {
     label: 'WhatsApp / teléfono',
     countryAria: 'País del teléfono',

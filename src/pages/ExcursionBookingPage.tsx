@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
+import LegalConsent from '../components/LegalConsent';
 import PayPalCheckout from '../components/PayPalCheckout';
 import { useSettings } from '../catalog/CatalogProvider';
 import ExcursionCarousel from '../components/ExcursionCarousel';
@@ -783,6 +784,7 @@ export default function ExcursionBookingPage() {
               </AnimatePresence>
 
               <p className="bcard__fine">{payOn && status !== 'paid' && status !== 'cash' ? t.pay.fine : t.exBooking.fine}</p>
+              {status !== 'paid' && status !== 'cash' && status !== 'sent' && <LegalConsent className="bcard__fine" />}
             </div>
           </aside>
         </form>

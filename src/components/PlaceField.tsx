@@ -56,6 +56,10 @@ export default function PlaceField({
 }: PlaceFieldProps) {
   const { lang, t } = useLang();
   const [open, setOpen] = useState(false);
+  // El blur mira el valor de después del posible clic en el menú, no el de
+  // cuando se disparó.
+  const latestValue = useRef(value);
+  latestValue.current = value;
   const [cursor, setCursor] = useState(-1);
   const [remote, setRemote] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -198,6 +202,16 @@ export default function PlaceField({
           setCursor(-1);
         }}
         onFocus={() => setOpen(true)}
+        onBlur={() => {
+          // Si sale del campo con algo escrito sin elegir de la lista, ese
+          // texto vale como lugar: la ruta (y el precio) se calculan igual con
+          // la dirección escrita. Con retraso, para no pisar el clic en una
+          // opción del menú, que llega justo después del blur.
+          window.setTimeout(() => {
+            const v = latestValue.current;
+            if (!v.chosen && v.text.trim().length >= 3) onChange({ ...v, chosen: true });
+          }, 180);
+        }}
         onKeyDown={onKeyDown}
       />
 

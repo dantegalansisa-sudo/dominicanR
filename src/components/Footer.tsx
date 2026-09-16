@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { LEGAL_PATHS } from '../legal/content';
 import { EASINGS } from '../utils/easings';
 import { useT } from '../i18n';
 import { useSettings } from '../catalog/CatalogProvider';
@@ -120,6 +122,11 @@ export default function Footer() {
 
       <div className="container footer__bar">
         <span>© {new Date().getFullYear()} Dominican Routes</span>
+        <span className="footer__legal">
+          <Link to={LEGAL_PATHS.privacy}>{t.legal.privacy}</Link>
+          <span aria-hidden="true">·</span>
+          <Link to={LEGAL_PATHS.terms}>{t.legal.terms}</Link>
+        </span>
         <span>
           {t.footer.designed}{' '}
           <a href="https://www.nexixstudio.com" target="_blank" rel="noopener noreferrer">

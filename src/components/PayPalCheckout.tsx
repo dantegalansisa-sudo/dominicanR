@@ -38,10 +38,10 @@ function loadSdk(clientId: string, currency: string, locale: string): Promise<Pa
     const w = window as unknown as { paypal?: PayPalNS };
     if (w.paypal) return resolve(w.paypal);
     const s = document.createElement('script');
-    // Solo el botón de PayPal: el formulario de tarjeta incrustado lo pinta
-    // PayPal con su propio estilo y no encaja en la tarjeta oscura. La
-    // tarjeta sigue disponible dentro de la ventana de PayPal, sin cuenta.
-    s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=${currency}&intent=capture&components=buttons&disable-funding=card,paylater,credit&locale=${locale}`;
+    // PayPal y tarjeta (el formulario de tarjeta lo pinta PayPal con su
+    // estilo; no admite personalización). Sin "pagar después" ni
+    // financiación, que no aplican a una reserva de viaje.
+    s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=${currency}&intent=capture&components=buttons&disable-funding=paylater,credit&locale=${locale}`;
     s.async = true;
     s.onload = () => resolve(w.paypal ?? null);
     s.onerror = () => resolve(null);

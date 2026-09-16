@@ -222,6 +222,13 @@ export const en: typeof es = {
     designed: 'Designed by',
   },
 
+  legal: {
+    eyebrow: 'Legal',
+    privacy: 'Privacy Policy',
+    terms: 'Terms & Conditions',
+    consent: 'By paying or sending your booking you accept the {terms} and the {privacy}.',
+  },
+
   phone: {
     label: 'WhatsApp / phone',
     countryAria: 'Phone country',
