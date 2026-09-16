@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { UPLOADS, DIST } from './paths.ts';
-import { migrate } from './db.ts';
+import { db, migrate } from './db.ts';
 import { buildCatalog } from './catalog.ts';
 import { adminRouter } from './admin.ts';
 import { handleContact } from '../api/_contact.ts';
@@ -68,6 +68,37 @@ app.use('/api/pay', payRouter);
 app.use('/api/admin', adminRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
+
+// El sitemap sale de la base para incluir las excursiones que el cliente
+// crea desde el panel, cada una con su URL /excursiones/<slug>.
+app.get('/sitemap.xml', (_req, res) => {
+  const site = 'https://dominicanroutes.com';
+  const fixed: [string, string, string][] = [
+    ['/', 'weekly', '1.0'],
+    ['/excursiones', 'weekly', '0.9'],
+    ['/reservar', 'monthly', '0.8'],
+    ['/reservar-excursion', 'monthly', '0.7'],
+    ['/privacidad', 'yearly', '0.3'],
+    ['/terminos', 'yearly', '0.3'],
+  ];
+  let slugs: string[] = [];
+  try {
+    slugs = (db.prepare('SELECT slug FROM excursions ORDER BY slug').all() as { slug: string }[]).map((r) => r.slug);
+  } catch (err) {
+    console.error('Sitemap sin excursiones:', err);
+  }
+  const url = (path: string, freq: string, prio: string) =>
+    `  <url><loc>${site}${path}</loc><changefreq>${freq}</changefreq><priority>${prio}</priority></url>`;
+  const body = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...fixed.map(([p, f, pr]) => url(p, f, pr)),
+    ...slugs.map((s) => url(`/excursiones/${encodeURIComponent(s)}`, 'monthly', '0.8')),
+    '</urlset>',
+    '',
+  ].join('\n');
+  res.type('application/xml').send(body);
+});
 
 app.use(
   '/uploads',

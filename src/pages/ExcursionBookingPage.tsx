@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
+import { useCatalog } from '../catalog/CatalogProvider';
 import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
@@ -79,13 +80,18 @@ const DOOR = 'M6.5 3.5h11v17h-11zM14 12h.6';
 const prettyDate = (iso: string) => prettyDateT('es', iso);
 
 export default function ExcursionBookingPage() {
-  const seed = (useLocation().state ?? {}) as ExcursionSeed;
+  const params = useParams<{ slug?: string }>();
+  const seed = { ...((useLocation().state ?? {}) as ExcursionSeed), ...(params.slug ? { slug: params.slug } : {}) };
   const { lang, t } = useLang();
+  const catalogLive = useCatalog().live;
   const EXCURSIONS = useExcursions();
   const EXCURSIONS_ES = useExcursionsEs();
   const CATEGORIES = useCategories();
   const PICKUP_PLACES = usePickupPlaces();
   const seeded = seed.slug ? EXCURSIONS.find((e) => e.slug === seed.slug) : undefined;
+  // /excursiones/lo-que-sea con un slug que no existe (ya con el catálogo
+  // real cargado) manda al catálogo en vez de a un formulario vacío.
+  const unknownSlug = Boolean(params.slug) && catalogLive && !seeded;
 
   // El desplegable va agrupado por categoría: con 38 excursiones, una lista
   // plana obliga a leerlas todas para encontrar la que se busca.
@@ -161,8 +167,8 @@ export default function ExcursionBookingPage() {
     window.scrollTo(0, 0);
   }, []);
   useEffect(() => {
-    document.title = t.titles.excursion;
-  }, [t]);
+    document.title = seeded ? `${seeded.name} — Dominican Routes` : t.titles.excursion;
+  }, [t, seeded]);
 
   // Si el texto coincide con una del catálogo mostramos sus datos; si no,
   // vale igual, porque el cliente también arma salidas a medida.
@@ -357,6 +363,8 @@ export default function ExcursionBookingPage() {
       setError(t.exBooking.offline);
     }
   };
+
+  if (unknownSlug) return <Navigate to="/excursiones" replace />;
 
   return (
     <section className="section booking-page">

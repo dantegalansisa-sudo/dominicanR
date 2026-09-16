@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect } from 'react';
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
@@ -61,9 +61,11 @@ export default function App() {
   // Antes esto precargaba el formulario de contacto con un texto suelto. Las
   // excursiones tienen ahora su propia pagina, igual que los traslados, para
   // poder pedir los tramos de edad de los que depende el precio.
+  // Cada excursión tiene su URL (/excursiones/isla-saona-vip): es la que
+  // Google ya tenía indexada de la web anterior y la que se puede compartir.
   const requestExcursion = useCallback(
     (e: Excursion) => {
-      navigate('/reservar-excursion', { state: { slug: e.slug } });
+      navigate(`/excursiones/${e.slug}`);
     },
     [navigate],
   );
@@ -98,11 +100,15 @@ export default function App() {
           />
           <Route path="/reservar" element={<BookingPage />} />
           <Route path="/reservar-excursion" element={<ExcursionBookingPage />} />
+          <Route path="/excursiones/:slug" element={<ExcursionBookingPage />} />
           <Route path={LEGAL_PATHS.privacy} element={<LegalPage kind="privacy" />} />
           <Route path={LEGAL_PATHS.terms} element={<LegalPage kind="terms" />} />
           {/* Alias en inglés, por si alguien los escribe a mano o Google Ads los pide así. */}
           <Route path="/privacy" element={<LegalPage kind="privacy" />} />
           <Route path="/terms" element={<LegalPage kind="terms" />} />
+          {/* Cualquier URL vieja o mal escrita cae en la portada, no en una
+              página vacía con solo el pie. */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       <Footer />
