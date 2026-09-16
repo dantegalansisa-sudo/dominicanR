@@ -179,7 +179,11 @@ export default function ExcursionBookingPage() {
   // Al cambiar de idioma el nombre elegido cambia con el catálogo, para que
   // el formulario no se quede apuntando a un texto que ya no existe. Se
   // recuerda el slug porque el nombre viejo ya no está en la lista nueva.
-  const lastSlug = useRef<string | undefined>(seeded?.slug);
+  // Arranca con el slug pedido (URL o estado), no con el encontrado: las
+  // excursiones creadas desde el panel no están en el catálogo empaquetado
+  // con el que se pinta el primer render, y solo aparecen cuando llega
+  // /api/catalog; el efecto de abajo las selecciona entonces.
+  const lastSlug = useRef<string | undefined>(seed.slug);
   if (excursion) lastSlug.current = excursion.slug;
   useEffect(() => {
     const here = lastSlug.current ? EXCURSIONS.find((e) => e.slug === lastSlug.current) : undefined;
