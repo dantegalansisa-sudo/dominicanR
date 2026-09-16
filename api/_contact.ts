@@ -1,3 +1,4 @@
+import { fmtUsd } from '../src/data/tax.ts';
 // Shared contact-form logic. Both the Vercel function (api/contact.ts) and the
 // dev middleware in vite.config.ts call this, so what runs locally is the same
 // code that runs in production — only the transport differs.
@@ -250,10 +251,10 @@ export async function handleContact(
           [
             'Pago',
             payment.method === 'efectivo'
-              ? `EN EFECTIVO · US$${payment.amount} pendiente, se cobra el día del servicio`
+              ? `EN EFECTIVO · ${fmtUsd(payment.amount)} pendiente, se cobra el día del servicio`
               : payment.status === 'pagada'
-                ? `PAGADA · US$${payment.amount} por PayPal`
-                : `Pendiente · US$${payment.amount} por PayPal (el cliente está en la pasarela)`,
+                ? `PAGADA · ${fmtUsd(payment.amount)} por PayPal`
+                : `Pendiente · ${fmtUsd(payment.amount)} por PayPal (el cliente está en la pasarela)`,
           ],
         ] as Array<[string, string]>)
       : []),
@@ -263,15 +264,15 @@ export async function handleContact(
   const payLine = payment
     ? payment.method === 'efectivo'
       ? lang === 'en'
-        ? `Payment in cash: US$${payment.amount}, paid on the day of the service. We will confirm your booking by email.`
-        : `Pago en efectivo: US$${payment.amount}, se paga el día del servicio. Te confirmamos la reserva por correo.`
+        ? `Payment in cash: ${fmtUsd(payment.amount)}, paid on the day of the service. We will confirm your booking by email.`
+        : `Pago en efectivo: ${fmtUsd(payment.amount)}, se paga el día del servicio. Te confirmamos la reserva por correo.`
       : lang === 'en'
         ? payment.status === 'pagada'
-          ? `Payment received: US$${payment.amount} via PayPal. Your booking is confirmed.`
-          : `Amount: US$${payment.amount}. If the PayPal payment did not go through, you can pay later or contact us.`
+          ? `Payment received: ${fmtUsd(payment.amount)} via PayPal. Your booking is confirmed.`
+          : `Amount: ${fmtUsd(payment.amount)}. If the PayPal payment did not go through, you can pay later or contact us.`
         : payment.status === 'pagada'
-          ? `Pago recibido: US$${payment.amount} por PayPal. Tu reserva queda confirmada.`
-          : `Importe: US$${payment.amount}. Si el pago por PayPal no se completó, puedes pagar más tarde o escribirnos.`
+          ? `Pago recibido: ${fmtUsd(payment.amount)} por PayPal. Tu reserva queda confirmada.`
+          : `Importe: ${fmtUsd(payment.amount)}. Si el pago por PayPal no se completó, puedes pagar más tarde o escribirnos.`
     : '';
   const payHtml = payLine
     ? `<p style="margin:0 0 18px;padding:12px 16px;background:${payment?.status === 'pagada' ? '#e6f4ec' : BRAND.cream};border-radius:12px;font-weight:600">${escapeHtml(payLine)}</p>`

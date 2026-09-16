@@ -5,6 +5,7 @@ import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
 import LegalConsent from '../components/LegalConsent';
+import { withTax } from '../data/tax';
 import PayPalCheckout from '../components/PayPalCheckout';
 import { useSettings } from '../catalog/CatalogProvider';
 import { suggestVehicle } from '../components/PassengersField';
@@ -257,6 +258,9 @@ export default function BookingPage() {
   const extraLines = extrasLinesWith(extrasEs, extras, usd, 'Paradas adicionales');
   const extraLinesUi = extrasLinesWith(extrasCat, extras, usd, t.extras.stopLine);
   const extrasSum = extrasTotalWith(extrasEs, extras);
+  // Lo que se cobra: traslado + adicionales + impuestos. Sin precio cerrado
+  // no hay total (se cotiza por correo).
+  const bill = chosenQuote ? withTax(chosenQuote.total + extrasSum) : null;
 
   const originMap = placeMapsUrl(origin);
   const destMap = placeMapsUrl(destination);
@@ -324,9 +328,12 @@ export default function BookingPage() {
         ? [
             'Adicionales solicitados:',
             ...extraLines.map((l) => `  · ${l}`),
-            `  Total en adicionales: ${usd(extrasSum)} (el traslado se cotiza aparte)`,
+            `  Total en adicionales: ${usd(extrasSum)}`,
           ]
         : ['Sin adicionales.'],
+      ...(bill
+        ? [[`Subtotal: ${usd(bill.subtotal)}`, `Impuestos (5 %): ${usd(bill.tax)}`, `TOTAL A PAGAR: ${usd(bill.total)}`]]
+        : []),
       ...(notes ? [[`Notas: ${notes}`]] : []),
     ];
 
@@ -818,6 +825,22 @@ export default function BookingPage() {
                     </dd>
                   </div>
                 )}
+                {bill && (
+                  <>
+                    <div>
+                      <dt>{t.pay.subtotalRow}</dt>
+                      <dd>{usd(bill.subtotal)}</dd>
+                    </div>
+                    <div>
+                      <dt>{t.pay.taxRow}</dt>
+                      <dd>{usd(bill.tax)}</dd>
+                    </div>
+                    <div className="summary__total">
+                      <dt>{t.pay.totalRow}</dt>
+                      <dd>{usd(bill.total)}</dd>
+                    </div>
+                  </>
+                )}
               </dl>
 
               {/* Con precio cerrado se puede pagar aquí mismo; sin él, solo
@@ -825,7 +848,7 @@ export default function BookingPage() {
                   sustituye a los botones. */}
               {status === 'paid' || status === 'pending' || status === 'cash' ? null : chosenQuote ? (
                 <PayPalCheckout
-                  amount={chosenQuote.total + extrasSum}
+                  amount={bill!.total}
                   buildPayload={buildPayload}
                   validate={missingContact}
                   sending={status === 'sending'}
@@ -852,7 +875,7 @@ export default function BookingPage() {
                       setPay({ amount: o.amount, bookingId: o.bookingId });
                       setStatus('paid');
                     } else {
-                      setPay({ amount: chosenQuote.total + extrasSum, bookingId: o.bookingId });
+                      setPay({ amount: bill!.total, bookingId: o.bookingId });
                       setStatus('pending');
                     }
                   }}

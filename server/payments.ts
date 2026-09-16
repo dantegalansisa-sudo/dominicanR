@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { db, audit } from './db.ts';
 import { buildCatalog } from './catalog.ts';
 import { bookingStore } from './bookings.ts';
+import { withTax, fmtUsd } from '../src/data/tax.ts';
 import { handleContact, sendEmail, escapeHtml, BRAND, str } from '../api/_contact.ts';
 import { roadDistanceKm } from '../api/_places.ts';
 import { quote } from '../src/data/pricing.ts';
@@ -64,7 +65,6 @@ async function paypal(path: string, body?: unknown): Promise<{ status: number; d
 
 /* --------------------------------------------------- importe en el servidor */
 
-const money = (n: number) => Math.round(n * 100) / 100;
 
 interface Priced {
   amount: number;
@@ -114,7 +114,7 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     if (stop) extras += stop.price;
 
     return {
-      amount: money(q.total + extras),
+      amount: withTax(q.total + extras).total,
       description: `Traslado ${str(origin.text)} → ${str(destination.text)} (${vehicle.name ?? vehicle.slug})`.slice(0, 127),
       cashAllowed: true,
     };
@@ -140,7 +140,7 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     if (children > 0 && e.childPrice == null) return null;
 
     return {
-      amount: money(adultUnit * adults + (e.childPrice ?? 0) * children),
+      amount: withTax(adultUnit * adults + (e.childPrice ?? 0) * children).total,
       description: `${e.name}${ticket ? ` · ${ticket.name}` : ''} · ${adults} adultos${children ? `, ${children} niños` : ''}`.slice(0, 127),
       cashAllowed: e.cashAllowed !== false,
     };
@@ -177,16 +177,16 @@ async function sendPaidEmails(booking: {
     from,
     to,
     replyTo: booking.email,
-    subject: `PAGADA · US$${amount} · reserva #${booking.id} — ${booking.name}`,
+    subject: `PAGADA · ${fmtUsd(amount)} · reserva #${booking.id} — ${booking.name}`,
     html: `
       <div style="font-family:system-ui,-apple-system,sans-serif;color:${BRAND.ink};max-width:560px">
         <h2 style="margin:0 0 4px">Pago recibido por PayPal</h2>
         <p style="margin:0 0 16px;color:${BRAND.soft}">Reserva #${booking.id} · ${escapeHtml(booking.name)} · ${escapeHtml(booking.email)}</p>
-        <p style="margin:0 0 18px;padding:12px 16px;background:#e6f4ec;border-radius:12px;font-size:18px;font-weight:700">US$${amount} cobrados · captura ${escapeHtml(captureId)}</p>
+        <p style="margin:0 0 18px;padding:12px 16px;background:#e6f4ec;border-radius:12px;font-size:18px;font-weight:700">${fmtUsd(amount)} cobrados · captura ${escapeHtml(captureId)}</p>
         <p style="margin:0 0 6px;color:${BRAND.soft}">Lo que reservó</p>
         <p style="margin:0;padding:16px;background:${BRAND.cream};border-radius:12px;white-space:pre-wrap">${escapeHtml(booking.message)}</p>
       </div>`,
-    text: [`Pago recibido por PayPal: US$${amount} (captura ${captureId})`, `Reserva #${booking.id} · ${booking.name} · ${booking.email}`, '', booking.message].join('\n'),
+    text: [`Pago recibido por PayPal: ${fmtUsd(amount)} (captura ${captureId})`, `Reserva #${booking.id} · ${booking.name} · ${booking.email}`, '', booking.message].join('\n'),
   });
 
   await sendEmail({
@@ -199,7 +199,7 @@ async function sendPaidEmails(booking: {
       <div style="font-family:system-ui,-apple-system,sans-serif;color:${BRAND.ink};max-width:560px">
         <h2 style="margin:0 0 6px">${en ? `Thank you, ${first}` : `Gracias, ${first}`}</h2>
         <p style="margin:0 0 18px;padding:12px 16px;background:#e6f4ec;border-radius:12px;font-weight:600">
-          ${en ? `We received your payment of US$${amount} via PayPal. Your booking #${booking.id} is confirmed.` : `Recibimos tu pago de US$${amount} por PayPal. Tu reserva #${booking.id} queda confirmada.`}
+          ${en ? `We received your payment of ${fmtUsd(amount)} via PayPal. Your booking #${booking.id} is confirmed.` : `Recibimos tu pago de ${fmtUsd(amount)} por PayPal. Tu reserva #${booking.id} queda confirmada.`}
         </p>
         <p style="margin:0 0 8px;color:${BRAND.soft}">${en ? 'Booking details' : 'Detalle de la reserva'}</p>
         <p style="margin:0 0 22px;padding:16px;background:${BRAND.cream};border-radius:12px;white-space:pre-wrap">${escapeHtml(booking.message)}</p>
@@ -210,8 +210,8 @@ async function sendPaidEmails(booking: {
       en ? `Thank you, ${booking.name.split(' ')[0]}` : `Gracias, ${booking.name.split(' ')[0]}`,
       '',
       en
-        ? `We received your payment of US$${amount} via PayPal. Your booking #${booking.id} is confirmed.`
-        : `Recibimos tu pago de US$${amount} por PayPal. Tu reserva #${booking.id} queda confirmada.`,
+        ? `We received your payment of ${fmtUsd(amount)} via PayPal. Your booking #${booking.id} is confirmed.`
+        : `Recibimos tu pago de ${fmtUsd(amount)} por PayPal. Tu reserva #${booking.id} queda confirmada.`,
       '',
       booking.message,
     ].join('\n'),

@@ -153,7 +153,7 @@ const es: Record<LegalKind, LegalDoc> = {
       {
         heading: '3. Precios y qué incluyen',
         body: [
-          'Todos los precios se expresan en dólares estadounidenses (USD) e incluyen impuestos. El precio del traslado se calcula según la ruta y el vehículo; el de las excursiones, por persona (adulto o niño).',
+          'Todos los precios se expresan en dólares estadounidenses (USD). Al total de lo que eliges (traslado y adicionales, o entradas de la excursión) se añade un 5 % de impuestos, que se muestra desglosado en el resumen antes de pagar. El precio del traslado se calcula según la ruta y el vehículo; el de las excursiones, por persona (adulto o niño).',
           'El precio que muestra la web es el que se cobra al pagar en línea. Si envías una solicitud sin pagar, el precio cerrado es el que te confirmamos por correo. Los precios pueden cambiar sin previo aviso, pero nunca después de confirmada tu reserva.',
           'Salvo que la reserva indique lo contrario, no están incluidos: propinas, comidas y bebidas no especificadas, entradas a lugares no mencionados, esperas prolongadas o paradas no contratadas.',
         ],
@@ -369,7 +369,7 @@ const en: Record<LegalKind, LegalDoc> = {
       {
         heading: '3. Prices and what they include',
         body: [
-          'All prices are in US dollars (USD) and include taxes. Transfer prices depend on the route and vehicle; excursion prices are per person (adult or child).',
+          'All prices are in US dollars (USD). A 5% tax is added to the total of what you choose (transfer and extras, or excursion tickets) and is itemised in the summary before you pay. Transfer prices depend on the route and vehicle; excursion prices are per person (adult or child).',
           'The price shown on the website is the price charged when paying online. If you send a request without paying, the fixed price is the one we confirm by email. Prices may change without notice, but never after your booking is confirmed.',
           'Unless stated in the booking, the following are not included: tips, meals and drinks not specified, entrance fees to places not mentioned, extended waiting or stops not booked.',
         ],

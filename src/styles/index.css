@@ -3980,3 +3980,19 @@ ul {
 .legal-consent a:hover {
   color: var(--white);
 }
+
+/* total con impuestos en el resumen de la reserva */
+.summary .summary__total {
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.summary .summary__total dt {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.summary .summary__total dd {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--coral-soft);
+}

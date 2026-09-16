@@ -47,7 +47,7 @@ export function partyLabel(p: Party, withInfants = true) {
  * El público es extranjero, así que nada de "c/u": se escribe el precio en el
  * formato que un visitante de cualquier idioma reconoce.
  */
-export const usd = (n: number) => `US$${n}`;
+export const usd = (n: number) => `US$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
 export const SEATS = [
   { id: 'baby', label: 'Baby seat', price: 10 },

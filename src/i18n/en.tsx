@@ -1,3 +1,4 @@
+import { fmtUsd } from '../data/tax';
 import type { es } from './es';
 
 /** English copy. Typed against the Spanish dictionary so nothing goes missing. */
@@ -263,12 +264,15 @@ export const en: typeof es = {
 
   pay: {
     title: 'Choose how to pay',
-    total: (a: number) => `Total US$${a}`,
+    total: (a: number) => `Total ${fmtUsd(a)}`,
+    taxRow: 'Taxes (5%)',
+    totalRow: 'Total to pay',
+    subtotalRow: 'Subtotal',
     lead: 'Secure payment with your PayPal account or a card. No extra fees.',
     orPlain: 'or send the request without paying',
     loading: 'Loading PayPal…',
     paidTitle: 'Payment received!',
-    paid: (a: number, id: number) => `We charged US$${a}. Your booking #${id} is confirmed; the receipt is on its way to your email.`,
+    paid: (a: number, id: number) => `We charged ${fmtUsd(a)}. Your booking #${id} is confirmed; the receipt is on its way to your email.`,
     pendingTitle: 'The payment did not go through',
     pending: (id: number) => `Your booking #${id} is saved as pending. You can try the payment again or message us and we will close it with you.`,
     retry: 'Try again',
@@ -280,7 +284,7 @@ export const en: typeof es = {
     cashHint: 'Book now and pay in cash (US$) to the driver or guide.',
     cashOnlyPrepaid: 'This experience must be paid in advance.',
     cashSentTitle: 'Booking registered',
-    cashSent: (a: number, id: number) => `You will pay US$${a} in cash on the day of the service. Your booking is #${id}; we will confirm by email.`,
+    cashSent: (a: number, id: number) => `You will pay ${fmtUsd(a)} in cash on the day of the service. Your booking is #${id}; we will confirm by email.`,
   },
 
   carousel: {

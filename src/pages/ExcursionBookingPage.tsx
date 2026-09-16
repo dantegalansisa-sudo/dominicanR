@@ -5,11 +5,12 @@ import MagneticButton from '../components/MagneticButton';
 import PlaceField from '../components/PlaceField';
 import PhoneField, { DEFAULT_COUNTRY, dialOf } from '../components/PhoneField';
 import LegalConsent from '../components/LegalConsent';
+import { withTax } from '../data/tax';
 import PayPalCheckout from '../components/PayPalCheckout';
 import { useSettings } from '../catalog/CatalogProvider';
 import ExcursionCarousel from '../components/ExcursionCarousel';
 import { fromPrice } from '../data/excursions';
-import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal } from '../data/passengers';
+import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal, usd } from '../data/passengers';
 import type { Party } from '../data/passengers';
 import { emptyPlace, placeMapsUrl } from '../data/places';
 import type { PlaceGroup, PlaceValue } from '../data/places';
@@ -211,6 +212,7 @@ export default function ExcursionBookingPage() {
     excursion && adultUnit != null && (party.children === 0 || childUnit != null)
       ? adultUnit * party.adults + (childUnit ?? 0) * party.children
       : null;
+  const bill = estimate != null ? withTax(estimate) : null;
 
   const bands = adultsOnly
     ? [{ ...BANDS[0]!, hint: t.passengers.adultsOnlyHint }]
@@ -278,6 +280,8 @@ export default function ExcursionBookingPage() {
         ? [
             [
               `Precio estimado por la web: US$${estimate}`,
+              `  Impuestos (5 %): ${usd(bill!.tax)}`,
+              `  TOTAL A PAGAR: ${usd(bill!.total)}`,
               `  ${party.adults} × US$${adultUnit} por adulto${
                 party.children ? ` + ${party.children} × US$${childUnit} por niño` : ''
               }${party.infants ? ` (${party.infants} infante${party.infants > 1 ? 's' : ''} sin cargo)` : ''}`,
@@ -658,21 +662,31 @@ export default function ExcursionBookingPage() {
                   <dt>{t.exBooking.passengersRow}</dt>
                   <dd>{partyLabelT(t, party)}</dd>
                 </div>
-                {estimate != null && (
-                  <div>
-                    <dt>{t.exBooking.estimate}</dt>
-                    <dd>
-                      US${estimate}
-                      <br />
-                      <span className="summary__fine">{t.exBooking.estimateNote}</span>
-                    </dd>
-                  </div>
+                {bill && (
+                  <>
+                    <div>
+                      <dt>{t.exBooking.estimate}</dt>
+                      <dd>
+                        {usd(bill.subtotal)}
+                        <br />
+                        <span className="summary__fine">{t.exBooking.estimateNote}</span>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{t.pay.taxRow}</dt>
+                      <dd>{usd(bill.tax)}</dd>
+                    </div>
+                    <div className="summary__total">
+                      <dt>{t.pay.totalRow}</dt>
+                      <dd>{usd(bill.total)}</dd>
+                    </div>
+                  </>
                 )}
               </dl>
 
               {status === 'paid' || status === 'pending' || status === 'cash' ? null : estimate != null && excursion ? (
                 <PayPalCheckout
-                  amount={estimate}
+                  amount={bill!.total}
                   buildPayload={buildPayload}
                   validate={missingContact}
                   sending={status === 'sending'}
@@ -699,7 +713,7 @@ export default function ExcursionBookingPage() {
                       setPay({ amount: o.amount, bookingId: o.bookingId });
                       setStatus('paid');
                     } else {
-                      setPay({ amount: estimate, bookingId: o.bookingId });
+                      setPay({ amount: bill!.total, bookingId: o.bookingId });
                       setStatus('pending');
                     }
                   }}

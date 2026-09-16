@@ -2,6 +2,8 @@
  * Textos en español. Es el diccionario de referencia: el inglés se tipa
  * contra este, así que aquí se define la forma.
  */
+import { fmtUsd } from '../data/tax';
+
 export const es = {
   code: 'es',
   locale: 'es-DO',
@@ -266,12 +268,15 @@ export const es = {
 
   pay: {
     title: 'Elige cómo pagar',
-    total: (a: number) => `Total US$${a}`,
+    total: (a: number) => `Total ${fmtUsd(a)}`,
+    taxRow: 'Impuestos (5 %)',
+    totalRow: 'Total a pagar',
+    subtotalRow: 'Subtotal',
     lead: 'Pago seguro con tu cuenta de PayPal o con tarjeta. Sin cargos extra.',
     orPlain: 'o enviar la solicitud sin pagar',
     loading: 'Cargando PayPal…',
     paidTitle: '¡Pago recibido!',
-    paid: (a: number, id: number) => `Cobramos US$${a}. Tu reserva #${id} queda confirmada; te llega el comprobante por correo.`,
+    paid: (a: number, id: number) => `Cobramos ${fmtUsd(a)}. Tu reserva #${id} queda confirmada; te llega el comprobante por correo.`,
     pendingTitle: 'El pago no se completó',
     pending: (id: number) => `Tu reserva #${id} quedó registrada como pendiente. Puedes intentar el pago de nuevo o escribirnos y lo cerramos contigo.`,
     retry: 'Intentar de nuevo',
@@ -283,7 +288,7 @@ export const es = {
     cashHint: 'Reservas ahora y pagas en efectivo (US$) al conductor o al guía.',
     cashOnlyPrepaid: 'Esta experiencia se paga por adelantado.',
     cashSentTitle: 'Reserva registrada',
-    cashSent: (a: number, id: number) => `Pagarás US$${a} en efectivo el día del servicio. Tu reserva es la #${id}; te confirmamos por correo.`,
+    cashSent: (a: number, id: number) => `Pagarás ${fmtUsd(a)} en efectivo el día del servicio. Tu reserva es la #${id}; te confirmamos por correo.`,
   },
 
   carousel: {
