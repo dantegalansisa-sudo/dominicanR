@@ -153,7 +153,7 @@ const es: Record<LegalKind, LegalDoc> = {
       {
         heading: '3. Precios y qué incluyen',
         body: [
-          'Todos los precios se expresan en dólares estadounidenses (USD). Al total de lo que eliges (traslado y adicionales, o entradas de la excursión) se añade un 5 % de impuestos, que se muestra desglosado en el resumen antes de pagar. El precio del traslado se calcula según la ruta y el vehículo; el de las excursiones, por persona (adulto o niño).',
+          'Todos los precios se expresan en dólares estadounidenses (USD). Si pagas con PayPal o tarjeta, al total de lo que eliges (traslado y adicionales, o entradas de la excursión) se añade un 5 % de impuestos, que se muestra desglosado en el resumen antes de pagar; el pago en efectivo no lleva ese 5 %. El precio del traslado se calcula según la ruta y el vehículo; el de las excursiones, por persona (adulto o niño).',
           'El precio que muestra la web es el que se cobra al pagar en línea. Si envías una solicitud sin pagar, el precio cerrado es el que te confirmamos por correo. Los precios pueden cambiar sin previo aviso, pero nunca después de confirmada tu reserva.',
           'Salvo que la reserva indique lo contrario, no están incluidos: propinas, comidas y bebidas no especificadas, entradas a lugares no mencionados, esperas prolongadas o paradas no contratadas.',
         ],
@@ -165,7 +165,7 @@ const es: Record<LegalKind, LegalDoc> = {
             'PayPal o tarjeta de crédito/débito a través de PayPal: pago seguro procesado íntegramente por PayPal. Dominican Routes no accede a los datos de tu tarjeta.',
             'Efectivo el día del servicio: disponible en la mayoría de traslados y excursiones, en USD o su equivalente en pesos dominicanos a la tasa del día. Algunas excursiones con entradas de terceros solo se venden con pago anticipado; la web lo indica en el momento de reservar.',
           ],
-          'El pago en línea se realiza en su totalidad al reservar. No aplicamos recargos por pagar con PayPal o tarjeta.',
+          'El pago en línea se realiza en su totalidad al reservar e incluye el 5 % de impuestos indicado en el resumen; el pago en efectivo no lo lleva.',
         ],
       },
       {
@@ -369,7 +369,7 @@ const en: Record<LegalKind, LegalDoc> = {
       {
         heading: '3. Prices and what they include',
         body: [
-          'All prices are in US dollars (USD). A 5% tax is added to the total of what you choose (transfer and extras, or excursion tickets) and is itemised in the summary before you pay. Transfer prices depend on the route and vehicle; excursion prices are per person (adult or child).',
+          'All prices are in US dollars (USD). If you pay with PayPal or card, a 5% tax is added to the total of what you choose (transfer and extras, or excursion tickets) and is itemised in the summary before you pay; cash payments do not carry that 5%. Transfer prices depend on the route and vehicle; excursion prices are per person (adult or child).',
           'The price shown on the website is the price charged when paying online. If you send a request without paying, the fixed price is the one we confirm by email. Prices may change without notice, but never after your booking is confirmed.',
           'Unless stated in the booking, the following are not included: tips, meals and drinks not specified, entrance fees to places not mentioned, extended waiting or stops not booked.',
         ],
@@ -381,7 +381,7 @@ const en: Record<LegalKind, LegalDoc> = {
             'PayPal or credit/debit card via PayPal: secure payment processed entirely by PayPal. Dominican Routes has no access to your card details.',
             'Cash on the day of service: available for most transfers and excursions, in USD or the equivalent in Dominican pesos at the day’s rate. Some excursions with third-party tickets are sold on a prepaid basis only; the website says so at the time of booking.',
           ],
-          'Online payment is made in full when booking. We add no surcharge for paying with PayPal or card.',
+          'Online payment is made in full when booking and includes the 5% tax shown in the summary; cash payments do not.',
         ],
       },
       {

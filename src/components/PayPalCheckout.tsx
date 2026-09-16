@@ -65,6 +65,7 @@ export default function PayPalCheckout({
   bookingId,
   onReady,
   cashAllowed,
+  cashAmount,
   onCash,
   busy,
 }: {
@@ -86,6 +87,8 @@ export default function PayPalCheckout({
   onReady?: (on: boolean) => void;
   /** Segunda forma de pago: en efectivo el día del servicio. */
   cashAllowed: boolean;
+  /** Lo que se paga en efectivo (sin impuestos). */
+  cashAmount: number;
   onCash: () => void;
   busy?: boolean;
 }) {
@@ -203,6 +206,7 @@ export default function PayPalCheckout({
         <div className="paypal__cash">
           <button type="button" className="btn btn--cash btn--block" onClick={onCash} disabled={sending || busy}>
             {t.pay.cash}
+            <span className="btn--cash__amount">{t.pay.cashAmount(cashAmount)}</span>
           </button>
           <p className="paypal__lead">{t.pay.cashHint}</p>
         </div>

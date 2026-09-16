@@ -280,8 +280,9 @@ export default function ExcursionBookingPage() {
         ? [
             [
               `Precio estimado por la web: US$${estimate}`,
-              `  Impuestos (5 %): ${usd(bill!.tax)}`,
-              `  TOTAL A PAGAR: ${usd(bill!.total)}`,
+              `  Impuestos (5 %, solo PayPal/tarjeta): ${usd(bill!.tax)}`,
+              `  TOTAL CON PAYPAL/TARJETA: ${usd(bill!.total)}`,
+              ...(excursion?.cashAllowed !== false ? [`  TOTAL EN EFECTIVO: ${usd(bill!.subtotal)}`] : []),
               `  ${party.adults} × US$${adultUnit} por adulto${
                 party.children ? ` + ${party.children} × US$${childUnit} por niño` : ''
               }${party.infants ? ` (${party.infants} infante${party.infants > 1 ? 's' : ''} sin cargo)` : ''}`,
@@ -674,12 +675,22 @@ export default function ExcursionBookingPage() {
                     </div>
                     <div>
                       <dt>{t.pay.taxRow}</dt>
-                      <dd>{usd(bill.tax)}</dd>
+                      <dd>
+                        {usd(bill.tax)}
+                        <br />
+                        <span className="summary__fine">{t.pay.taxNote}</span>
+                      </dd>
                     </div>
                     <div className="summary__total">
                       <dt>{t.pay.totalRow}</dt>
                       <dd>{usd(bill.total)}</dd>
                     </div>
+                    {excursion?.cashAllowed !== false && (
+                      <div className="summary__total summary__total--cash">
+                        <dt>{t.pay.cashRow}</dt>
+                        <dd>{usd(bill.subtotal)}</dd>
+                      </div>
+                    )}
                   </>
                 )}
               </dl>
@@ -693,6 +704,7 @@ export default function ExcursionBookingPage() {
                   bookingId={pay.bookingId}
                   onReady={setPayOn}
                   cashAllowed={excursion?.cashAllowed !== false}
+                  cashAmount={bill!.subtotal}
                   onCash={payCash}
                   busy={status === 'sending'}
                   fallback={

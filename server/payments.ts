@@ -67,6 +67,7 @@ async function paypal(path: string, body?: unknown): Promise<{ status: number; d
 
 
 interface Priced {
+  /** Subtotal (lo que se paga en efectivo); online se le suma el impuesto. */
   amount: number;
   description: string;
   /** Si esta reserva admite pagarse en efectivo el día del servicio. */
@@ -114,7 +115,7 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     if (stop) extras += stop.price;
 
     return {
-      amount: withTax(q.total + extras).total,
+      amount: money(q.total + extras),
       description: `Traslado ${str(origin.text)} → ${str(destination.text)} (${vehicle.name ?? vehicle.slug})`.slice(0, 127),
       cashAllowed: true,
     };
@@ -140,7 +141,7 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     if (children > 0 && e.childPrice == null) return null;
 
     return {
-      amount: withTax(adultUnit * adults + (e.childPrice ?? 0) * children).total,
+      amount: money(adultUnit * adults + (e.childPrice ?? 0) * children),
       description: `${e.name}${ticket ? ` · ${ticket.name}` : ''} · ${adults} adultos${children ? `, ${children} niños` : ''}`.slice(0, 127),
       cashAllowed: e.cashAllowed !== false,
     };
@@ -149,6 +150,7 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
   return null;
 }
 
+const money = (n: number) => Math.round(n * 100) / 100;
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
 const clampInt = (v: unknown, max: number) => {
   const n = Math.floor(Number(v));
@@ -255,6 +257,8 @@ payRouter.post('/create', async (req, res) => {
     res.status(400).json({ ok: false, error: 'Esta reserva no tiene precio cerrado; te la cotizamos por correo.' });
     return;
   }
+  // Online se cobra con el impuesto; en efectivo (/cash) no.
+  const total = withTax(priced.amount).total;
 
   // La reserva se registra ya (con el importe calculado aquí) pero sin
   // correos: abrir el formulario de PayPal no es pagar. Los avisos salen en
@@ -264,7 +268,7 @@ payRouter.post('/create', async (req, res) => {
   const saved = await handleContact(
     data,
     bookingStore,
-    { status: 'pendiente', amount: priced.amount, method: 'paypal' },
+    { status: 'pendiente', amount: total, method: 'paypal' },
     { saveOnly: true },
   );
   if (!saved.body.ok || saved.body.bookingId == null) {
@@ -284,7 +288,7 @@ payRouter.post('/create', async (req, res) => {
           reference_id: String(bookingId),
           custom_id: String(bookingId),
           description: priced.description,
-          amount: { currency_code: 'USD', value: priced.amount.toFixed(2) },
+          amount: { currency_code: 'USD', value: total.toFixed(2) },
         },
       ],
       application_context: { shipping_preference: 'NO_SHIPPING', brand_name: 'Dominican Routes' },
@@ -295,8 +299,8 @@ payRouter.post('/create', async (req, res) => {
       res.status(502).json({ ok: false, error: 'PayPal no respondió. Tu reserva quedó registrada; puedes intentarlo de nuevo.', bookingId });
       return;
     }
-    db.prepare('UPDATE bookings SET paypal_order_id = ?, amount = ? WHERE id = ?').run(orderId, priced.amount, bookingId);
-    res.json({ ok: true, orderID: orderId, bookingId, amount: priced.amount });
+    db.prepare('UPDATE bookings SET paypal_order_id = ?, amount = ? WHERE id = ?').run(orderId, total, bookingId);
+    res.json({ ok: true, orderID: orderId, bookingId, amount: total });
   } catch (err) {
     console.error('Error creando la orden de PayPal:', err);
     res.status(502).json({ ok: false, error: 'PayPal no respondió. Tu reserva quedó registrada; puedes intentarlo de nuevo.', bookingId });

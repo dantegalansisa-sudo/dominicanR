@@ -332,7 +332,14 @@ export default function BookingPage() {
           ]
         : ['Sin adicionales.'],
       ...(bill
-        ? [[`Subtotal: ${usd(bill.subtotal)}`, `Impuestos (5 %): ${usd(bill.tax)}`, `TOTAL A PAGAR: ${usd(bill.total)}`]]
+        ? [
+            [
+              `Subtotal: ${usd(bill.subtotal)}`,
+              `Impuestos (5 %, solo PayPal/tarjeta): ${usd(bill.tax)}`,
+              `TOTAL CON PAYPAL/TARJETA: ${usd(bill.total)}`,
+              `TOTAL EN EFECTIVO: ${usd(bill.subtotal)}`,
+            ],
+          ]
         : []),
       ...(notes ? [[`Notas: ${notes}`]] : []),
     ];
@@ -833,11 +840,19 @@ export default function BookingPage() {
                     </div>
                     <div>
                       <dt>{t.pay.taxRow}</dt>
-                      <dd>{usd(bill.tax)}</dd>
+                      <dd>
+                        {usd(bill.tax)}
+                        <br />
+                        <span className="summary__fine">{t.pay.taxNote}</span>
+                      </dd>
                     </div>
                     <div className="summary__total">
                       <dt>{t.pay.totalRow}</dt>
                       <dd>{usd(bill.total)}</dd>
+                    </div>
+                    <div className="summary__total summary__total--cash">
+                      <dt>{t.pay.cashRow}</dt>
+                      <dd>{usd(bill.subtotal)}</dd>
                     </div>
                   </>
                 )}
@@ -855,6 +870,7 @@ export default function BookingPage() {
                   bookingId={pay.bookingId}
                   onReady={setPayOn}
                   cashAllowed={true}
+                  cashAmount={bill!.subtotal}
                   onCash={payCash}
                   busy={status === 'sending'}
                   fallback={

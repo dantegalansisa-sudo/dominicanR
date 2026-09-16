@@ -1,7 +1,8 @@
 /**
  * Impuesto que se suma al total de lo que elige el cliente (traslado +
- * adicionales, o entradas de excursión). El servidor lo aplica igual al
- * cobrar, así que el importe que ve el visitante es el que se carga.
+ * adicionales, o entradas de excursión) SOLO cuando paga online (PayPal o
+ * tarjeta). En efectivo se paga el subtotal tal cual. El servidor lo aplica
+ * igual al cobrar, así que el importe que ve el visitante es el que se carga.
  */
 export const TAX_RATE = 0.05;
 export const TAX_LABEL_PCT = '5%';

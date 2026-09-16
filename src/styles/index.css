@@ -3996,3 +3996,25 @@ ul {
   font-weight: 700;
   color: var(--coral-soft);
 }
+
+.summary .summary__total--cash {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.summary .summary__total--cash dd {
+  font-size: 15px;
+  color: var(--white);
+}
+
+.btn--cash {
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.btn--cash__amount {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.8;
+}
