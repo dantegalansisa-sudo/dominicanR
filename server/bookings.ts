@@ -29,6 +29,29 @@ export const bookingStore: BookingStore = {
       );
     return Number(r.lastInsertRowid);
   },
+  reuse(id: number, b: NewBooking) {
+    const prev = db
+      .prepare('SELECT id, email, payment_status, email_sent FROM bookings WHERE id = ?')
+      .get(id) as { id: number; email: string; payment_status: string; email_sent: number } | undefined;
+    if (!prev || prev.email !== b.email || prev.payment_status === 'pagada') return null;
+    db.prepare(
+      `UPDATE bookings SET name = ?, phone = ?, lang = ?, date = ?, message = ?, payload = ?,
+         payment_status = ?, amount = COALESCE(?, amount), payment_method = ?
+       WHERE id = ?`,
+    ).run(
+      b.name,
+      b.phone,
+      b.lang,
+      b.date,
+      b.message,
+      b.payload === undefined ? null : JSON.stringify(b.payload),
+      b.payment?.status ?? 'pendiente',
+      b.payment?.amount ?? null,
+      b.payment?.method ?? null,
+      id,
+    );
+    return { id: prev.id, emailSent: prev.email_sent === 1 };
+  },
   markEmail(id: number, sent: boolean, error?: string) {
     db.prepare('UPDATE bookings SET email_sent = ?, email_error = ? WHERE id = ?').run(
       sent ? 1 : 0,

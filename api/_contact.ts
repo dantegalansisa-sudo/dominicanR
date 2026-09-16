@@ -59,6 +59,12 @@ export interface NewBooking {
 export interface BookingStore {
   save(b: NewBooking): number;
   markEmail(id: number, sent: boolean, error?: string): void;
+  /**
+   * Reutiliza la reserva de un intento anterior del mismo visitante (mismo
+   * correo, sin pagar) en vez de crear otra: actualiza sus datos y su forma
+   * de pago. Devuelve null si no existe o no se puede reutilizar.
+   */
+  reuse?(id: number, b: NewBooking): { id: number; emailSent: boolean } | null;
 }
 
 const KIND_BY_TOPIC: Record<string, NewBooking['kind']> = {
@@ -125,6 +131,14 @@ export async function handleContact(
   raw: unknown,
   store?: BookingStore,
   payment?: PaymentInfo,
+  opts?: {
+    /**
+     * Solo registrar, sin correos. Es el caso de "voy a pagar con PayPal":
+     * el aviso sale cuando el cobro se completa (o cuando el visitante elige
+     * pagar en efectivo / enviar sin pagar), no al abrir el formulario.
+     */
+    saveOnly?: boolean;
+  },
 ): Promise<ContactResult> {
   const data = (raw ?? {}) as Record<string, unknown>;
 
@@ -159,9 +173,12 @@ export async function handleContact(
   // Primero se guarda, después se envía: si el correo falla, la solicitud
   // sigue existiendo. Y al revés: un fallo al guardar no frena el correo.
   let bookingId: number | null = null;
+  // Si el visitante ya quedó registrado al abrir PayPal y ahora elige otra
+  // vía (efectivo, enviar sin pagar), es la misma reserva.
+  let alreadyEmailed = false;
   if (store) {
     try {
-      bookingId = store.save({
+      const booking: NewBooking = {
         kind: KIND_BY_TOPIC[topic] ?? 'contacto',
         name,
         email,
@@ -171,7 +188,15 @@ export async function handleContact(
         message,
         payload: data.booking,
         payment,
-      });
+      };
+      const reuseId = Number(data.bookingId);
+      const prev = Number.isFinite(reuseId) && reuseId > 0 && store.reuse ? store.reuse(reuseId, booking) : null;
+      if (prev) {
+        bookingId = prev.id;
+        alreadyEmailed = prev.emailSent;
+      } else {
+        bookingId = store.save(booking);
+      }
     } catch (err) {
       console.error('No se pudo guardar la solicitud en la base:', err);
     }
@@ -184,6 +209,16 @@ export async function handleContact(
       console.error('No se pudo anotar el estado del correo:', err);
     }
   };
+
+  if (opts?.saveOnly) {
+    if (bookingId == null) {
+      return { status: 500, body: { ok: false, error: 'No se pudo registrar la reserva.' } };
+    }
+    if (!alreadyEmailed) noteEmail(false, 'Pendiente de pago: el correo sale al completarse el cobro');
+    return { status: 200, body: { ok: true, bookingId } };
+  }
+  // Ya se avisó por esta misma reserva: no se repite el correo.
+  if (alreadyEmailed && bookingId != null) return { status: 200, body: { ok: true, bookingId } };
 
   const apiKey = process.env.RESEND_API_KEY;
   const to = process.env.CONTACT_TO || 'dominicanroutes@gmail.com';

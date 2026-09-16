@@ -326,12 +326,6 @@ export default function ExcursionBookingPage() {
       setError(miss);
       return;
     }
-    // Si ya se registró al intentar pagar, la solicitud existe y los correos
-    // salieron: no se crea otra.
-    if (pay.bookingId != null) {
-      setStatus('sent');
-      return;
-    }
 
     setStatus('sending');
     setError('');
@@ -340,7 +334,9 @@ export default function ExcursionBookingPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildPayload()),
+        // Si ya se registró al intentar pagar, se reutiliza esa reserva (y
+        // ahora sí sale el correo, que con PayPal se guarda para el cobro).
+        body: JSON.stringify({ ...buildPayload(), bookingId: pay.bookingId }),
       });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;

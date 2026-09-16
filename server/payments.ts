@@ -164,9 +164,9 @@ async function sendPaidEmails(booking: {
   lang: string;
   kind: string;
   message: string;
-}, amount: number, captureId: string) {
+}, amount: number, captureId: string): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return;
+  if (!apiKey) return false;
   const to = process.env.CONTACT_TO || 'dominicanroutes@gmail.com';
   const from = process.env.CONTACT_FROM || 'Dominican Routes <onboarding@resend.dev>';
   const en = booking.lang === 'en';
@@ -216,6 +216,7 @@ async function sendPaidEmails(booking: {
       booking.message,
     ].join('\n'),
   });
+  return true;
 }
 
 /* --------------------------------------------------------------- rutas */
@@ -233,8 +234,8 @@ payRouter.get('/config', (_req, res) => {
 
 /**
  * Crea la orden. Recibe lo mismo que /api/contact; guarda la reserva (con el
- * importe calculado aquí), manda los correos como "pendiente" y devuelve el
- * id de la orden para que el botón de PayPal siga.
+ * importe calculado aquí, sin correo todavía) y devuelve el id de la orden
+ * para que el botón de PayPal siga.
  */
 payRouter.post('/create', async (req, res) => {
   if (!paypalEnabled()) {
@@ -255,31 +256,25 @@ payRouter.post('/create', async (req, res) => {
     return;
   }
 
-  // Si el visitante ya lo intentó (cerró PayPal y vuelve), se reutiliza su
-  // reserva en vez de crear otra: mismo correo y sin pagar todavía.
-  const reuseId = Number(data.bookingId);
-  const reusable = Number.isFinite(reuseId)
-    ? (db.prepare('SELECT id, email, payment_status FROM bookings WHERE id = ?').get(reuseId) as
-        | { id: number; email: string; payment_status: string }
-        | undefined)
-    : undefined;
-  let bookingId: number;
-  if (reusable && reusable.email === str(data.email) && reusable.payment_status !== 'pagada') {
-    bookingId = reusable.id;
-    db.prepare("UPDATE bookings SET payment_status = 'pendiente', payment_method = 'paypal' WHERE id = ?").run(bookingId);
-  } else {
-    // La reserva primero, con el correo de "pendiente": si el visitante no
-    // termina en PayPal, el contacto ya está guardado y avisado.
-    const saved = await handleContact(data, bookingStore, { status: 'pendiente', amount: priced.amount, method: 'paypal' });
-    if (!saved.body.ok || saved.body.bookingId == null) {
-      res.status(saved.status === 200 ? 500 : saved.status).json({
-        ok: false,
-        error: saved.body.error ?? 'No se pudo registrar la reserva.',
-      });
-      return;
-    }
-    bookingId = saved.body.bookingId;
+  // La reserva se registra ya (con el importe calculado aquí) pero sin
+  // correos: abrir el formulario de PayPal no es pagar. Los avisos salen en
+  // /capture cuando el cobro se completa; si el visitante lo deja a medias,
+  // la reserva queda en el panel como pendiente sin correo. Si ya lo intentó
+  // (cerró PayPal y vuelve), handleContact reutiliza su reserva por bookingId.
+  const saved = await handleContact(
+    data,
+    bookingStore,
+    { status: 'pendiente', amount: priced.amount, method: 'paypal' },
+    { saveOnly: true },
+  );
+  if (!saved.body.ok || saved.body.bookingId == null) {
+    res.status(saved.status === 200 ? 500 : saved.status).json({
+      ok: false,
+      error: saved.body.error ?? 'No se pudo registrar la reserva.',
+    });
+    return;
   }
+  const bookingId = saved.body.bookingId;
 
   try {
     const { status, data: order } = await paypal('/v2/checkout/orders', {
@@ -331,17 +326,8 @@ payRouter.post('/cash', async (req, res) => {
     res.status(400).json({ ok: false, error: 'Esta excursión solo se puede pagar por adelantado.' });
     return;
   }
-  const reuseId = Number(data.bookingId);
-  const reusable = Number.isFinite(reuseId)
-    ? (db.prepare('SELECT id, email, payment_status FROM bookings WHERE id = ?').get(reuseId) as
-        | { id: number; email: string; payment_status: string }
-        | undefined)
-    : undefined;
-  if (reusable && reusable.email === str(data.email) && reusable.payment_status !== 'pagada') {
-    db.prepare("UPDATE bookings SET payment_method = 'efectivo', payment_status = 'pendiente', amount = ? WHERE id = ?").run(priced.amount, reusable.id);
-    res.json({ ok: true, bookingId: reusable.id, amount: priced.amount });
-    return;
-  }
+  // Con bookingId de un intento anterior, handleContact reutiliza la reserva
+  // (y manda el correo, que en el intento con PayPal no salió).
   const saved = await handleContact(data, bookingStore, { status: 'pendiente', amount: priced.amount, method: 'efectivo' });
   if (!saved.body.ok) {
     res.status(saved.status).json({ ok: false, error: saved.body.error ?? 'No se pudo registrar la reserva.' });
@@ -405,6 +391,12 @@ payRouter.post('/capture', async (req, res) => {
   ).run(captured, capture.id, booking.id);
   audit('paypal', 'pago recibido', `reserva:${booking.id}`, { amount: captured, capture: capture.id });
 
-  sendPaidEmails(booking, captured, capture.id).catch((err) => console.error('Correo de pago no enviado:', err));
+  // El correo de esta reserva es el de pago; se anota aquí, no en /create.
+  sendPaidEmails(booking, captured, capture.id)
+    .then((sent) => bookingStore.markEmail(booking.id, sent, sent ? undefined : 'Sin RESEND_API_KEY'))
+    .catch((err) => {
+      console.error('Correo de pago no enviado:', err);
+      bookingStore.markEmail(booking.id, false, String(err));
+    });
   res.json({ ok: true, paid: true, amount: captured, bookingId: booking.id });
 });
