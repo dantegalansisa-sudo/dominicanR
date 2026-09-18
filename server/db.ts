@@ -206,6 +206,16 @@ export function migrate() {
     `);
   }
 
+  // El Sedán pasa de "ejecutivo" a "estándar" (pedido del cliente). Una sola
+  // vez y solo si nadie lo cambió ya desde el panel.
+  if (!db.prepare("SELECT 1 FROM settings WHERE key = 'sedan_standard_seeded'").get()) {
+    db.exec(`
+      UPDATE vehicles SET type = 'Automóvil estándar' WHERE slug = 'sedan' AND type = 'Automóvil ejecutivo';
+      UPDATE vehicles SET type_en = 'Standard car' WHERE slug = 'sedan' AND type_en = 'Executive car';
+      INSERT OR REPLACE INTO settings (key, value) VALUES ('sedan_standard_seeded', '1');
+    `);
+  }
+
   // Cobro online (PayPal). Toda reserva nace "pendiente"; pasa a "pagada"
   // solo cuando PayPal confirma la captura, y a "fallida" si la rechaza.
   addColumns('bookings', {

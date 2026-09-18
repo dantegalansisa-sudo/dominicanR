@@ -35,7 +35,7 @@ export const FLEET: Vehicle[] = [
   {
     slug: 'sedan',
     name: 'Sedán',
-    type: 'Automóvil ejecutivo',
+    type: 'Automóvil estándar',
     minPax: 1,
     maxPax: 2,
     price: 25,

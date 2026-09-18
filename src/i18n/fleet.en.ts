@@ -2,7 +2,7 @@
 export const FLEET_EN: Record<string, { name?: string; type: string; summary: string; features: string[] }> = {
   sedan: {
     name: 'Sedan',
-    type: 'Executive car',
+    type: 'Standard car',
     summary: 'For couples or solo travelers who want to get there fast without sharing the car with anyone.',
     features: ['Air conditioning', 'Leather seats', 'Trunk for 2 suitcases'],
   },
