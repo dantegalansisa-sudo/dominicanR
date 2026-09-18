@@ -176,7 +176,7 @@ export default function PricingPage() {
         <div>
           <h1 className="adm__title">Tarifas de traslado</h1>
           <p className="adm__sub">
-            Aquí se revisa, corrige y borra. Para añadir tramos o rutas nuevas, ve a{' '}
+            Aquí se revisa, corrige y borra. Para añadir rutas, recargos o tramos nuevos, ve a{' '}
             <Link to="/admin/nueva-tarifa">Nueva tarifa</Link>. Todo en US$; una casilla vacía = a cotizar.
           </p>
         </div>
@@ -188,22 +188,25 @@ export default function PricingPage() {
         </div>
       </div>
 
-      {/* ------------------------------------------------------ rutas fijas */}
+      {/* ------------------------------------ rutas y recargos, una sola lista */}
       <section className="adm__card">
-        <h2 className="adm__card-title">Rutas con precio cerrado</h2>
+        <h2 className="adm__card-title">Rutas y recargos por zona</h2>
         <p className="adm__sub" style={{ marginTop: -8, marginBottom: 12 }}>
-          Origen y destino concretos (elegidos con Google) con precio total por vehículo. Tienen prioridad sobre el
-          cálculo por kilómetros y valen en los dos sentidos.
+          Todo lo que cambia el precio de un viaje concreto, en una sola lista. <strong>Precio cerrado</strong>: origen y
+          destino elegidos con Google y precio total por vehículo (manda sobre el cálculo por km). <strong>Recargo</strong>:
+          se suma al tramo por km cuando el viaje une una zona del grupo A con una del grupo B. Las dos valen en ambos
+          sentidos. Para añadir, ve a <Link to="/admin/nueva-tarifa">Nueva tarifa</Link>.
         </p>
-        {routes.length === 0 ? (
+        {routes.length === 0 && surcharges.length === 0 ? (
           <p className="adm-empty">
-            Todavía no hay rutas cerradas. <Link to="/admin/nueva-tarifa">Añade la primera</Link>.
+            Todavía no hay rutas ni recargos. <Link to="/admin/nueva-tarifa">Añade la primera</Link>.
           </p>
         ) : (
           <table className="adm-table">
             <thead>
               <tr>
                 <th>Ruta</th>
+                <th>Tipo</th>
                 <th>Km</th>
                 <VehicleHeads />
                 <th />
@@ -213,12 +216,15 @@ export default function PricingPage() {
               {routes.map((r) => {
                 const prices = routeDrafts[r.id] ?? {};
                 return (
-                  <tr key={r.id} className={r.visible ? '' : 'is-off'}>
+                  <tr key={`r-${r.id}`} className={r.visible ? '' : 'is-off'}>
                     <td style={{ minWidth: 220 }}>
                       <strong>{r.label}</strong>
                       <div className="adm__sub" style={{ marginTop: 2, fontSize: 12.5 }}>
                         {r.a_text.split(',')[0]} ↔ {r.b_text.split(',')[0]}
                       </div>
+                    </td>
+                    <td>
+                      <span className="adm-pill adm-pill--on">Precio cerrado</span>
                     </td>
                     <td>{r.km != null ? Math.round(r.km) : '—'}</td>
                     {shown.map((v) => (
@@ -255,6 +261,59 @@ export default function PricingPage() {
                   </tr>
                 );
               })}
+              {surcharges.map((s, i) => (
+                <tr key={`s-${i}`}>
+                  <td style={{ minWidth: 220 }}>
+                    <input
+                      value={s.label}
+                      style={{ minWidth: 160 }}
+                      onChange={(e) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
+                    />
+                    <div className="adm-zones-pair">
+                      <ZonesInput value={s.zones_a} zones={zones} onChange={(v) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, zones_a: JSON.stringify(v) } : x)))} />
+                      <span className="adm-zones-pair__arrow" aria-hidden="true">↔</span>
+                      <ZonesInput value={s.zones_b} zones={zones} onChange={(v) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, zones_b: JSON.stringify(v) } : x)))} />
+                    </div>
+                  </td>
+                  <td>
+                    <span className="adm-pill">Recargo</span>
+                  </td>
+                  <td>—</td>
+                  {shown.map((v) => (
+                    <td key={v.slug}>
+                      <PriceCell
+                        value={s.prices[v.slug]}
+                        onChange={(val) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, prices: setPrice(x.prices, v.slug, val) } : x)))}
+                      />
+                    </td>
+                  ))}
+                  <td>
+                    <div className="adm-table__actions">
+                      <button
+                        className="adm-btn adm-btn--sm"
+                        type="button"
+                        disabled={saving === 'surcharges'}
+                        onClick={() => run('surcharges', () => api.put('/pricing/surcharges', { surcharges }), 'Recargo guardado.')}
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        className="adm-btn adm-btn--icon adm-btn--danger"
+                        type="button"
+                        aria-label="Quitar recargo"
+                        onClick={() => {
+                          if (window.confirm(`¿Borrar el recargo "${s.label}"?`)) {
+                            const rest = surcharges.filter((_, j) => j !== i);
+                            run('surcharges', () => api.put('/pricing/surcharges', { surcharges: rest }), 'Recargo borrado.');
+                          }
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
@@ -325,72 +384,6 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* -------------------------------------------------- recargos por zona */}
-      <section className="adm__card">
-        <h2 className="adm__card-title">Recargos por zona</h2>
-        <p className="adm__sub" style={{ marginTop: -8, marginBottom: 12 }}>
-          Los recargos heredados de la web anterior: se suman al tramo cuando el viaje une una zona del grupo A con una
-          del grupo B. Para rutas nuevas conviene usar las rutas cerradas de arriba, que son más precisas.
-        </p>
-        <table className="adm-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Zonas A</th>
-              <th>Zonas B</th>
-              <VehicleHeads />
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {surcharges.map((s, i) => (
-              <tr key={i}>
-                <td>
-                  <input
-                    value={s.label}
-                    style={{ minWidth: 140 }}
-                    onChange={(e) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
-                  />
-                </td>
-                <td>
-                  <ZonesInput value={s.zones_a} zones={zones} onChange={(v) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, zones_a: JSON.stringify(v) } : x)))} />
-                </td>
-                <td>
-                  <ZonesInput value={s.zones_b} zones={zones} onChange={(v) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, zones_b: JSON.stringify(v) } : x)))} />
-                </td>
-                {shown.map((v) => (
-                  <td key={v.slug}>
-                    <PriceCell
-                      value={s.prices[v.slug]}
-                      onChange={(val) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, prices: setPrice(x.prices, v.slug, val) } : x)))}
-                    />
-                  </td>
-                ))}
-                <td>
-                  <button
-                    className="adm-btn adm-btn--icon adm-btn--danger"
-                    type="button"
-                    aria-label="Quitar recargo"
-                    onClick={() => setSurcharges(surcharges.filter((_, j) => j !== i))}
-                  >
-                    ✕
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="adm-bar adm-bar--end">
-          <button
-            className="adm-btn adm-btn--primary"
-            type="button"
-            disabled={saving === 'surcharges'}
-            onClick={() => run('surcharges', () => api.put('/pricing/surcharges', { surcharges }), 'Recargos guardados.')}
-          >
-            {saving === 'surcharges' ? 'Guardando…' : 'Guardar recargos'}
-          </button>
-        </div>
-      </section>
     </>
   );
 }

@@ -5,7 +5,7 @@ import { emptyPlace } from '../../data/places';
 import type { PlaceValue } from '../../data/places';
 import { fetchDistance } from '../../utils/googlePlaces';
 import { api, parseJson } from '../api';
-import type { BracketRow, VehicleRow } from '../api';
+import type { BracketRow, SurchargeRow, VehicleRow, ZoneRow } from '../api';
 import { Field, useToast } from '../ui';
 
 type Prices = Record<string, number>;
@@ -41,6 +41,28 @@ function PriceGrid({ fleet, prices, onChange }: { fleet: VehicleRow[]; prices: P
   );
 }
 
+/** Las zonas como chips: pulsar marca o desmarca. */
+function ZonePicker({ value, zones, onChange }: { value: string[]; zones: ZoneRow[]; onChange: (v: string[]) => void }) {
+  return (
+    <div className="adm-zone-picker">
+      {zones.map((z) => {
+        const on = value.includes(z.id);
+        return (
+          <button
+            key={z.id}
+            type="button"
+            className={`adm-pill adm-pill--btn${on ? ' adm-pill--on' : ''}`}
+            aria-pressed={on}
+            onClick={() => onChange(on ? value.filter((id) => id !== z.id) : [...value, z.id])}
+          >
+            {z.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function NewPricingPage() {
   const toast = useToast();
   const [fleet, setFleet] = useState<VehicleRow[]>([]);
@@ -49,6 +71,14 @@ export default function NewPricingPage() {
   const [upTo, setUpTo] = useState('');
   const [bracketPrices, setBracketPrices] = useState<Prices>({});
   const [savingBracket, setSavingBracket] = useState(false);
+
+  // --- recargo por zona
+  const [zones, setZones] = useState<ZoneRow[]>([]);
+  const [surLabel, setSurLabel] = useState('');
+  const [zonesA, setZonesA] = useState<string[]>([]);
+  const [zonesB, setZonesB] = useState<string[]>([]);
+  const [surPrices, setSurPrices] = useState<Prices>({});
+  const [savingSur, setSavingSur] = useState(false);
 
   // --- ruta
   const [origin, setOrigin] = useState<PlaceValue>(emptyPlace());
@@ -63,6 +93,10 @@ export default function NewPricingPage() {
     api
       .get<{ vehicles: VehicleRow[] }>('/vehicles')
       .then((r) => setFleet(r.vehicles.filter((v) => v.visible)))
+      .catch((e) => toast(e.message, true));
+    api
+      .get<{ zones: ZoneRow[] }>('/pricing')
+      .then((r) => setZones(r.zones))
       .catch((e) => toast(e.message, true));
   }, [toast]);
 
@@ -145,6 +179,50 @@ export default function NewPricingPage() {
     }
   };
 
+  const addSurcharge = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (zonesA.length === 0 || zonesB.length === 0) {
+      toast('Elige al menos una zona en cada grupo.', true);
+      return;
+    }
+    if (Object.keys(surPrices).length === 0) {
+      toast('Pon el recargo de al menos un vehículo.', true);
+      return;
+    }
+    setSavingSur(true);
+    try {
+      // Los recargos se guardan como lista completa: se añade a los que hay.
+      const r = await api.get<{ surcharges: SurchargeRow[] }>('/pricing');
+      const existing = r.surcharges.map((x) => ({
+        label: x.label,
+        zones_a: x.zones_a,
+        zones_b: x.zones_b,
+        prices: parseJson<Prices>(x.prices, { sedan: x.sedan, minivan: x.minivan, minibus: x.minibus, 'vip-luxury': x.vip }),
+      }));
+      const labelOf = (ids: string[]) => ids.map((id) => zones.find((z) => z.id === id)?.label ?? id).join(', ');
+      await api.put('/pricing/surcharges', {
+        surcharges: [
+          ...existing,
+          {
+            label: surLabel.trim() || `${labelOf(zonesA)} ↔ ${labelOf(zonesB)}`,
+            zones_a: JSON.stringify(zonesA),
+            zones_b: JSON.stringify(zonesB),
+            prices: surPrices,
+          },
+        ],
+      });
+      toast('Recargo añadido. Ya está en Tarifas y en la web.');
+      setSurLabel('');
+      setZonesA([]);
+      setZonesB([]);
+      setSurPrices({});
+    } catch (err) {
+      toast((err as Error).message, true);
+    } finally {
+      setSavingSur(false);
+    }
+  };
+
   const autoLabel =
     origin.text && destination.text ? `${origin.text.split(',')[0]} ↔ ${destination.text.split(',')[0]}` : '';
 
@@ -221,6 +299,34 @@ export default function NewPricingPage() {
         <div className="adm-bar adm-bar--end">
           <button className="adm-btn adm-btn--primary" type="submit" disabled={savingRoute}>
             {savingRoute ? 'Guardando…' : 'Añadir ruta'}
+          </button>
+        </div>
+      </form>
+
+      {/* --------------------------------------------------- recargo por zona */}
+      <form className="adm__card" onSubmit={addSurcharge}>
+        <h2 className="adm__card-title">Recargo por zona</h2>
+        <p className="adm__sub" style={{ marginTop: -8, marginBottom: 16 }}>
+          Se suma al precio por kilómetros cuando el viaje une una zona del grupo A con una del grupo B, en cualquier
+          sentido. Sirve para cubrir zonas enteras (por ejemplo, todo Samaná) sin crear una ruta por cada hotel.
+        </p>
+        <div className="adm-grid">
+          <Field label="Zonas A">
+            <ZonePicker value={zonesA} zones={zones} onChange={setZonesA} />
+          </Field>
+          <Field label="Zonas B">
+            <ZonePicker value={zonesB} zones={zones} onChange={setZonesB} />
+          </Field>
+        </div>
+        <PriceGrid fleet={fleet} prices={surPrices} onChange={setSurPrices} />
+        <div className="adm-grid">
+          <Field label="Nombre del recargo" hint="Opcional. Se genera con las zonas si lo dejas vacío.">
+            <input value={surLabel} placeholder="Punta Cana ↔ Samaná" onChange={(e) => setSurLabel(e.target.value)} />
+          </Field>
+        </div>
+        <div className="adm-bar adm-bar--end">
+          <button className="adm-btn adm-btn--primary" type="submit" disabled={savingSur}>
+            {savingSur ? 'Guardando…' : 'Añadir recargo'}
           </button>
         </div>
       </form>

@@ -812,3 +812,39 @@ button.adm-chip {
     width: 100%;
   }
 }
+
+/* ---------- rutas y recargos en una lista ---------- */
+
+.adm-zones-pair {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+  max-width: 420px;
+}
+
+.adm-zones-pair__arrow {
+  color: var(--ink-soft);
+  padding-top: 4px;
+}
+
+.adm-zone-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.adm-pill--btn {
+  cursor: pointer;
+  border: 1px solid var(--line);
+  font-family: inherit;
+}
+
+.adm-pill--btn:hover {
+  border-color: var(--coral);
+}
+
+.adm-table .adm-pill {
+  white-space: nowrap;
+}
