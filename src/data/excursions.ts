@@ -59,6 +59,9 @@ export interface Excursion {
   departures?: string[];
   /** Entradas o paquetes, cada uno con su precio y lo que incluye. */
   tickets?: Ticket[];
+  /** Título y subtítulo propios de la sección de entradas (panel). */
+  ticketsTitle?: string;
+  ticketsLead?: string;
   /**
    * Textos en inglés editados desde el panel. Cualquiera puede faltar: el
    * front lo suple con la traducción del proyecto o con el español.
@@ -70,6 +73,8 @@ export interface Excursion {
     includes?: string[] | null;
     activities?: string[] | null;
     tickets?: { name: string; includes: string }[] | null;
+    ticketsTitle?: string | null;
+    ticketsLead?: string | null;
   };
 }
 

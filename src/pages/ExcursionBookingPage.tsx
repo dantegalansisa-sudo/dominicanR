@@ -526,8 +526,8 @@ export default function ExcursionBookingPage() {
 
             {tickets.length > 0 && (
               <section className="bcard">
-                <h2 className="bcard__title">{t.exBooking.ticket}</h2>
-                <p className="bcard__lead">{t.exBooking.ticketLead}</p>
+                <h2 className="bcard__title">{excursion?.ticketsTitle || t.exBooking.ticket}</h2>
+                <p className="bcard__lead">{excursion?.ticketsLead || t.exBooking.ticketLead}</p>
                 <div className="tickets">
                   {tickets.map((tk) => (
                     <button

@@ -38,6 +38,10 @@ interface ExcursionRow {
   includes_en: string | null;
   activities_en: string | null;
   tickets_en: string | null;
+  tickets_title: string | null;
+  tickets_lead: string | null;
+  tickets_title_en: string | null;
+  tickets_lead_en: string | null;
 }
 
 interface VehicleRow {
@@ -89,6 +93,8 @@ export function buildCatalog() {
     activities: parse<string[]>(e.activities, []),
     departures: parse<string[]>(e.departures, []),
     tickets: parse<unknown[]>(e.tickets, []),
+    ...(e.tickets_title?.trim() ? { ticketsTitle: e.tickets_title.trim() } : {}),
+    ...(e.tickets_lead?.trim() ? { ticketsLead: e.tickets_lead.trim() } : {}),
     photos: bySlug.get(e.slug) ?? [],
     // Lo que tenga en inglés; lo que falte lo suple el front con el español.
     en: {
@@ -98,6 +104,8 @@ export function buildCatalog() {
       includes: e.includes_en ? parse<string[]>(e.includes_en, []) : null,
       activities: e.activities_en ? parse<string[]>(e.activities_en, []) : null,
       tickets: e.tickets_en ? parse<{ name: string; includes: string }[]>(e.tickets_en, []) : null,
+      ticketsTitle: e.tickets_title_en?.trim() || null,
+      ticketsLead: e.tickets_lead_en?.trim() || null,
     },
   }));
 

@@ -39,6 +39,10 @@ interface Draft {
   includes_en: string[];
   activities_en: string[];
   tickets_en: TicketEn[];
+  tickets_title: string;
+  tickets_lead: string;
+  tickets_title_en: string;
+  tickets_lead_en: string;
 }
 
 const toDraft = (r: ExcursionRow): Draft => ({
@@ -64,6 +68,10 @@ const toDraft = (r: ExcursionRow): Draft => ({
   includes_en: parseJson<string[]>(r.includes_en, []),
   activities_en: parseJson<string[]>(r.activities_en, []),
   tickets_en: parseJson<TicketEn[]>(r.tickets_en, []),
+  tickets_title: r.tickets_title ?? '',
+  tickets_lead: r.tickets_lead ?? '',
+  tickets_title_en: r.tickets_title_en ?? '',
+  tickets_lead_en: r.tickets_lead_en ?? '',
 });
 
 export default function ExcursionEditPage() {
@@ -323,6 +331,20 @@ export default function ExcursionEditPage() {
         <p className="adm__sub" style={{ marginTop: -8, marginBottom: 12 }}>
           Para excursiones con varios precios (Coco Bongo, Imagine). Si no hay, se usa el precio por adulto de arriba.
         </p>
+        <div className="adm-grid">
+          <Field label="Título de la sección" hint="Lo que ve el cliente encima de las opciones, p. ej. «Elige tu traslado». Vacío = «Tu entrada».">
+            <input value={draft.tickets_title} placeholder="Tu entrada" onChange={(e) => set('tickets_title', e.target.value)} />
+          </Field>
+          <Field label="Subtítulo" hint="Vacío = el texto por defecto.">
+            <input value={draft.tickets_lead} placeholder="El precio es por persona y cambia según lo que incluye." onChange={(e) => set('tickets_lead', e.target.value)} />
+          </Field>
+          <Field label="Section title (EN)" hint="Vacío = «Your ticket».">
+            <input value={draft.tickets_title_en} placeholder="Your ticket" onChange={(e) => set('tickets_title_en', e.target.value)} />
+          </Field>
+          <Field label="Subtitle (EN)">
+            <input value={draft.tickets_lead_en} placeholder="Price is per person and depends on what is included." onChange={(e) => set('tickets_lead_en', e.target.value)} />
+          </Field>
+        </div>
         {draft.tickets.length > 0 && (
           <table className="adm-table">
             <thead>

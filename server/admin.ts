@@ -122,6 +122,10 @@ const EXCURSION_FIELDS = [
   'name_en',
   'duration_en',
   'description_en',
+  'tickets_title',
+  'tickets_lead',
+  'tickets_title_en',
+  'tickets_lead_en',
 ] as const;
 
 adminRouter.put('/excursions/:slug', (req: AdminRequest, res) => {

@@ -186,6 +186,15 @@ export function migrate() {
     activities_en: 'TEXT',
     tickets_en: 'TEXT',
   });
+  // Título y subtítulo de la sección de entradas/paquetes en la página de
+  // reserva ("Tu entrada"), por excursión: no todas venden entradas (hay
+  // paquetes de traslado, horarios…). Vacío = el texto por defecto.
+  addColumns('excursions', {
+    tickets_title: 'TEXT',
+    tickets_lead: 'TEXT',
+    tickets_title_en: 'TEXT',
+    tickets_lead_en: 'TEXT',
+  });
   addColumns('vehicles', {
     name_en: 'TEXT',
     type_en: 'TEXT',

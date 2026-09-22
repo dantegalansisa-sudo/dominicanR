@@ -38,6 +38,10 @@ export function localizeExcursion(e: Excursion, lang: Lang): Excursion {
     includes: own?.includes?.length ? own.includes : (tr?.includes ?? e.includes),
     activities: own?.activities?.length ? own.activities : (tr?.activities ?? e.activities),
     tickets,
+    // Un título propio en español no vale para la web en inglés: sin su
+    // versión en inglés se vuelve al texto por defecto traducido.
+    ticketsTitle: own?.ticketsTitle || undefined,
+    ticketsLead: own?.ticketsLead || undefined,
   };
 }
 

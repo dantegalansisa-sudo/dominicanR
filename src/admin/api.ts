@@ -69,6 +69,10 @@ export interface ExcursionRow {
   includes_en: string | null;
   activities_en: string | null;
   tickets_en: string | null;
+  tickets_title: string | null;
+  tickets_lead: string | null;
+  tickets_title_en: string | null;
+  tickets_lead_en: string | null;
 }
 
 export interface PhotoRow {
