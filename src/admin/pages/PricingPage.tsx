@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { api, parseJson } from '../api';
 import type { BracketRow, RouteRow, SurchargeRow, VehicleRow, ZoneRow } from '../api';
 import { useToast } from '../ui';
+import RouteEditor from './RouteEditor';
+import type { RouteEdit } from './RouteEditor';
 
 type Prices = Record<string, number>;
 
@@ -121,6 +123,7 @@ export default function PricingPage() {
   const [zones, setZones] = useState<ZoneRow[]>([]);
   const [saving, setSaving] = useState<string | null>(null);
   const [group, setGroup] = useState<'main' | 'rest'>('main');
+  const [editing, setEditing] = useState<RouteEdit | null>(null);
 
   const load = useCallback(async () => {
     const [p, v] = await Promise.all([
@@ -176,7 +179,7 @@ export default function PricingPage() {
         <div>
           <h1 className="adm__title">Tarifas de traslado</h1>
           <p className="adm__sub">
-            Aquí se revisa, corrige y borra. Para añadir rutas, recargos o tramos nuevos, ve a{' '}
+            Aquí se crea, edita, duplica y borra. Para tramos por km y recargos nuevos, ve a{' '}
             <Link to="/admin/nueva-tarifa">Nueva tarifa</Link>. Todo en US$; una casilla vacía = a cotizar.
           </p>
         </div>
@@ -188,14 +191,37 @@ export default function PricingPage() {
         </div>
       </div>
 
+      {editing && (
+        <RouteEditor
+          key={editing.mode === 'new' ? 'new' : `${editing.mode}-${editing.route.id}`}
+          edit={editing}
+          fleet={fleet.filter((v) => v.visible)}
+          onCancel={() => setEditing(null)}
+          onDone={() => {
+            setEditing(null);
+            load().catch((e) => toast(e.message, true));
+          }}
+        />
+      )}
+
       {/* ------------------------------------ rutas y recargos, una sola lista */}
       <section className="adm__card">
-        <h2 className="adm__card-title">Rutas y recargos por zona</h2>
+        <div className="adm-card-head">
+          <h2 className="adm__card-title">Rutas y recargos por zona</h2>
+          <div className="adm-bar">
+            <button className="adm-btn adm-btn--sm adm-btn--primary" type="button" onClick={() => setEditing({ mode: 'new' })}>
+              + Nueva ruta
+            </button>
+            <Link className="adm-btn adm-btn--sm" to="/admin/nueva-tarifa">
+              + Nuevo recargo
+            </Link>
+          </div>
+        </div>
         <p className="adm__sub" style={{ marginTop: -8, marginBottom: 12 }}>
           Todo lo que cambia el precio de un viaje concreto, en una sola lista. <strong>Precio cerrado</strong>: origen y
           destino elegidos con Google y precio total por vehículo (manda sobre el cálculo por km). <strong>Recargo</strong>:
           se suma al tramo por km cuando el viaje une una zona del grupo A con una del grupo B. Las dos valen en ambos
-          sentidos. Para añadir, ve a <Link to="/admin/nueva-tarifa">Nueva tarifa</Link>.
+          sentidos. Pulsa el nombre de una ruta (✎) para editarla entera; ⧉ la duplica.
         </p>
         {routes.length === 0 && surcharges.length === 0 ? (
           <p className="adm-empty">
@@ -218,7 +244,11 @@ export default function PricingPage() {
                 return (
                   <tr key={`r-${r.id}`} className={r.visible ? '' : 'is-off'}>
                     <td className="adm-route-cell">
-                      <strong>{r.label}</strong>
+                      <button type="button" className="adm-route-name" title="Editar ruta" onClick={() => setEditing({ mode: 'edit', route: r })}>
+                        <strong>{r.label}</strong>
+                        <span aria-hidden="true">✎</span>
+                      </button>
+                      {!r.visible && <span className="adm-pill" style={{ marginTop: 4 }}>Inactiva</span>}
                       {/* Solo si el nombre no es ya "origen ↔ destino". */}
                       {r.label !== `${r.a_text.split(',')[0]} ↔ ${r.b_text.split(',')[0]}` && (
                         <div className="adm__sub" style={{ marginTop: 2, fontSize: 12.5 }}>
@@ -247,6 +277,15 @@ export default function PricingPage() {
                           onClick={() => run(`route-${r.id}`, () => api.put(`/pricing/routes/${r.id}`, { prices }), 'Ruta guardada.')}
                         >
                           Guardar
+                        </button>
+                        <button
+                          className="adm-btn adm-btn--icon"
+                          type="button"
+                          aria-label="Duplicar ruta"
+                          title="Duplicar"
+                          onClick={() => setEditing({ mode: 'copy', route: r })}
+                        >
+                          ⧉
                         </button>
                         <button
                           className="adm-btn adm-btn--icon adm-btn--danger"
@@ -298,6 +337,18 @@ export default function PricingPage() {
                         onClick={() => run('surcharges', () => api.put('/pricing/surcharges', { surcharges }), 'Recargo guardado.')}
                       >
                         Guardar
+                      </button>
+                      <button
+                        className="adm-btn adm-btn--icon"
+                        type="button"
+                        aria-label="Duplicar recargo"
+                        title="Duplicar"
+                        onClick={() => {
+                          const next = [...surcharges.slice(0, i + 1), { ...s, label: `${s.label} (copia)` }, ...surcharges.slice(i + 1)];
+                          run('surcharges', () => api.put('/pricing/surcharges', { surcharges: next }), 'Recargo duplicado. Cambia sus zonas o importes y guarda.');
+                        }}
+                      >
+                        ⧉
                       </button>
                       <button
                         className="adm-btn adm-btn--icon adm-btn--danger"

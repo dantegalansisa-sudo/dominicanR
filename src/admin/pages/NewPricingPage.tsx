@@ -18,7 +18,7 @@ const PinIcon = () => (
 );
 
 /** Una casilla por vehículo. Vacía = ese vehículo se cotiza a mano. */
-function PriceGrid({ fleet, prices, onChange }: { fleet: VehicleRow[]; prices: Prices; onChange: (p: Prices) => void }) {
+export function PriceGrid({ fleet, prices, onChange }: { fleet: VehicleRow[]; prices: Prices; onChange: (p: Prices) => void }) {
   return (
     <div className="adm-grid adm-grid--3">
       {fleet.map((v) => (

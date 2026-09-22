@@ -514,8 +514,8 @@ adminRouter.post('/pricing/routes', (req: AdminRequest, res) => {
     (db.prepare('SELECT MAX(position) AS m FROM fixed_routes').get() as { m: number | null }).m ?? -1;
   const r = db
     .prepare(
-      `INSERT INTO fixed_routes (label, a_text, a_lat, a_lng, b_text, b_lat, b_lng, km, radius_km, prices, position)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO fixed_routes (label, a_text, a_lat, a_lng, b_text, b_lat, b_lng, km, radius_km, prices, position, visible)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       label,
@@ -529,6 +529,7 @@ adminRouter.post('/pricing/routes', (req: AdminRequest, res) => {
       num(b.radiusKm) ?? 8,
       json(prices),
       max + 1,
+      b.visible === false ? 0 : 1,
     );
   audit(req.admin!, 'crear ruta', label);
   res.json({ ok: true, id: Number(r.lastInsertRowid) });
@@ -558,6 +559,31 @@ adminRouter.put('/pricing/routes/:id', (req: AdminRequest, res) => {
   if (b.visible !== undefined) {
     sets.push('visible = ?');
     values.push(b.visible ? 1 : 0);
+  }
+  // Origen y destino se cambian a la vez que sus coordenadas: un texto nuevo
+  // con las coordenadas del sitio anterior haría coincidir otro viaje.
+  for (const [key, col] of [
+    ['a', 'a'],
+    ['b', 'b'],
+  ] as const) {
+    const p = b[key];
+    if (p === undefined) continue;
+    const text = String(p?.text ?? '').trim();
+    if (!text) {
+      res.status(400).json({ ok: false, error: 'Hacen falta el origen y el destino.' });
+      return;
+    }
+    sets.push(`${col}_text = ?`, `${col}_lat = ?`, `${col}_lng = ?`);
+    values.push(text, num(p?.lat), num(p?.lng));
+  }
+  if (b.km !== undefined) {
+    sets.push('km = ?');
+    values.push(num(b.km));
+  }
+  if (b.label !== undefined && !String(b.label).trim() && b.a && b.b) {
+    // Nombre vacío = "Origen ↔ Destino", como al crear.
+    const i = sets.indexOf('label = ?');
+    values[i] = `${String(b.a.text).split(',')[0]} ↔ ${String(b.b.text).split(',')[0]}`;
   }
   if (sets.length) {
     values.push(req.params.id);

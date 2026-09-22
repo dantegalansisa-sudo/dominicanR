@@ -892,3 +892,51 @@ button.adm-chip {
   min-width: 0;
   max-width: 100%;
 }
+
+/* ---------- editar / duplicar rutas en Tarifas ---------- */
+
+.adm-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.adm-card-head .adm__card-title {
+  margin-bottom: 14px;
+}
+
+.adm-route-editor {
+  border-color: var(--coral);
+  box-shadow: 0 0 0 3px rgba(var(--coral-rgb), 0.12);
+  scroll-margin-top: 20px;
+}
+
+.adm-route-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.adm-route-name span {
+  color: var(--coral);
+  font-size: 13px;
+}
+
+.adm-route-name:hover strong {
+  color: var(--coral);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.adm-table input[type='number'] {
+  width: 68px;
+}
