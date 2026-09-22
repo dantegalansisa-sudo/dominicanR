@@ -43,9 +43,9 @@ export const PROVINCES: Province[] = [
     poster: '/images/punta-cana-poster.jpg',
     mask: '/images/punta-cana-mask.png',
   },
-  // v2: toma cenital de dron girada 90° (el original es vertical); nombre
-  // nuevo para que la caché de un año de /video no sirva el clip anterior.
-  { id: 'bayahibe', word: 'BAYAHÍBE', ...V('bayahibe-v2') },
+  // v3 (playa Dominicus con el faro); nombre nuevo en cada cambio para que
+  // la caché de un año de /video no sirva el clip anterior.
+  { id: 'bayahibe', word: 'BAYAHÍBE', ...V('bayahibe-v3') },
   { id: 'la-romana', word: 'LA ROMANA', ...V('la-romana') },
   { id: 'pedernales', word: 'PEDERNALES', ...V('pedernales') },
   { id: 'puerto-plata', word: 'PUERTO PLATA', ...V('puerto-plata') },

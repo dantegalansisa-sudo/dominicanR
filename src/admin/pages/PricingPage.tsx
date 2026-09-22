@@ -217,14 +217,17 @@ export default function PricingPage() {
                 const prices = routeDrafts[r.id] ?? {};
                 return (
                   <tr key={`r-${r.id}`} className={r.visible ? '' : 'is-off'}>
-                    <td style={{ minWidth: 220 }}>
+                    <td className="adm-route-cell">
                       <strong>{r.label}</strong>
-                      <div className="adm__sub" style={{ marginTop: 2, fontSize: 12.5 }}>
-                        {r.a_text.split(',')[0]} ↔ {r.b_text.split(',')[0]}
-                      </div>
+                      {/* Solo si el nombre no es ya "origen ↔ destino". */}
+                      {r.label !== `${r.a_text.split(',')[0]} ↔ ${r.b_text.split(',')[0]}` && (
+                        <div className="adm__sub" style={{ marginTop: 2, fontSize: 12.5 }}>
+                          {r.a_text.split(',')[0]} ↔ {r.b_text.split(',')[0]}
+                        </div>
+                      )}
                     </td>
                     <td>
-                      <span className="adm-pill adm-pill--on">Precio cerrado</span>
+                      <span className="adm-pill adm-pill--on">Cerrado</span>
                     </td>
                     <td>{r.km != null ? Math.round(r.km) : '—'}</td>
                     {shown.map((v) => (
@@ -263,10 +266,9 @@ export default function PricingPage() {
               })}
               {surcharges.map((s, i) => (
                 <tr key={`s-${i}`}>
-                  <td style={{ minWidth: 220 }}>
+                  <td className="adm-route-cell">
                     <input
                       value={s.label}
-                      style={{ minWidth: 160 }}
                       onChange={(e) => setSurcharges(surcharges.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
                     />
                     <div className="adm-zones-pair">

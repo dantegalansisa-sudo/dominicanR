@@ -848,3 +848,47 @@ button.adm-chip {
 .adm-table .adm-pill {
   white-space: nowrap;
 }
+
+/* ---------- tabla de rutas y recargos: que quepa entera ---------- */
+
+/* En pantallas grandes el contenido aprovecha el ancho: las tablas de
+   tarifas tienen muchas columnas y a 1100px el ✕ quedaba fuera de vista. */
+@media (min-width: 1300px) {
+  .adm__main {
+    max-width: 1400px;
+  }
+}
+
+.adm-route-cell {
+  min-width: 170px;
+  max-width: 260px;
+}
+
+.adm-route-cell strong {
+  display: block;
+  line-height: 1.3;
+}
+
+.adm-table .adm-table__actions .adm-btn--sm {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* En la celda estrecha de la ruta, zonas A ↔ B una debajo de otra para que
+   los chips no invadan la columna Tipo. */
+.adm-route-cell .adm-zones-pair {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  max-width: none;
+}
+
+.adm-route-cell .adm-zones-pair__arrow {
+  padding: 0 0 0 6px;
+  line-height: 1;
+}
+
+.adm-route-cell .adm-zones-pair > * {
+  min-width: 0;
+  max-width: 100%;
+}
