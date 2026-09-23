@@ -117,7 +117,9 @@ export default function ExcursionBookingPage() {
   );
   const [date, setDate] = useState(seed.date ?? '');
   const [departure, setDeparture] = useState('');
-  const [ticket, setTicket] = useState('');
+  // Por posición, no por nombre: el cliente crea opciones con el mismo nombre
+  // ("Traslado Privado" a $140 y a $180) y por nombre se marcaban las dos.
+  const [ticket, setTicket] = useState<number | null>(null);
   const [pickup, setPickup] = useState<PlaceValue>(seed.pickup ?? emptyPlace());
   const [room, setRoom] = useState('');
   const [party, setParty] = useState<Party>(seed.party ?? EMPTY_PARTY);
@@ -195,16 +197,14 @@ export default function ExcursionBookingPage() {
   const adultsOnly = Boolean(excursion?.adultsOnly);
   const departures = excursion?.departures ?? [];
   const tickets = excursion?.tickets ?? [];
-  const chosenTicket = tickets.find((tk) => tk.name === ticket) ?? null;
-  const chosenTicketEs = chosenTicket
-    ? (excursionEs?.tickets?.[tickets.indexOf(chosenTicket)] ?? chosenTicket)
-    : null;
+  const chosenTicket = ticket != null ? (tickets[ticket] ?? null) : null;
+  const chosenTicketEs = chosenTicket && ticket != null ? (excursionEs?.tickets?.[ticket] ?? chosenTicket) : null;
 
   // Cambiar de excursion deja el horario y la entrada de la anterior, que no
   // existen en la nueva.
   useEffect(() => {
     setDeparture('');
-    setTicket('');
+    setTicket(null);
   }, [excursion?.slug]);
   // Elegir una excursion de solo adultos con ninos ya contados dejaria el
   // correo pidiendo plazas que no existen.
@@ -319,7 +319,7 @@ export default function ExcursionBookingPage() {
             excursion: excursionEs ? { slug: excursionEs.slug, name: excursionEs.name } : { slug: null, name: choice.text },
             date,
             departure,
-            ticket: chosenTicketEs ? { name: chosenTicketEs.name, price: chosenTicketEs.price } : null,
+            ticket: chosenTicketEs ? { index: ticket, name: chosenTicketEs.name, price: chosenTicketEs.price } : null,
             pickup,
             room,
             party,
@@ -529,13 +529,13 @@ export default function ExcursionBookingPage() {
                 <h2 className="bcard__title">{excursion?.ticketsTitle || t.exBooking.ticket}</h2>
                 <p className="bcard__lead">{excursion?.ticketsLead || t.exBooking.ticketLead}</p>
                 <div className="tickets">
-                  {tickets.map((tk) => (
+                  {tickets.map((tk, i) => (
                     <button
-                      key={tk.name}
+                      key={i}
                       type="button"
-                      className={`ticket${ticket === tk.name ? ' is-on' : ''}`}
-                      onClick={() => setTicket(tk.name)}
-                      aria-pressed={ticket === tk.name}
+                      className={`ticket${ticket === i ? ' is-on' : ''}`}
+                      onClick={() => setTicket(i)}
+                      aria-pressed={ticket === i}
                     >
                       <span className="ticket__head">
                         <span className="ticket__name">{tk.name}</span>

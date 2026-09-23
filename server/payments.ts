@@ -129,9 +129,16 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     const adults = clampInt(party.adults, 50) || 1;
     const children = e.adultsOnly ? 0 : clampInt(party.children, 50);
 
-    const ticketName = str((b.ticket as { name?: string } | null)?.name);
+    const sent = (b.ticket ?? null) as { index?: number; name?: string } | null;
+    const ticketName = str(sent?.name);
     const tickets = (e.tickets ?? []) as { name: string; price: number }[];
-    const ticket = tickets.find((t) => t.name === ticketName) ?? null;
+    // Por posición: puede haber varias opciones con el mismo nombre y precio
+    // distinto. Por nombre solo si no llega la posición (reservas antiguas).
+    const idx = Number(sent?.index);
+    const ticket =
+      Number.isInteger(idx) && idx >= 0 && idx < tickets.length
+        ? tickets[idx]!
+        : (tickets.find((t) => t.name === ticketName) ?? null);
     const adultUnit = ticket
       ? ticket.price
       : tickets.length
