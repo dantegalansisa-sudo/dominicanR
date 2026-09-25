@@ -139,10 +139,15 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
       Number.isInteger(idx) && idx >= 0 && idx < tickets.length
         ? tickets[idx]!
         : (tickets.find((t) => t.name === ticketName) ?? null);
+    // Sin opción elegida: el precio propio de la excursión, y si no tiene
+    // (o es 0), la opción más barata. Igual que fromPrice() en la web.
+    const own = e.price != null && e.price > 0 ? e.price : null;
     const adultUnit = ticket
       ? ticket.price
-      : tickets.length
-        ? Math.min(...tickets.map((t) => t.price))
+      : own != null
+        ? own
+        : tickets.length
+          ? Math.min(...tickets.map((t) => t.price))
         : e.price;
     if (adultUnit == null) return null;
     if (children > 0 && e.childPrice == null) return null;

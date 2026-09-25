@@ -390,6 +390,8 @@ export const es = {
     roomPh: 'Para saber dónde buscarte',
     ticket: 'Tu entrada',
     ticketLead: 'El precio es por persona y cambia según lo que incluye.',
+    standardOption: 'Excursión regular',
+    standardOptionNote: 'Tal como se describe arriba, al precio normal.',
     who: 'Quiénes viajan',
     adultsOnlyLead: 'Esta experiencia es solo para mayores de edad.',
     agesLead: 'El precio cambia según la edad, así que conviene afinarlo aquí.',

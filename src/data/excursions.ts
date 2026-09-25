@@ -88,11 +88,22 @@ export interface Excursion {
  */
 export const CHILD_PRICE_DEFAULT = 65;
 
+/**
+ * El precio de la excursión cuando no se elige ninguna opción. Si tiene
+ * precio propio, ese: las opciones (traslado privado, paquetes) son
+ * alternativas y no lo sustituyen. Sin precio (o a 0) manda la opción más
+ * barata, como en Coco Bongo o Imagine, que solo se venden por entrada.
+ * El servidor (priceOf en server/payments.ts) aplica la misma regla.
+ */
+export function basePrice(e: Pick<Excursion, 'price'>): number | null {
+  return e.price != null && e.price > 0 ? e.price : null;
+}
+
 export function fromPrice(e: Excursion): number | null {
-  if (e.tickets && e.tickets.length > 0) {
-    return Math.min(...e.tickets.map((t) => t.price));
-  }
-  return e.price;
+  const base = basePrice(e);
+  const ticketPrices = (e.tickets ?? []).map((t) => t.price);
+  const all = base != null ? [base, ...ticketPrices] : ticketPrices;
+  return all.length ? Math.min(...all) : null;
 }
 
 /** Las seis más solicitadas, en el orden que indicó el cliente. */

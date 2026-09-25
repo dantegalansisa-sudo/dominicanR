@@ -386,6 +386,8 @@ export const en: typeof es = {
     roomPh: 'So we know where to find you',
     ticket: 'Your ticket',
     ticketLead: 'Price is per person and depends on what is included.',
+    standardOption: 'Regular excursion',
+    standardOptionNote: 'As described above, at the standard price.',
     who: 'Who is traveling',
     adultsOnlyLead: 'This experience is for adults only.',
     agesLead: 'The price depends on age, so it helps to get it right here.',

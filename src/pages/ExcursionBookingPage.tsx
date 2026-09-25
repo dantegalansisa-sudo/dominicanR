@@ -10,7 +10,7 @@ import { withTax } from '../data/tax';
 import PayPalCheckout from '../components/PayPalCheckout';
 import { useSettings } from '../catalog/CatalogProvider';
 import ExcursionCarousel from '../components/ExcursionCarousel';
-import { fromPrice } from '../data/excursions';
+import { basePrice, fromPrice } from '../data/excursions';
 import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal, usd } from '../data/passengers';
 import type { Party } from '../data/passengers';
 import { emptyPlace, placeMapsUrl } from '../data/places';
@@ -529,6 +529,22 @@ export default function ExcursionBookingPage() {
                 <h2 className="bcard__title">{excursion?.ticketsTitle || t.exBooking.ticket}</h2>
                 <p className="bcard__lead">{excursion?.ticketsLead || t.exBooking.ticketLead}</p>
                 <div className="tickets">
+                  {/* La excursión a su precio normal, como una opción más: sin
+                      esto parecía que solo se podía reservar lo de abajo. */}
+                  {excursion && basePrice(excursion) != null && !tickets.some((tk) => tk.price === basePrice(excursion)) && (
+                    <button
+                      type="button"
+                      className={`ticket${ticket === null ? ' is-on' : ''}`}
+                      onClick={() => setTicket(null)}
+                      aria-pressed={ticket === null}
+                    >
+                      <span className="ticket__head">
+                        <span className="ticket__name">{t.exBooking.standardOption}</span>
+                        <span className="ticket__price">${basePrice(excursion)}</span>
+                      </span>
+                      <span className="ticket__includes">{t.exBooking.standardOptionNote}</span>
+                    </button>
+                  )}
                   {tickets.map((tk, i) => (
                     <button
                       key={i}
