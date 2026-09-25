@@ -242,6 +242,17 @@ export function migrate() {
   // Excursiones que no admiten pago en efectivo (barra libre y delfines: el
   // proveedor exige el pago por adelantado). El resto sí, y el cliente lo
   // cambia desde el panel.
+  // Opciones de "Entradas o paquetes" que son un vehículo privado: se cobran
+  // una vez por grupo y se suman al precio por persona, en vez de sustituirlo
+  // (como las entradas de Coco Bongo). Se activa sola, una vez, en las
+  // excursiones que ya tenían traslado privado.
+  addColumns('excursions', { tickets_addon: 'INTEGER' });
+  if (!db.prepare("SELECT 1 FROM settings WHERE key = 'tickets_addon_seeded'").get()) {
+    db.exec(`
+      UPDATE excursions SET tickets_addon = 1 WHERE slug IN ('isla-saona-clasica','isla-saona-vip','isla-saona-exclusiva','city-tour-santo-domingo','isla-catalina','buggy-adventure','atv-adventure');
+      INSERT OR REPLACE INTO settings (key, value) VALUES ('tickets_addon_seeded', '1');
+    `);
+  }
   addColumns('excursions', { cash_allowed: 'INTEGER' });
   db.exec(`
     UPDATE excursions SET cash_allowed = CASE

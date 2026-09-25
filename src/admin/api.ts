@@ -56,6 +56,7 @@ export interface ExcursionRow {
   adults_only: number;
   child_price: number | null;
   cash_allowed: number | null;
+  tickets_addon: number | null;
   includes: string;
   activities: string;
   departures: string;

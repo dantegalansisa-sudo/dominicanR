@@ -142,7 +142,8 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     // Sin opción elegida: el precio propio de la excursión, y si no tiene
     // (o es 0), la opción más barata. Igual que fromPrice() en la web.
     const own = e.price != null && e.price > 0 ? e.price : null;
-    const adultUnit = ticket
+    const addon = Boolean((e as { ticketsAddon?: boolean }).ticketsAddon);
+    const adultUnit = ticket && !addon
       ? ticket.price
       : own != null
         ? own
@@ -153,7 +154,8 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     if (children > 0 && e.childPrice == null) return null;
 
     return {
-      amount: money(adultUnit * adults + (e.childPrice ?? 0) * children),
+      // El vehículo privado se paga una vez por grupo, encima del precio por persona.
+      amount: money(adultUnit * adults + (e.childPrice ?? 0) * children + (addon && ticket ? ticket.price : 0)),
       description: `${e.name}${ticket ? ` · ${ticket.name}` : ''} · ${adults} adultos${children ? `, ${children} niños` : ''}`.slice(0, 127),
       cashAllowed: e.cashAllowed !== false,
     };

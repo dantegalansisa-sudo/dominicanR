@@ -10,7 +10,7 @@ import { withTax } from '../data/tax';
 import PayPalCheckout from '../components/PayPalCheckout';
 import { useSettings } from '../catalog/CatalogProvider';
 import ExcursionCarousel from '../components/ExcursionCarousel';
-import { basePrice, fromPrice } from '../data/excursions';
+import { fromPrice } from '../data/excursions';
 import { AGE_BANDS, EMPTY_PARTY, partyLabel, partyTotal, usd } from '../data/passengers';
 import type { Party } from '../data/passengers';
 import { emptyPlace, placeMapsUrl } from '../data/places';
@@ -216,11 +216,15 @@ export default function ExcursionBookingPage() {
   // los 11: decir "solo para mayores" y debajo "11 anos o mas" se contradice.
   // Precio unitario: el de la entrada elegida (o la más barata) para adultos y
   // el de niño de la ficha. Ninguno es obligatorio; sin ellos no hay estimado.
-  const adultUnit = chosenTicket ? chosenTicket.price : excursion ? fromPrice(excursion) : null;
+  // Vehículo privado (addon): opcional, una vez por grupo, encima del precio
+  // por persona. Entradas (Coco Bongo…): sustituyen el precio por adulto.
+  const addon = Boolean(excursion?.ticketsAddon);
+  const addonPrice = addon && chosenTicket ? chosenTicket.price : 0;
+  const adultUnit = chosenTicket && !addon ? chosenTicket.price : excursion ? fromPrice(excursion) : null;
   const childUnit = adultsOnly ? null : (excursion?.childPrice ?? null);
   const estimate =
     excursion && adultUnit != null && (party.children === 0 || childUnit != null)
-      ? adultUnit * party.adults + (childUnit ?? 0) * party.children
+      ? adultUnit * party.adults + (childUnit ?? 0) * party.children + addonPrice
       : null;
   const bill = estimate != null ? withTax(estimate) : null;
 
@@ -264,11 +268,13 @@ export default function ExcursionBookingPage() {
           : []),
         ...(chosenTicketEs
           ? [
-              `Entrada: ${chosenTicketEs.name} — $${chosenTicketEs.price} por persona`,
+              addon
+                ? `Vehículo privado: ${chosenTicketEs.name} — US$${chosenTicketEs.price} por grupo (se suma a la excursión)`
+                : `Entrada: ${chosenTicketEs.name} — $${chosenTicketEs.price} por persona`,
               `  Incluye: ${chosenTicketEs.includes}`,
             ]
           : tickets.length
-            ? ['Entrada: (por confirmar)']
+            ? [addon ? 'Vehículo privado: no (transporte compartido)' : 'Entrada: (por confirmar)']
             : []),
         `Punto de recogida: ${pickup.text || '(por confirmar)'}`,
         ...(pickup.address ? [`  Dirección: ${pickup.address}`] : []),
@@ -295,7 +301,7 @@ export default function ExcursionBookingPage() {
               ...(excursion?.cashAllowed !== false ? [`  TOTAL EN EFECTIVO: ${usd(bill!.subtotal)}`] : []),
               `  ${party.adults} × US$${adultUnit} por adulto${
                 party.children ? ` + ${party.children} × US$${childUnit} por niño` : ''
-              }${party.infants ? ` (${party.infants} infante${party.infants > 1 ? 's' : ''} sin cargo)` : ''}`,
+              }${addonPrice ? ` + US$${addonPrice} vehículo privado` : ''}${party.infants ? ` (${party.infants} infante${party.infants > 1 ? 's' : ''} sin cargo)` : ''}`,
             ],
           ]
         : []),
@@ -526,36 +532,24 @@ export default function ExcursionBookingPage() {
 
             {tickets.length > 0 && (
               <section className="bcard">
-                <h2 className="bcard__title">{excursion?.ticketsTitle || t.exBooking.ticket}</h2>
-                <p className="bcard__lead">{excursion?.ticketsLead || t.exBooking.ticketLead}</p>
+                <h2 className="bcard__title">{excursion?.ticketsTitle || (addon ? t.exBooking.addonTitle : t.exBooking.ticket)}</h2>
+                <p className="bcard__lead">{excursion?.ticketsLead || (addon ? t.exBooking.addonLead : t.exBooking.ticketLead)}</p>
                 <div className="tickets">
-                  {/* La excursión a su precio normal, como una opción más: sin
-                      esto parecía que solo se podía reservar lo de abajo. */}
-                  {excursion && basePrice(excursion) != null && !tickets.some((tk) => tk.price === basePrice(excursion)) && (
-                    <button
-                      type="button"
-                      className={`ticket${ticket === null ? ' is-on' : ''}`}
-                      onClick={() => setTicket(null)}
-                      aria-pressed={ticket === null}
-                    >
-                      <span className="ticket__head">
-                        <span className="ticket__name">{t.exBooking.standardOption}</span>
-                        <span className="ticket__price">${basePrice(excursion)}</span>
-                      </span>
-                      <span className="ticket__includes">{t.exBooking.standardOptionNote}</span>
-                    </button>
-                  )}
                   {tickets.map((tk, i) => (
                     <button
                       key={i}
                       type="button"
                       className={`ticket${ticket === i ? ' is-on' : ''}`}
-                      onClick={() => setTicket(i)}
+                      // El vehículo privado es opcional: otro clic lo quita.
+                      onClick={() => setTicket(addon && ticket === i ? null : i)}
                       aria-pressed={ticket === i}
                     >
                       <span className="ticket__head">
                         <span className="ticket__name">{tk.name}</span>
-                        <span className="ticket__price">${tk.price}</span>
+                        <span className="ticket__price">
+                          {addon ? '+' : ''}${tk.price}
+                          {addon && <small className="ticket__unit">{t.exBooking.perGroup}</small>}
+                        </span>
                       </span>
                       <span className="ticket__includes">{tk.includes}</span>
                     </button>
@@ -675,11 +669,13 @@ export default function ExcursionBookingPage() {
                 )}
                 {tickets.length > 0 && (
                   <div>
-                    <dt>{t.exBooking.ticketRow}</dt>
+                    <dt>{addon ? t.exBooking.privateRow : t.exBooking.ticketRow}</dt>
                     <dd>
                       {chosenTicket
-                        ? `${chosenTicket.name} · $${chosenTicket.price}`
-                        : '—'}
+                        ? `${chosenTicket.name} · ${addon ? '+' : ''}$${chosenTicket.price}`
+                        : addon
+                          ? t.exBooking.sharedTransport
+                          : '—'}
                     </dd>
                   </div>
                 )}

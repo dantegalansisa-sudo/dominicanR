@@ -59,6 +59,11 @@ export interface Excursion {
   departures?: string[];
   /** Entradas o paquetes, cada uno con su precio y lo que incluye. */
   tickets?: Ticket[];
+  /**
+   * Las opciones son un vehículo privado: opcionales, se cobran una vez por
+   * grupo y se suman al precio por persona (no lo sustituyen).
+   */
+  ticketsAddon?: boolean;
   /** Título y subtítulo propios de la sección de entradas (panel). */
   ticketsTitle?: string;
   ticketsLead?: string;
@@ -101,6 +106,8 @@ export function basePrice(e: Pick<Excursion, 'price'>): number | null {
 
 export function fromPrice(e: Excursion): number | null {
   const base = basePrice(e);
+  // Con vehículo privado como extra, el precio por persona es solo el propio.
+  if (e.ticketsAddon) return base;
   const ticketPrices = (e.tickets ?? []).map((t) => t.price);
   const all = base != null ? [base, ...ticketPrices] : ticketPrices;
   return all.length ? Math.min(...all) : null;
