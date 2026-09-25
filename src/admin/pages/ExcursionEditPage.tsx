@@ -28,6 +28,7 @@ interface Draft {
   adultsOnly: boolean;
   cashAllowed: boolean;
   ticketsAddon: boolean;
+  ticketsUnit: boolean;
   featured: boolean;
   visible: boolean;
   includes: string[];
@@ -58,6 +59,7 @@ const toDraft = (r: ExcursionRow): Draft => ({
   adultsOnly: Boolean(r.adults_only),
   cashAllowed: r.cash_allowed !== 0,
   ticketsAddon: r.tickets_addon === 1,
+  ticketsUnit: r.tickets_unit === 1,
   featured: Boolean(r.featured),
   visible: Boolean(r.visible),
   includes: parseJson<string[]>(r.includes, []),
@@ -333,11 +335,22 @@ export default function ExcursionEditPage() {
         <p className="adm__sub" style={{ marginTop: -8, marginBottom: 12 }}>
           Para excursiones con varios precios (Coco Bongo, Imagine). Si no hay, se usa el precio por adulto de arriba.
         </p>
-        <Check
-          label="Estas opciones son un vehículo privado: opcionales, se cobran UNA vez por grupo y se suman al precio por persona. Sin marcar, son entradas por persona que sustituyen el precio (Coco Bongo, Imagine)."
-          checked={draft.ticketsAddon}
-          onChange={(v) => set('ticketsAddon', v)}
-        />
+        <Field
+          label="Cómo se cobran estas opciones"
+          hint="Por persona: sustituyen el precio por adulto (Coco Bongo, Imagine). Vehículo privado: opcional, una vez por grupo, se suma al precio por persona (Saona). Por unidad: el cliente elige cuántas de cada una y paga cantidad × precio, sin precio por persona (buggies)."
+        >
+          <select
+            value={draft.ticketsUnit ? 'unit' : draft.ticketsAddon ? 'addon' : 'ticket'}
+            onChange={(e) => {
+              set('ticketsAddon', e.target.value === 'addon');
+              set('ticketsUnit', e.target.value === 'unit');
+            }}
+          >
+            <option value="ticket">Entrada por persona</option>
+            <option value="addon">Vehículo privado (extra por grupo)</option>
+            <option value="unit">Por unidad con cantidad (buggies, quads…)</option>
+          </select>
+        </Field>
         <div className="adm-grid">
           <Field label="Título de la sección" hint="Lo que ve el cliente encima de las opciones, p. ej. «Elige tu traslado». Vacío = «Tu entrada».">
             <input value={draft.tickets_title} placeholder="Tu entrada" onChange={(e) => set('tickets_title', e.target.value)} />

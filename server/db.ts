@@ -247,6 +247,9 @@ export function migrate() {
   // (como las entradas de Coco Bongo). Se activa sola, una vez, en las
   // excursiones que ya tenían traslado privado.
   addColumns('excursions', { tickets_addon: 'INTEGER' });
+  // Opciones "por unidad" (buggies, quads): el cliente elige cuántas de cada
+  // una; el total es la suma cantidad × precio y no hay precio por persona.
+  addColumns('excursions', { tickets_unit: 'INTEGER' });
   if (!db.prepare("SELECT 1 FROM settings WHERE key = 'tickets_addon_seeded'").get()) {
     db.exec(`
       UPDATE excursions SET tickets_addon = 1 WHERE slug IN ('isla-saona-clasica','isla-saona-vip','isla-saona-exclusiva','city-tour-santo-domingo','isla-catalina','buggy-adventure','atv-adventure');

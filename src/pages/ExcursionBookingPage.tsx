@@ -120,6 +120,8 @@ export default function ExcursionBookingPage() {
   // Por posición, no por nombre: el cliente crea opciones con el mismo nombre
   // ("Traslado Privado" a $140 y a $180) y por nombre se marcaban las dos.
   const [ticket, setTicket] = useState<number | null>(null);
+  // Modo por unidad (buggies): cuántas de cada opción, por posición.
+  const [units, setUnits] = useState<number[]>([]);
   const [pickup, setPickup] = useState<PlaceValue>(seed.pickup ?? emptyPlace());
   const [room, setRoom] = useState('');
   const [party, setParty] = useState<Party>(seed.party ?? EMPTY_PARTY);
@@ -205,6 +207,7 @@ export default function ExcursionBookingPage() {
   useEffect(() => {
     setDeparture('');
     setTicket(null);
+    setUnits([]);
   }, [excursion?.slug]);
   // Elegir una excursion de solo adultos con ninos ya contados dejaria el
   // correo pidiendo plazas que no existen.
@@ -219,11 +222,25 @@ export default function ExcursionBookingPage() {
   // Vehículo privado (addon): opcional, una vez por grupo, encima del precio
   // por persona. Entradas (Coco Bongo…): sustituyen el precio por adulto.
   const addon = Boolean(excursion?.ticketsAddon);
+  const unitMode = Boolean(excursion?.ticketsUnit);
+  const chosenUnits = unitMode
+    ? tickets.map((tk, i) => ({ index: i, tk, es: excursionEs?.tickets?.[i] ?? tk, qty: units[i] ?? 0 })).filter((u) => u.qty > 0)
+    : [];
+  const unitsTotal = chosenUnits.reduce((sum, u) => sum + u.qty * u.tk.price, 0);
+  const setUnit = (i: number, qty: number) =>
+    setUnits((prev) => {
+      const next = [...prev];
+      next[i] = Math.max(0, Math.min(20, qty));
+      return next;
+    });
   const addonPrice = addon && chosenTicket ? chosenTicket.price : 0;
   const adultUnit = chosenTicket && !addon ? chosenTicket.price : excursion ? fromPrice(excursion) : null;
   const childUnit = adultsOnly ? null : (excursion?.childPrice ?? null);
-  const estimate =
-    excursion && adultUnit != null && (party.children === 0 || childUnit != null)
+  const estimate = unitMode
+    ? unitsTotal > 0
+      ? unitsTotal
+      : null
+    : excursion && adultUnit != null && (party.children === 0 || childUnit != null)
       ? adultUnit * party.adults + (childUnit ?? 0) * party.children + addonPrice
       : null;
   const bill = estimate != null ? withTax(estimate) : null;
@@ -266,7 +283,14 @@ export default function ExcursionBookingPage() {
         ...(departures.length
           ? [`Horario de salida: ${departure || '(por confirmar)'}`]
           : []),
-        ...(chosenTicketEs
+        ...(unitMode
+          ? chosenUnits.length
+            ? [
+                'Vehículos elegidos:',
+                ...chosenUnits.map((u) => `  · ${u.qty} × ${u.es.name} — US$${u.tk.price} c/u = US$${u.qty * u.tk.price}`),
+              ]
+            : ['Vehículos: (por confirmar)']
+          : chosenTicketEs
           ? [
               addon
                 ? `Vehículo privado: ${chosenTicketEs.name} — US$${chosenTicketEs.price} por grupo (se suma a la excursión)`
@@ -299,7 +323,9 @@ export default function ExcursionBookingPage() {
               `  Impuestos (5 %, solo PayPal/tarjeta): ${usd(bill!.tax)}`,
               `  TOTAL CON PAYPAL/TARJETA: ${usd(bill!.total)}`,
               ...(excursion?.cashAllowed !== false ? [`  TOTAL EN EFECTIVO: ${usd(bill!.subtotal)}`] : []),
-              `  ${party.adults} × US$${adultUnit} por adulto${
+              unitMode
+                ? `  ${chosenUnits.map((u) => `${u.qty} × US$${u.tk.price}`).join(' + ')} (precio por vehículo)`
+                : `  ${party.adults} × US$${adultUnit} por adulto${
                 party.children ? ` + ${party.children} × US$${childUnit} por niño` : ''
               }${addonPrice ? ` + US$${addonPrice} vehículo privado` : ''}${party.infants ? ` (${party.infants} infante${party.infants > 1 ? 's' : ''} sin cargo)` : ''}`,
             ],
@@ -326,6 +352,7 @@ export default function ExcursionBookingPage() {
             date,
             departure,
             ticket: chosenTicketEs ? { index: ticket, name: chosenTicketEs.name, price: chosenTicketEs.price } : null,
+            ...(unitMode ? { units: chosenUnits.map((u) => ({ index: u.index, name: u.es.name, qty: u.qty, price: u.tk.price })) } : {}),
             pickup,
             room,
             party,
@@ -532,10 +559,40 @@ export default function ExcursionBookingPage() {
 
             {tickets.length > 0 && (
               <section className="bcard">
-                <h2 className="bcard__title">{excursion?.ticketsTitle || (addon ? t.exBooking.addonTitle : t.exBooking.ticket)}</h2>
-                <p className="bcard__lead">{excursion?.ticketsLead || (addon ? t.exBooking.addonLead : t.exBooking.ticketLead)}</p>
+                <h2 className="bcard__title">
+                  {excursion?.ticketsTitle || (unitMode ? t.exBooking.unitTitle : addon ? t.exBooking.addonTitle : t.exBooking.ticket)}
+                </h2>
+                <p className="bcard__lead">
+                  {excursion?.ticketsLead || (unitMode ? t.exBooking.unitLead : addon ? t.exBooking.addonLead : t.exBooking.ticketLead)}
+                </p>
                 <div className="tickets">
-                  {tickets.map((tk, i) => (
+                  {unitMode && tickets.map((tk, i) => {
+                    const qty = units[i] ?? 0;
+                    return (
+                      <div key={i} className={`ticket ticket--unit${qty > 0 ? ' is-on' : ''}`}>
+                        <span className="ticket__head">
+                          <span className="ticket__name">{tk.name}</span>
+                          <span className="ticket__price">
+                            ${tk.price}
+                            <small className="ticket__unit">{t.exBooking.perUnit}</small>
+                          </span>
+                        </span>
+                        <span className="ticket__row">
+                          <span className="ticket__includes">{tk.includes}</span>
+                          <span className="passengers__stepper">
+                            <button type="button" onClick={() => setUnit(i, qty - 1)} disabled={qty === 0} aria-label={`${t.passengers.less} · ${tk.name}`}>
+                              –
+                            </button>
+                            <strong aria-live="polite">{qty}</strong>
+                            <button type="button" onClick={() => setUnit(i, qty + 1)} disabled={qty >= 20} aria-label={`${t.passengers.more} · ${tk.name}`}>
+                              +
+                            </button>
+                          </span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {!unitMode && tickets.map((tk, i) => (
                     <button
                       key={i}
                       type="button"
@@ -669,9 +726,13 @@ export default function ExcursionBookingPage() {
                 )}
                 {tickets.length > 0 && (
                   <div>
-                    <dt>{addon ? t.exBooking.privateRow : t.exBooking.ticketRow}</dt>
+                    <dt>{unitMode ? t.exBooking.unitsRow : addon ? t.exBooking.privateRow : t.exBooking.ticketRow}</dt>
                     <dd>
-                      {chosenTicket
+                      {unitMode
+                        ? chosenUnits.length
+                          ? chosenUnits.map((u) => `${u.qty} × ${u.tk.name}`).join(', ')
+                          : t.exBooking.unitsNone
+                        : chosenTicket
                         ? `${chosenTicket.name} · ${addon ? '+' : ''}$${chosenTicket.price}`
                         : addon
                           ? t.exBooking.sharedTransport

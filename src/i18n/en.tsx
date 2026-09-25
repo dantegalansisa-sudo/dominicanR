@@ -387,6 +387,11 @@ export const en: typeof es = {
     ticket: 'Your ticket',
     ticketLead: 'Price is per person and depends on what is included.',
     perGroup: 'per group',
+    perUnit: 'per vehicle',
+    unitTitle: 'Choose your vehicles',
+    unitLead: 'Price is per vehicle, not per person. Choose how many of each type your group needs.',
+    unitsRow: 'Vehicles',
+    unitsNone: 'Choose at least one',
     addonTitle: 'Private vehicle (optional)',
     addonLead:
       'The excursion includes shared transportation. If you would rather travel only with your group, book an exclusive vehicle: it is paid once per group and added to the per-person price.',

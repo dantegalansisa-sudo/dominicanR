@@ -150,6 +150,28 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
         : tickets.length
           ? Math.min(...tickets.map((t) => t.price))
         : e.price;
+    // Por unidad (buggies): cantidad × precio de cada opción, sin precio por
+    // persona. Las cantidades llegan del navegador; los precios, de la base.
+    if ((e as { ticketsUnit?: boolean }).ticketsUnit) {
+      const sentUnits = Array.isArray(b.units) ? (b.units as { index?: number; qty?: number }[]) : [];
+      let sum = 0;
+      const parts: string[] = [];
+      for (const u of sentUnits) {
+        const i = Number(u?.index);
+        const qty = clampInt(u?.qty, 20);
+        const tk = Number.isInteger(i) ? tickets[i] : undefined;
+        if (!tk || qty === 0) continue;
+        sum += tk.price * qty;
+        parts.push(`${qty}× ${tk.name}`);
+      }
+      if (sum <= 0) return null;
+      return {
+        amount: money(sum),
+        description: `${e.name} · ${parts.join(', ')}`.slice(0, 127),
+        cashAllowed: e.cashAllowed !== false,
+      };
+    }
+
     if (adultUnit == null) return null;
     if (children > 0 && e.childPrice == null) return null;
 

@@ -391,6 +391,11 @@ export const es = {
     ticket: 'Tu entrada',
     ticketLead: 'El precio es por persona y cambia según lo que incluye.',
     perGroup: 'por grupo',
+    perUnit: 'por vehículo',
+    unitTitle: 'Elige tus vehículos',
+    unitLead: 'El precio es por vehículo, no por persona. Elige cuántos de cada tipo necesitas para tu grupo.',
+    unitsRow: 'Vehículos',
+    unitsNone: 'Elige al menos uno',
     addonTitle: 'Vehículo privado (opcional)',
     addonLead:
       'La excursión incluye transporte compartido. Si prefieres viajar solo con tu grupo, reserva un vehículo exclusivo: se paga una sola vez por grupo y se suma al precio por persona.',

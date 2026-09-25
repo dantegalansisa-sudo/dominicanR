@@ -64,6 +64,8 @@ export interface Excursion {
    * grupo y se suman al precio por persona (no lo sustituyen).
    */
   ticketsAddon?: boolean;
+  /** Opciones por unidad con cantidad (buggies): sin precio por persona. */
+  ticketsUnit?: boolean;
   /** Título y subtítulo propios de la sección de entradas (panel). */
   ticketsTitle?: string;
   ticketsLead?: string;
@@ -106,9 +108,11 @@ export function basePrice(e: Pick<Excursion, 'price'>): number | null {
 
 export function fromPrice(e: Excursion): number | null {
   const base = basePrice(e);
+  const ticketPrices = (e.tickets ?? []).map((t) => t.price);
   // Con vehículo privado como extra, el precio por persona es solo el propio.
   if (e.ticketsAddon) return base;
-  const ticketPrices = (e.tickets ?? []).map((t) => t.price);
+  // Por unidad: el "desde" es la unidad más barata.
+  if (e.ticketsUnit) return ticketPrices.length ? Math.min(...ticketPrices) : null;
   const all = base != null ? [base, ...ticketPrices] : ticketPrices;
   return all.length ? Math.min(...all) : null;
 }

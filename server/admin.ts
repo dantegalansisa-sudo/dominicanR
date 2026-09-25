@@ -164,6 +164,7 @@ adminRouter.put('/excursions/:slug', (req: AdminRequest, res) => {
     ['visible', 'visible'],
     ['cash_allowed', 'cashAllowed'],
     ['tickets_addon', 'ticketsAddon'],
+    ['tickets_unit', 'ticketsUnit'],
   ] as const) {
     if (req.body?.[key] !== undefined) {
       sets.push(`${field} = ?`);

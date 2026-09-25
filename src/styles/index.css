@@ -4029,3 +4029,19 @@ ul {
   color: var(--ink-soft);
   text-align: right;
 }
+
+/* opciones por unidad (buggies): cantidad en cada tarjeta */
+.ticket--unit {
+  cursor: default;
+}
+
+.ticket__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.ticket--unit .passengers__stepper {
+  flex-shrink: 0;
+}
