@@ -144,7 +144,7 @@ export default function AdminApp() {
       <div className="adm">
         <aside className="adm__side">
           <a className="adm__brand" href="/admin/reservas">
-            <img src="/images/logo-dark.png" alt="Dominican Routes" />
+            <img src="/images/logo-dark-v2.png" alt="Dominican Routes" />
             <span>Panel</span>
           </a>
           <nav className="adm__nav">

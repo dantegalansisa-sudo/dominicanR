@@ -45,10 +45,10 @@ export default function Footer() {
         {[
           <div key="brand" className="footer__brand">
             <img
-              src="/images/logo-dark.png"
+              src="/images/logo-dark-v2.png"
               alt="Dominican Routes"
               width={700}
-              height={215}
+              height={251}
             />
             <p className="footer__tagline">{t.footer.tagline}</p>
             <p className="footer__blurb">{t.footer.blurb}</p>
