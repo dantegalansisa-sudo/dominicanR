@@ -321,8 +321,12 @@ export const en: typeof es = {
     vehicleLockedLead: 'This is the one you chose. If you carry a lot of luggage or change your mind, you can pick another.',
     vehicleLead: 'We highlight the one that fits your group size, but pick whichever you like: with lots of luggage, go one size up even for a small group.',
     routing: 'Calculating the route…',
-    kmLine: (km: number, round: boolean, total: number) =>
-      `${km} km by road${round ? ` · round trip, ${total} km in total` : ''}. Prices already include the journey.`,
+    kmLine: (km: number, round: boolean, _total: number) =>
+      round
+        ? `${km} km by road. Prices already include the return trip (the return costs the same as the outbound).`
+        : `${km} km by road. Prices already include the trip.`,
+    roundSplit: (leg: number) => `Outbound US$${leg} + return US$${leg}`,
+    perLeg: 'Per leg: ',
     passengers: 'passengers',
     fromPrice: (p: number) => `from $${p}`,
     toQuote: 'Quote on request',

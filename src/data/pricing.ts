@@ -342,3 +342,32 @@ export function quote(
   const surcharge = routeSurcharge(origin.text, destination.text, slug, tables);
   return { base, surcharge, total: base + (surcharge?.amount ?? 0) };
 }
+
+/** Precio de un viaje completo: el de ida, y con regreso, el doble. */
+export interface TripQuote extends Quote {
+  /** Lo que cuesta un trayecto (ida). `total` es el viaje completo. */
+  oneWay: number;
+  /** 1 solo ida, 2 ida y vuelta. */
+  legs: 1 | 2;
+}
+
+/**
+ * El regreso cuesta lo mismo que la ida (lo pidió el cliente): se calcula un
+ * trayecto con sus km reales (ruta cerrada, tramo y recargo) y se multiplica
+ * por dos. Antes se doblaban los km, lo que no daba el doble del precio y en
+ * las rutas cerradas dejaba el regreso sin cobrar. La web y el servidor que
+ * cobra usan esta misma función.
+ */
+export function tripQuote(
+  km: number | null,
+  slug: string,
+  origin: PlaceLike,
+  destination: PlaceLike,
+  tables: PricingTables = DEFAULT_TABLES,
+  round = false,
+): TripQuote | null {
+  const q = quote(km, slug, origin, destination, tables);
+  if (!q) return null;
+  const legs = round ? 2 : 1;
+  return { ...q, oneWay: q.total, legs, total: q.total * legs };
+}

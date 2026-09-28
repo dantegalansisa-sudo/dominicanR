@@ -5,7 +5,7 @@ import { bookingStore } from './bookings.ts';
 import { withTax, fmtUsd } from '../src/data/tax.ts';
 import { handleContact, sendEmail, escapeHtml, BRAND, str } from '../api/_contact.ts';
 import { roadDistanceKm } from '../api/_places.ts';
-import { quote } from '../src/data/pricing.ts';
+import { tripQuote } from '../src/data/pricing.ts';
 import type { PricingTables } from '../src/data/pricing.ts';
 
 /**
@@ -93,12 +93,14 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
     const km = await roadDistanceKm(origin, destination);
     const round = Boolean(b.round);
     const tables = cat.pricing as unknown as PricingTables;
-    const q = quote(
-      km == null ? null : round ? km * 2 : km,
+    // Un trayecto con sus km reales; con regreso, el doble (tripQuote).
+    const q = tripQuote(
+      km,
       vehicle.slug,
       { text: str(origin.text), lat: num(origin.lat), lng: num(origin.lng) },
       { text: str(destination.text), lat: num(destination.lat), lng: num(destination.lng) },
       tables,
+      round,
     );
     if (!q) return null;
 
@@ -116,7 +118,7 @@ async function priceOf(kind: string, raw: unknown): Promise<Priced | null> {
 
     return {
       amount: money(q.total + extras),
-      description: `Traslado ${str(origin.text)} → ${str(destination.text)} (${vehicle.name ?? vehicle.slug})`.slice(0, 127),
+      description: `Traslado${round ? ' ida y vuelta' : ''} ${str(origin.text)} → ${str(destination.text)} (${vehicle.name ?? vehicle.slug})`.slice(0, 127),
       cashAllowed: true,
     };
   }

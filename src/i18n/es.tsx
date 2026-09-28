@@ -325,8 +325,12 @@ export const es = {
     vehicleLockedLead: 'Este es el que elegiste. Si viajas con mucho equipaje o cambias de idea, puedes escoger otro.',
     vehicleLead: 'Te marcamos el que encaja por número de pasajeros, pero elige el que quieras: si viajas con mucho equipaje, coge uno más grande aunque seáis pocos.',
     routing: 'Calculando la ruta…',
-    kmLine: (km: number, round: boolean, total: number) =>
-      `${km} km por carretera${round ? ` · ida y vuelta, ${total} km en total` : ''}. Los precios ya incluyen el recorrido.`,
+    kmLine: (km: number, round: boolean, _total: number) =>
+      round
+        ? `${km} km por carretera. Los precios ya incluyen la ida y el regreso (el regreso cuesta lo mismo que la ida).`
+        : `${km} km por carretera. Los precios ya incluyen el recorrido.`,
+    roundSplit: (leg: number) => `Ida US$${leg} + regreso US$${leg}`,
+    perLeg: 'Por trayecto: ',
     passengers: 'pasajeros',
     fromPrice: (p: number) => `desde $${p}`,
     toQuote: 'A cotizar',

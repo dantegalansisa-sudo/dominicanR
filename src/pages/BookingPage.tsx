@@ -9,7 +9,7 @@ import { withTax } from '../data/tax';
 import PayPalCheckout from '../components/PayPalCheckout';
 import { useSettings } from '../catalog/CatalogProvider';
 import { suggestVehicle } from '../components/PassengersField';
-import { quote } from '../data/pricing';
+import { tripQuote } from '../data/pricing';
 import { fetchDistance } from '../utils/googlePlaces';
 import { emptyPlace, placeMapsUrl } from '../data/places';
 import type { PlaceValue } from '../data/places';
@@ -226,7 +226,7 @@ export default function BookingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [originId, destId]);
 
-  /** El regreso recorre lo mismo otra vez, asi que cuenta doble. */
+  /** Km del viaje completo, solo informativo (panel y correo). */
   const billableKm = km == null ? null : round ? km * 2 : km;
 
   const total = partyTotal(party);
@@ -237,8 +237,10 @@ export default function BookingPage() {
   // El correo al operador va en español: nombre y tipo del catálogo original.
   const vehicleEs = vehicle ? (FLEET.find((v) => v.slug === vehicle.slug) ?? vehicle) : null;
   const overCapacity = vehicle != null && total > vehicle.maxPax;
+  // El precio se calcula con los km de un trayecto y, con regreso, se dobla:
+  // el regreso cuesta lo mismo que la ida.
   const priceFor = (slug: string) =>
-    quote(billableKm, slug, origin, destination, tables);
+    tripQuote(km, slug, origin, destination, tables, round);
   const chosenQuote = vehicle ? priceFor(vehicle.slug) : null;
 
   const setSeat = (id: SeatId, n: number) =>
@@ -309,11 +311,13 @@ export default function BookingPage() {
             ]
           : []),
         ...(km != null
-          ? [`Distancia: ${km} km${round ? ` (ida y vuelta: ${billableKm} km)` : ''}`]
+          ? [`Distancia: ${km} km por trayecto${round ? ` (ida y vuelta: ${billableKm} km)` : ''}`]
           : []),
         ...(chosenQuote
           ? [
-              `Precio calculado: US$${chosenQuote.total}`,
+              round
+                ? `Precio calculado: US$${chosenQuote.total} (ida US$${chosenQuote.oneWay} + regreso US$${chosenQuote.oneWay})`
+                : `Precio calculado: US$${chosenQuote.total}`,
               ...(chosenQuote.route
                 ? [`  Ruta con precio cerrado: ${chosenQuote.route}`]
                 : chosenQuote.surcharge
@@ -806,11 +810,17 @@ export default function BookingPage() {
                     <dt>{t.booking.price}</dt>
                     <dd>
                       US${chosenQuote.total}
+                      {round && (
+                        <>
+                          <br />
+                          <span className="summary__fine">{t.booking.roundSplit(chosenQuote.oneWay)}</span>
+                        </>
+                      )}
                       {chosenQuote.surcharge && (
                         <>
                           <br />
                           <span className="summary__fine">
-                            US${chosenQuote.base} + US${chosenQuote.surcharge.amount}{' '}
+                            {round ? t.booking.perLeg : ''}US${chosenQuote.base} + US${chosenQuote.surcharge.amount}{' '}
                             {chosenQuote.surcharge.label}
                           </span>
                         </>
