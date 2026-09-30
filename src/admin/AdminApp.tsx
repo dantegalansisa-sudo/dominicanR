@@ -41,9 +41,19 @@ const LINKS = [
   { to: '/admin/etg/orders', label: 'ETG' },
 ];
 
-const PARTNER_LINKS = [{ to: '/admin/etg/orders', label: 'Órdenes ETG' }];
+const PARTNER_LINKS = [{ to: '/admin/etg/orders', label: 'ETG orders' }];
+
+/**
+ * El soporte de ETG llega por el enlace de una orden (/admin/etg/…): la
+ * pantalla de entrada le sale en inglés. El resto del panel, en español.
+ */
+const LOGIN_TEXT = {
+  es: { title: 'Panel de administración', email: 'Correo', password: 'Contraseña', enter: 'Entrar', entering: 'Entrando…', fail: 'No se pudo entrar. Intenta de nuevo.' },
+  en: { title: 'Supplier backoffice', email: 'Email', password: 'Password', enter: 'Sign in', entering: 'Signing in…', fail: 'Could not sign in. Please try again.' },
+};
 
 function Login({ onIn }: { onIn: (email: string, role: string) => void }) {
+  const lt = window.location.pathname.startsWith('/admin/etg') ? LOGIN_TEXT.en : LOGIN_TEXT.es;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -59,7 +69,7 @@ function Login({ onIn }: { onIn: (email: string, role: string) => void }) {
       const me = await api.get<{ ok: true; email: string; role?: string }>('/me');
       onIn(me.email, me.role ?? 'admin');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'No se pudo entrar. Intenta de nuevo.');
+      setError(err instanceof ApiError ? err.message : lt.fail);
     } finally {
       setBusy(false);
     }
@@ -69,9 +79,9 @@ function Login({ onIn }: { onIn: (email: string, role: string) => void }) {
     <div className="adm-login">
       <form className="adm-login__card" onSubmit={submit}>
         <img src="/images/logo.png" alt="Dominican Routes" />
-        <h1>Panel de administración</h1>
+        <h1>{lt.title}</h1>
         <label className="adm-field">
-          <span>Correo</span>
+          <span>{lt.email}</span>
           <input
             type="email"
             autoComplete="username"
@@ -82,7 +92,7 @@ function Login({ onIn }: { onIn: (email: string, role: string) => void }) {
           />
         </label>
         <label className="adm-field">
-          <span>Contraseña</span>
+          <span>{lt.password}</span>
           <input
             type="password"
             autoComplete="current-password"
@@ -93,7 +103,7 @@ function Login({ onIn }: { onIn: (email: string, role: string) => void }) {
         </label>
         {error && <p className="adm-login__error">{error}</p>}
         <button className="adm-btn adm-btn--primary" type="submit" disabled={busy}>
-          {busy ? 'Entrando…' : 'Entrar'}
+          {busy ? lt.entering : lt.enter}
         </button>
       </form>
     </div>
@@ -159,7 +169,7 @@ export default function AdminApp() {
         <aside className="adm__side">
           <a className="adm__brand" href={partner ? '/admin/etg/orders' : '/admin/reservas'}>
             <img src="/images/logo-dark-v2.png" alt="Dominican Routes" />
-            <span>Panel</span>
+            <span>{partner ? 'Backoffice' : 'Panel'}</span>
           </a>
           <nav className="adm__nav">
             {(partner ? PARTNER_LINKS : LINKS).map((l) => (
@@ -185,7 +195,7 @@ export default function AdminApp() {
               </a>
             )}
             <button type="button" className="adm__logout" onClick={logout}>
-              Salir
+              {partner ? 'Log out' : 'Salir'}
             </button>
           </div>
         </aside>

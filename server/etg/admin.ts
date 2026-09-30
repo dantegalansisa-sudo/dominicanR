@@ -30,22 +30,24 @@ export const etgAdminRouter = Router();
 etgAdminRouter.use(requireAdmin);
 
 const isPartner = (req: AdminRequest) => req.adminRole === PARTNER_ROLE;
+/** El soporte de ETG ve el portal en inglés; el equipo, en español. */
+const say = (req: AdminRequest, es: string, en: string) => (isPartner(req) ? en : es);
 
 function adminOnly(req: AdminRequest, res: Response, next: NextFunction) {
   if (isPartner(req)) {
-    res.status(403).json({ ok: false, error: 'Sin acceso.' });
+    res.status(403).json({ ok: false, error: say(req, 'Sin acceso.', 'Access denied.') });
     return;
   }
   next();
 }
 
-const fail = (res: Response, err: unknown) => {
+const fail = (req: AdminRequest, res: Response, err: unknown) => {
   if (err instanceof EtgError) {
     res.status(400).json({ ok: false, error: err.message });
     return;
   }
   console.error('ETG panel:', err);
-  res.status(500).json({ ok: false, error: 'Error del servidor.' });
+  res.status(500).json({ ok: false, error: say(req, 'Error del servidor.', 'Server error, please try again.') });
 };
 
 /** Lo que la tabla del panel necesita de cada orden. */
@@ -111,7 +113,7 @@ etgAdminRouter.get('/orders', (req: AdminRequest, res) => {
 etgAdminRouter.get('/orders/:code', (req: AdminRequest, res) => {
   const o = getOrder(String(req.params.code));
   if (!o) {
-    res.status(404).json({ ok: false, error: 'Esa orden no existe.' });
+    res.status(404).json({ ok: false, error: say(req, 'Esa orden no existe.', 'This order does not exist.') });
     return;
   }
   const changes = db.prepare('SELECT * FROM etg_order_changes WHERE order_code = ? ORDER BY id DESC').all(o.order_code);
@@ -177,7 +179,7 @@ etgAdminRouter.put('/orders/:code', (req: AdminRequest, res) => {
     const changes: OrderChanges = {};
     for (const k of allowed) if (body[k] !== undefined) (changes as Record<string, unknown>)[k] = body[k];
     if (changes.transfer_category !== undefined && !ETG_CATEGORIES[changes.transfer_category]) {
-      throw new EtgError('INVALID_REQUEST', 'Categoría no válida.');
+      throw new EtgError('INVALID_REQUEST', say(req, 'Categoría no válida.', 'Invalid category.'));
     }
     for (const k of ['driver_first_name', 'driver_last_name', 'carrier_company', 'car_model'] as const) {
       const v = changes[k];
@@ -192,7 +194,7 @@ etgAdminRouter.put('/orders/:code', (req: AdminRequest, res) => {
     const o = modifyOrder(String(req.params.code), changes, `${req.adminRole}:${req.admin}`);
     res.json({ ok: true, order_code: o.order_code });
   } catch (err) {
-    fail(res, err);
+    fail(req, res, err);
   }
 });
 
@@ -202,7 +204,7 @@ etgAdminRouter.post('/orders/:code/cancel', (req: AdminRequest, res) => {
     audit(req.admin!, 'cancelar orden ETG', String(req.params.code));
     res.json({ ok: true, ...r });
   } catch (err) {
-    fail(res, err);
+    fail(req, res, err);
   }
 });
 

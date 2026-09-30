@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useToast } from '../ui';
 import EtgNav from './EtgNav';
+import { etgText } from './i18n';
 
 export interface EtgListItem {
   order_code: string;
@@ -22,13 +23,17 @@ export interface EtgListItem {
 }
 
 /** "2026-12-10T14:00:00-04:00" → "10/12/2026 14:00 (-04:00)", sin convertir. */
-export const fmtLocal = (rfc: string) => {
+export const fmtLocal = (rfc: string, iso = false) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})(?::\d{2})?(.*)$/.exec(rfc);
-  return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}${m[5] && m[5] !== '-04:00' ? ` (${m[5]})` : ''}` : rfc;
+  if (!m) return rfc;
+  const tz = m[5] && m[5] !== '-04:00' ? ` (${m[5]})` : '';
+  // En inglés, AAAA-MM-DD: el orden día/mes se lee al revés en EE. UU.
+  return iso ? `${m[1]}-${m[2]}-${m[3]} ${m[4]}${tz}` : `${m[3]}/${m[2]}/${m[1]} ${m[4]}${tz}`;
 };
 
 export default function EtgOrdersPage({ partner }: { partner: boolean }) {
   const toast = useToast();
+  const t = etgText(partner);
   const [status, setStatus] = useState('');
   const [when, setWhen] = useState('upcoming');
   const [q, setQ] = useState('');
@@ -52,12 +57,8 @@ export default function EtgOrdersPage({ partner }: { partner: boolean }) {
     <>
       <div className="adm__head">
         <div>
-          <h1 className="adm__title">Órdenes ETG</h1>
-          <p className="adm__sub">
-            {partner
-              ? 'Traslados reservados a través de Emerging Travel Group. Abre una orden para ver el detalle, modificarla o cancelarla.'
-              : 'Traslados que llegan por la API de ETG (RateHawk, ZenHotels…). Asigna chofer y coche: ETG lo ve en su consulta de estado.'}
-          </p>
+          <h1 className="adm__title">{t.listTitle}</h1>
+          <p className="adm__sub">{partner ? t.listLeadPartner : t.listLeadTeam}</p>
         </div>
       </div>
       {!partner && <EtgNav />}
@@ -65,14 +66,14 @@ export default function EtgOrdersPage({ partner }: { partner: boolean }) {
       {data && (
         <div className="adm-etg-stats">
           <span>
-            <strong>{data.counts.confirmed ?? 0}</strong> activas
+            <strong>{data.counts.confirmed ?? 0}</strong> {t.active}
           </span>
           <span>
-            <strong>{data.counts.cancelled ?? 0}</strong> canceladas
+            <strong>{data.counts.cancelled ?? 0}</strong> {t.cancelledN}
           </span>
           {!partner && (
             <span className={(data.counts.without_driver ?? 0) > 0 ? 'is-warn' : ''}>
-              <strong>{data.counts.without_driver ?? 0}</strong> sin chofer asignado
+              <strong>{data.counts.without_driver ?? 0}</strong> {t.withoutDriver}
             </span>
           )}
         </div>
@@ -81,18 +82,18 @@ export default function EtgOrdersPage({ partner }: { partner: boolean }) {
       <section className="adm__card">
         <div className="adm-bar" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
           <select value={when} onChange={(e) => { setWhen(e.target.value); setPage(1); }}>
-            <option value="upcoming">Próximas</option>
-            <option value="past">Pasadas</option>
-            <option value="">Todas (recientes primero)</option>
+            <option value="upcoming">{t.upcoming}</option>
+            <option value="past">{t.past}</option>
+            <option value="">{t.all}</option>
           </select>
           <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
-            <option value="">Activas y canceladas</option>
-            <option value="confirmed">Activas</option>
-            <option value="cancelled">Canceladas</option>
+            <option value="">{t.anyStatus}</option>
+            <option value="confirmed">{t.onlyActive}</option>
+            <option value="cancelled">{t.onlyCancelled}</option>
           </select>
           <input
             type="search"
-            placeholder="Código, pasajero o cartel"
+            placeholder={t.searchPh}
             value={q}
             onChange={(e) => { setQ(e.target.value); setPage(1); }}
             style={{ minWidth: 220 }}
@@ -100,20 +101,20 @@ export default function EtgOrdersPage({ partner }: { partner: boolean }) {
         </div>
 
         {!data ? (
-          <p className="adm-empty">Cargando…</p>
+          <p className="adm-empty">{t.loading}</p>
         ) : data.orders.length === 0 ? (
-          <p className="adm-empty">No hay órdenes con estos filtros.</p>
+          <p className="adm-empty">{t.noOrders}</p>
         ) : (
           <table className="adm-table">
             <thead>
               <tr>
-                <th>Orden</th>
-                <th>Recogida (hora local)</th>
-                <th>Trayecto</th>
-                <th>Pasajero</th>
-                <th>Categoría</th>
-                <th>Precio</th>
-                <th>Estado</th>
+                <th>{t.colOrder}</th>
+                <th>{t.colPickup}</th>
+                <th>{t.colRoute}</th>
+                <th>{t.colPassenger}</th>
+                <th>{t.colCategory}</th>
+                <th>{t.colPrice}</th>
+                <th>{t.colStatus}</th>
               </tr>
             </thead>
             <tbody>
@@ -125,14 +126,14 @@ export default function EtgOrdersPage({ partner }: { partner: boolean }) {
                     </Link>
                     {o.env && o.env !== 'production' && <div className="adm__sub" style={{ fontSize: 12 }}>{o.env}</div>}
                   </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{fmtLocal(o.start_time)}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{fmtLocal(o.start_time, partner)}</td>
                   <td style={{ minWidth: 220 }}>
                     {o.from}
                     <div className="adm__sub" style={{ fontSize: 12.5 }}>→ {o.to}</div>
                   </td>
                   <td>
                     {o.passenger}
-                    <div className="adm__sub" style={{ fontSize: 12.5 }}>{o.passengers} pax</div>
+                    <div className="adm__sub" style={{ fontSize: 12.5 }}>{o.passengers} {t.pax}</div>
                   </td>
                   <td>{o.transfer_category}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
@@ -140,10 +141,10 @@ export default function EtgOrdersPage({ partner }: { partner: boolean }) {
                   </td>
                   <td>
                     <span className={`adm-pill${o.status === 'confirmed' ? ' adm-pill--on' : ''}`}>
-                      {o.status === 'confirmed' ? 'Activa' : 'Cancelada'}
+                      {o.status === 'confirmed' ? t.statusActive : t.statusCancelled}
                     </span>
                     {!partner && o.status === 'confirmed' && !o.has_driver && (
-                      <div className="adm__sub" style={{ fontSize: 12 }}>sin chofer</div>
+                      <div className="adm__sub" style={{ fontSize: 12 }}>{t.noDriver}</div>
                     )}
                   </td>
                 </tr>
@@ -154,13 +155,11 @@ export default function EtgOrdersPage({ partner }: { partner: boolean }) {
         {data && data.total > data.size && (
           <div className="adm-bar adm-bar--end">
             <button className="adm-btn adm-btn--sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
-              Anterior
+              {t.prev}
             </button>
-            <span className="adm__sub">
-              Página {page} de {Math.ceil(data.total / data.size)}
-            </span>
+            <span className="adm__sub">{t.pageOf(page, Math.ceil(data.total / data.size))}</span>
             <button className="adm-btn adm-btn--sm" disabled={page * data.size >= data.total} onClick={() => setPage(page + 1)}>
-              Siguiente
+              {t.next}
             </button>
           </div>
         )}

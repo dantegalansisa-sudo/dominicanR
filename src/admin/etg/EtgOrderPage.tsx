@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { Field, useToast } from '../ui';
 import { fmtLocal } from './EtgOrdersPage';
+import { etgText } from './i18n';
 
 interface Point {
   type?: string;
@@ -88,6 +89,7 @@ type Draft = Record<string, string>;
 export default function EtgOrderPage({ partner }: { partner: boolean }) {
   const { code = '' } = useParams();
   const toast = useToast();
+  const t = etgText(partner);
   const [data, setData] = useState<{ order: OrderDetail; changes: Change[]; categories: string[]; status_preview: unknown } | null>(null);
   const [draft, setDraft] = useState<Draft>({});
   const [saving, setSaving] = useState(false);
@@ -136,11 +138,11 @@ export default function EtgOrderPage({ partner }: { partner: boolean }) {
   if (notFound) {
     return (
       <p className="adm-empty">
-        La orden {code} no existe. <Link to="/admin/etg/orders">Ver todas</Link>
+        {t.notFound(code)} <Link to="/admin/etg/orders">{t.seeAll}</Link>
       </p>
     );
   }
-  if (!data) return <p className="adm-empty">Cargando…</p>;
+  if (!data) return <p className="adm-empty">{t.loading}</p>;
   const o = data.order;
   const cancelled = o.status === 'cancelled';
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -179,13 +181,13 @@ export default function EtgOrderPage({ partner }: { partner: boolean }) {
       body[f] = numeric.has(f) ? Number(draft[f]) : draft[f];
     }
     if (Object.keys(body).length === 0) {
-      toast('No hay cambios.');
+      toast(t.noChanges);
       return;
     }
     setSaving(true);
     try {
       await api.put(`/etg/orders/${encodeURIComponent(o.order_code)}`, body);
-      toast('Orden actualizada. ETG la verá así en su próxima consulta.');
+      toast(t.saved);
       load();
     } catch (e) {
       toast((e as Error).message, true);
@@ -196,21 +198,18 @@ export default function EtgOrderPage({ partner }: { partner: boolean }) {
 
   const doCancel = async () => {
     const pen = o.penalty_if_cancelled_now ?? 0;
-    const msg =
-      pen > 0
-        ? `Cancelar ${o.order_code}? Fuera del plazo de cancelación gratis: penalidad ${o.currency} ${pen}.`
-        : `Cancelar ${o.order_code}? Está dentro del plazo de cancelación gratis (sin penalidad).`;
+    const msg = pen > 0 ? t.confirmCancelPenalty(o.order_code, o.currency, pen) : t.confirmCancelFree(o.order_code);
     if (!window.confirm(msg)) return;
     try {
       const r = await api.post<{ penalty: { amount: number; currency: string } }>(`/etg/orders/${encodeURIComponent(o.order_code)}/cancel`);
-      toast(`Orden cancelada. Penalidad: ${r.penalty.currency} ${r.penalty.amount}.`);
+      toast(t.cancelled(r.penalty.currency, r.penalty.amount));
       load();
     } catch (e) {
       toast((e as Error).message, true);
     }
   };
 
-  const seats = o.children_seats.map((n, i) => (n ? `${n} × tipo ${i}` : '')).filter(Boolean);
+  const seats = o.children_seats.map((n, i) => (n ? t.seatType(n, i) : '')).filter(Boolean);
   const startMap = mapLink(o.start_point);
   const endMap = mapLink(o.end_point);
 
@@ -223,22 +222,22 @@ export default function EtgOrderPage({ partner }: { partner: boolean }) {
       <div className="adm__head">
         <div>
           <Link to="/admin/etg/orders" className="adm__sub">
-            ← Órdenes ETG
+            {t.back}
           </Link>
           <h1 className="adm__title">
             {o.order_code}{' '}
             <span className={`adm-pill${cancelled ? '' : ' adm-pill--on'}`} style={{ verticalAlign: 'middle' }}>
-              {cancelled ? 'Cancelada' : 'Activa'}
+              {cancelled ? t.statusCancelled : t.statusActive}
             </span>
           </h1>
           <p className="adm__sub">
-            Recogida {fmtLocal(o.start_time)} (hora local) · {o.transfer_category} · {o.currency} {o.price}
-            {o.env && o.env !== 'production' ? ` · entorno ${o.env}` : ''}
+            {t.pickupLine} {fmtLocal(o.start_time, partner)} ({t.localTime}) · {o.transfer_category} · {o.currency} {o.price}
+            {o.env && o.env !== 'production' ? ` · ${t.env} ${o.env}` : ''}
           </p>
         </div>
         {!cancelled && (
           <button className="adm-btn adm-btn--danger" type="button" onClick={doCancel}>
-            Cancelar orden
+            {t.cancelOrder}
           </button>
         )}
       </div>
@@ -246,44 +245,44 @@ export default function EtgOrderPage({ partner }: { partner: boolean }) {
       <div className="adm-two">
         <div>
           <section className="adm__card">
-            <h2 className="adm__card-title">Itinerario</h2>
+            <h2 className="adm__card-title">{t.itinerary}</h2>
             <dl className="adm-kvs">
-              <KV k="Recogida">{fmtLocal(o.start_time)}</KV>
-              <KV k="Desde">
+              <KV k={t.kPickup}>{fmtLocal(o.start_time, partner)}</KV>
+              <KV k={t.kFrom}>
                 {pointText(o.start_point)}
-                {o.start_point.iata && <div className="adm__sub">Aeropuerto {o.start_point.iata}</div>}
+                {o.start_point.iata && <div className="adm__sub">{t.airport} {o.start_point.iata}</div>}
                 {startMap && (
                   <a className="adm-maplink" href={startMap} target="_blank" rel="noopener noreferrer">
-                    Ver en el mapa ↗
+                    {t.map}
                   </a>
                 )}
               </KV>
-              <KV k="Hasta">
+              <KV k={t.kTo}>
                 {pointText(o.end_point)}
-                {o.end_point.iata && <div className="adm__sub">Aeropuerto {o.end_point.iata}</div>}
+                {o.end_point.iata && <div className="adm__sub">{t.airport} {o.end_point.iata}</div>}
                 {endMap && (
                   <a className="adm-maplink" href={endMap} target="_blank" rel="noopener noreferrer">
-                    Ver en el mapa ↗
+                    {t.map}
                   </a>
                 )}
               </KV>
-              <KV k="Vuelo">{o.flight_number}</KV>
-              <KV k="Pasajeros">
-                {o.passengers} · maletas {o.luggage_places}
-                {o.sport_luggage ? ` · deportivas ${o.sport_luggage}` : ''}
-                {o.wheelchairs ? ` · sillas de ruedas ${o.wheelchairs}` : ''}
-                {o.animals ? ` · mascotas ${o.animals}` : ''}
+              <KV k={t.kFlight}>{o.flight_number}</KV>
+              <KV k={t.kPassengers}>
+                {o.passengers} · {t.luggage} {o.luggage_places}
+                {o.sport_luggage ? ` · ${t.sport} ${o.sport_luggage}` : ''}
+                {o.wheelchairs ? ` · ${t.wheelchairs} ${o.wheelchairs}` : ''}
+                {o.animals ? ` · ${t.animals} ${o.animals}` : ''}
               </KV>
-              {seats.length > 0 && <KV k="Sillas de niño">{seats.join(', ')}</KV>}
+              {seats.length > 0 && <KV k={t.kSeats}>{seats.join(', ')}</KV>}
               {o.upsells.length > 0 && (
-                <KV k="Extras">{o.upsells.map((u) => `${u.count} × ${u.type} (${o.currency} ${u.price})`).join(', ')}</KV>
+                <KV k={t.kExtras}>{o.upsells.map((u) => `${u.count} × ${u.type} (${o.currency} ${u.price})`).join(', ')}</KV>
               )}
-              <KV k="Cartel">{o.shield_text || '—'}</KV>
-              <KV k="Comentario">
+              <KV k={t.kSign}>{o.shield_text || '—'}</KV>
+              <KV k={t.kComment}>
                 <span style={{ whiteSpace: 'pre-wrap' }}>{o.comment || '—'}</span>
               </KV>
-              <KV k="Distancia">
-                {o.distance ?? '—'} km · {o.duration_min ?? '—'} min · espera incluida {o.waiting_min ?? '—'} min
+              <KV k={t.kDistance}>
+                {t.distanceLine(String(o.distance ?? '—'), String(o.duration_min ?? '—'), String(o.waiting_min ?? '—'))}
               </KV>
             </dl>
           </section>
@@ -291,30 +290,30 @@ export default function EtgOrderPage({ partner }: { partner: boolean }) {
           {!cancelled && (
             <>
               <section className="adm__card">
-                <h2 className="adm__card-title">Modificar viaje</h2>
+                <h2 className="adm__card-title">{t.modifyTrip}</h2>
                 <div className="adm-grid adm-grid--3">
-                  <Field label="Fecha y hora (local)">
+                  <Field label={t.fDate}>
                     <input type="datetime-local" value={draft.start_wall} onChange={set('start_wall')} />
                   </Field>
-                  <Field label="Pasajeros">
+                  <Field label={t.fPassengers}>
                     <input type="number" min={1} value={draft.passengers} onChange={set('passengers')} />
                   </Field>
-                  <Field label="Maletas">
+                  <Field label={t.fLuggage}>
                     <input type="number" min={0} value={draft.luggage_places} onChange={set('luggage_places')} />
                   </Field>
-                  <Field label="Equipaje deportivo">
+                  <Field label={t.fSport}>
                     <input type="number" min={0} value={draft.sport_luggage} onChange={set('sport_luggage')} />
                   </Field>
-                  <Field label="Sillas de ruedas">
+                  <Field label={t.fWheelchairs}>
                     <input type="number" min={0} value={draft.wheelchairs} onChange={set('wheelchairs')} />
                   </Field>
-                  <Field label="Mascotas">
+                  <Field label={t.fAnimals}>
                     <input type="number" min={0} value={draft.animals} onChange={set('animals')} />
                   </Field>
-                  <Field label="Vuelo">
+                  <Field label={t.fFlight}>
                     <input value={draft.flight_number} onChange={set('flight_number')} />
                   </Field>
-                  <Field label="Categoría">
+                  <Field label={t.fCategory}>
                     <select value={draft.transfer_category} onChange={set('transfer_category')}>
                       {data.categories.map((c) => (
                         <option key={c} value={c}>
@@ -323,39 +322,39 @@ export default function EtgOrderPage({ partner }: { partner: boolean }) {
                       ))}
                     </select>
                   </Field>
-                  <Field label={`Precio (${o.currency})`} hint="Si cambia, ETG ve el precio nuevo en su próxima consulta.">
+                  <Field label={t.fPrice(o.currency)} hint={t.fPriceHint}>
                     <input type="number" min={1} step="0.01" value={draft.price} onChange={set('price')} />
                   </Field>
                 </div>
                 <div className="adm-bar adm-bar--end">
                   <button className="adm-btn adm-btn--primary" type="button" disabled={saving} onClick={() => save(tripFields)}>
-                    Guardar viaje
+                    {t.saveTrip}
                   </button>
                 </div>
               </section>
 
               <section className="adm__card">
-                <h2 className="adm__card-title">Pasajero, cartel y comentario</h2>
+                <h2 className="adm__card-title">{t.paxTitle}</h2>
                 <div className="adm-grid">
-                  <Field label="Nombre">
+                  <Field label={t.fFirst}>
                     <input value={draft.first_name} onChange={set('first_name')} />
                   </Field>
-                  <Field label="Apellido">
+                  <Field label={t.fLast}>
                     <input value={draft.last_name} onChange={set('last_name')} />
                   </Field>
-                  <Field label="Teléfono">
+                  <Field label={t.fPhone}>
                     <input value={draft.phone} onChange={set('phone')} />
                   </Field>
-                  <Field label="Texto del cartel">
+                  <Field label={t.fSign}>
                     <input value={draft.shield_text} onChange={set('shield_text')} />
                   </Field>
-                  <Field label="Comentario" full>
+                  <Field label={t.fComment} full>
                     <textarea rows={3} value={draft.comment} onChange={set('comment')} />
                   </Field>
                 </div>
                 <div className="adm-bar adm-bar--end">
                   <button className="adm-btn adm-btn--primary" type="button" disabled={saving} onClick={() => save(paxFields)}>
-                    Guardar pasajero
+                    {t.savePax}
                   </button>
                 </div>
               </section>
@@ -415,39 +414,39 @@ export default function EtgOrderPage({ partner }: { partner: boolean }) {
 
         <aside>
           <section className="adm__card">
-            <h2 className="adm__card-title">Precio y cancelación</h2>
+            <h2 className="adm__card-title">{t.priceTitle}</h2>
             <dl className="adm-kvs">
-              <KV k="Precio">
+              <KV k={t.kPrice}>
                 {o.currency} {o.price}
               </KV>
-              <KV k="Cancelación gratis hasta">{fmtLocal(o.free_cancel_until)}</KV>
+              <KV k={t.kFreeCancel}>{fmtLocal(o.free_cancel_until, partner)}</KV>
               {cancelled ? (
                 <>
-                  <KV k="Cancelada">{o.cancelled_at} UTC</KV>
-                  <KV k="Penalidad">
+                  <KV k={t.kCancelledAt}>{o.cancelled_at} UTC</KV>
+                  <KV k={t.kPenalty}>
                     {o.currency} {o.penalty ?? 0}
                   </KV>
                 </>
               ) : (
-                <KV k="Si se cancela ahora">
+                <KV k={t.kIfCancelNow}>
                   {o.currency} {o.penalty_if_cancelled_now ?? 0}
                 </KV>
               )}
             </dl>
           </section>
           <section className="adm__card">
-            <h2 className="adm__card-title">Pasajero principal</h2>
+            <h2 className="adm__card-title">{t.mainPax}</h2>
             <dl className="adm-kvs">
-              <KV k="Nombre">
+              <KV k={t.kName}>
                 {o.main_passenger.first_name} {o.main_passenger.middle_name ?? ''} {o.main_passenger.last_name}
               </KV>
-              <KV k="Teléfono">{o.main_passenger.phone}</KV>
-              <KV k="Correo (soporte ETG)">{o.main_passenger.email}</KV>
+              <KV k={t.kPhone}>{o.main_passenger.phone}</KV>
+              <KV k={t.kEmail}>{o.main_passenger.email}</KV>
             </dl>
           </section>
           {data.changes.length > 0 && (
             <section className="adm__card">
-              <h2 className="adm__card-title">Historial de cambios</h2>
+              <h2 className="adm__card-title">{t.history}</h2>
               {data.changes.map((c) => (
                 <div key={c.id} className="adm-etg-change">
                   <div className="adm__sub" style={{ fontSize: 12.5 }}>

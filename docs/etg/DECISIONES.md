@@ -39,17 +39,20 @@ cliente no dé los reales (ETG exige marca y modelo de la flota, sin "or similar
 
 | Vehículo web | En ETG | Categoría | Plazas | Maletas | Modelos (provisionales) |
 |---|---|---|---|---|---|
-| Sedán | sí | economy | **3** | 2 | Toyota Corolla, Hyundai Elantra |
+| Sedán | sí | **business** | 2 | 2 | Toyota Corolla, Hyundai Elantra |
 | Miniván | sí | economy_van | 6 | 6 | Toyota Sienna, Honda Odyssey |
 | Minibús | sí | minibus | 11 | 11 | Toyota Hiace, Hyundai H1 |
-| VIP Luxury | sí | business_mpv | **4** | 4 | Chevrolet Suburban, GMC Yukon |
+| VIP Luxury | sí | **business_van** | 6 | 6 | Chevrolet Suburban, GMC Yukon |
 | Bus, Autobús | no | bus | 22 / 50 | — | sin tarifa en la web (se cotizan a mano) |
 | Limusina, Miniván accesible | no | — | — | — | no encajan en categorías de ETG |
 
+Decidido con Dante el 2026-09-29: no se reducen plazas. El VIP de 6 va como
+`business_van` (4–7). El Sedán de 2 va como `business` (2–3); si en realidad
+lleva 3 pasajeros con equipaje, puede pasar a `economy` con 3 plazas.
+
 **A confirmar por el cliente:**
-- **Sedán con 3 plazas.** La web lo vende para 2 personas, pero ETG exige 3–4 plazas en `economy`. Si el sedán no lleva 3, hay que desactivarlo en ETG o pasarlo a `micro` (2–3 plazas), aunque `micro` es para coches pequeños.
-- **VIP Luxury con 4 plazas.** La web dice 6, pero ETG limita `business_mpv` a 4. Si lleva 6, iría como `business_van` (4–7), cuyos modelos de referencia son Mercedes V Class o Vito.
-- **Modelos reales** de cada vehículo.
+- **Modelos reales** de cada vehículo. ETG revisa que el modelo corresponda a la categoría: para `business` sus referencias son Mercedes E Class, Lexus ES o Audi A6, y para `business_van`, Mercedes V Class, Toyota Alphard o Vito. Con un Corolla o una Suburban puede pedir ajustar la categoría.
+- Si el Sedán lleva 3 pasajeros, pasarlo a `economy` con 3 plazas.
 
 ## Detalles técnicos
 
@@ -65,3 +68,4 @@ cliente no dé los reales (ETG exige marca y modelo de la flota, sin "or similar
 - **Búsquedas guardadas**: una fila por búsqueda, comprimida con brotli (≈ 0,7 KB), que se borra al caducar. Los logs de `/search` guardan el request y el número de ofertas, salvo errores. Los logs se borran a los 30 días. Las órdenes no se borran nunca.
 - **Avisos**: se envía un correo al equipo (`CONTACT_TO`) con cada orden nueva o cancelada de ETG. Sin `RESEND_API_KEY` no se envía nada.
 - **Órdenes ETG en el panel**: tienen su propia sección, no se mezclan con "Reservas" de la web.
+- **Idioma del portal**: el equipo ve la sección ETG en español; el usuario `partner_etg` (soporte de ETG) ve en inglés el login (si entra por `/admin/etg/…`), el menú, la lista y el detalle de órdenes, los botones, los avisos y los errores. En inglés, las fechas van como AAAA-MM-DD.

@@ -149,10 +149,12 @@ export function migrateEtg() {
       'UPDATE vehicles SET etg_enabled = ?, etg_category = ?, etg_car_model = ?, etg_seats = ?, etg_luggage = ? WHERE slug = ?',
     );
     db.transaction(() => {
-      set.run(1, 'economy', 'Toyota Corolla, Hyundai Elantra', 3, 2, 'sedan');
+      // Sedán: la web lo vende para 2 → business (2–3 plazas). economy exige 3.
+      set.run(1, 'business', 'Toyota Corolla, Hyundai Elantra', 2, 2, 'sedan');
       set.run(1, 'economy_van', 'Toyota Sienna, Honda Odyssey', 6, 6, 'minivan');
       set.run(1, 'minibus', 'Toyota Hiace, Hyundai H1', 11, 11, 'minibus');
-      set.run(1, 'business_mpv', 'Chevrolet Suburban, GMC Yukon', 4, 4, 'vip-luxury');
+      // VIP Luxury de 6 plazas → business_van (4–7); business_mpv tope 4.
+      set.run(1, 'business_van', 'Chevrolet Suburban, GMC Yukon', 6, 6, 'vip-luxury');
       set.run(0, 'bus', 'Mercedes Sprinter', 22, 22, 'bus');
       set.run(0, 'bus', 'Volvo 9700', 50, 50, 'autobus');
       set.run(0, null, null, null, null, 'limusina');
