@@ -10,6 +10,9 @@ import { handleContact } from '../api/_contact.ts';
 import { bookingStore } from './bookings.ts';
 import { payRouter } from './payments.ts';
 import { handlePlaces } from '../api/_places.ts';
+import { migrateEtg } from './etg/db.ts';
+import { etgApiRouter, etgJsonErrors, isApiHost, startEtgHousekeeping } from './etg/router.ts';
+import { etgAdminRouter } from './etg/admin.ts';
 
 /**
  * Servidor para el VPS. Sustituye a las funciones de Vercel sin tocar su
@@ -29,6 +32,9 @@ try {
 const PORT = Number(process.env.PORT ?? 3000);
 
 migrate();
+// Integración con ETG: tablas nuevas y columnas nuevas; no toca lo existente.
+migrateEtg();
+startEtgHousekeeping();
 
 const app = express();
 app.disable('x-powered-by');
@@ -37,7 +43,14 @@ app.disable('x-powered-by');
 // cookie "secure" del panel no se enviaria nunca.
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
+app.use(etgJsonErrors);
 app.use(cookieParser());
+
+// API para ETG. En sus subdominios (api.… y staging-api.…) responde en la
+// raíz, como exige ETG (/search, /book, /status, /cancel); en cualquier
+// dominio, también bajo /etg-api. La web y el panel no pasan por aquí.
+app.use((req, res, next) => (isApiHost(req) ? etgApiRouter(req, res, next) : next()));
+app.use('/etg-api', etgApiRouter);
 
 /** Adapta un manejador de los que ya existían a Express. */
 const mount = (handler: (payload: unknown) => Promise<{ status: number; body: unknown }>) =>
@@ -65,6 +78,8 @@ app.get('/api/catalog', (_req, res) => {
 });
 
 app.use('/api/pay', payRouter);
+// Portal de ETG y su sección del panel (antes que el resto del panel).
+app.use('/api/admin/etg', etgAdminRouter);
 app.use('/api/admin', adminRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));

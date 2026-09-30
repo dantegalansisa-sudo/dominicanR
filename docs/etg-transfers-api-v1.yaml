@@ -1,0 +1,1270 @@
+openapi: 3.0.0
+info:
+  title: Transfers API
+  description: |-
+    This api is intended for integration with the transfer service. 
+
+    The API is used to search, book, update and cancel transfers. All methods of this API are implemented ON THE SIDE OF THE SUPPLIER. Integration has been implemented by ETG, the supplier needs to implement the methods according to the described interface, and then it will be technically possible for ETG to order transfers from the supplier.
+
+    There is no available test implementation of these methods by ETG.
+
+    Full interaction flow:
+
+    1) ETG searches for transfers by calling the https://supplier.host/search method
+    2) A suitable transfer is booked using the https://supplier.host/book method
+    3) From time to time there is an automatic update of the status of the order using the https://supplier.host/status method
+    4) If the client intends to cancel the transfer, the https://supplier.host/cancel method is called
+
+    For integration with ETG, we expect the implementation of all four methods, providing the address to the corresponding handles (in the /search /book /status /cancel part, the paths are expected to be unchanged) and access keys.
+
+    All methods are expected to authenticate using the http basic auth method.
+  version: '1.2'
+servers:
+  - url: 'https://virtserver.swaggerhub.com/Emerging-Travel/transfers-api/1.1'
+    description: SwaggerHub API Auto Mocking
+  - url: 'http://supplier.com'
+paths:
+  /search:
+    post:
+      tags: []
+      summary: Search offers of transfers
+      description: ''
+      operationId: post-search
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/search_body'
+            examples:
+              example-1:
+                value:
+                  passengers: 1
+                  children_seat_0: 0
+                  children_seat_1: 0
+                  children_seat_2: 0
+                  children_seat_3: 0
+                  start_date_time: '2022-02-13T14:30:00Z'
+                  start_point:
+                    type: iata
+                    iata: BRU
+                  end_point:
+                    type: coordinates
+                    coordinates:
+                      lat: 50.8442085
+                      lon: 4.3473824
+                    address: Bedford Hotel
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+              examples:
+                example-1:
+                  value:
+                    start_date_time: '2021-11-18T14:09:56.459738+03:00'
+                    offers:
+                      - id: d7decec7-61fd-4aad-838a-0d42c85d6672
+                        estimated_duration_minutes: 30
+                        distance: 27
+                        service_type: transfer
+                        transfer_category: economy
+                        car_model: Toyota Camry
+                        included_waiting_time_minutes: 45
+                        luggage_places: 3
+                        seats: 5
+                        children_seat_0: 1
+                        children_seat_1: 1
+                        children_seat_2: 1
+                        children_seat_3: 1
+                        price:
+                          amount: 2050
+                          currency: EUR
+                        upsells:
+                          - id: childrenSeat0
+                            price: 4
+                            type: children_seat_0
+                            count: 1
+                            max_count: 1
+                          - id: childrenSeat1
+                            price: 2
+                            type: children_seat_1
+                            count: 1
+                            max_count: 2
+                          - id: childrenSeat2
+                            price: 34
+                            type: children_seat_2
+                            count: 1
+                            max_count: 3
+                          - id: childrenSeat3
+                            price: 1
+                            type: children_seat_3
+                            count: 1
+                            max_count: 2
+                          - id: water_bottle
+                            price: 20
+                            type: water_bottle
+                            count: 0
+                            max_count: 10
+                        tolls_included: true
+                        gratuity_included: true
+                        free_cancel_until: '2021-11-17T14:09:56.459738+03:00'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      security:
+        - APIKey1: []
+      x-internal: false
+  /book:
+    post:
+      summary: Book transfer
+      operationId: post-book
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/book_body'
+            examples:
+              example-1:
+                value:
+                  offer_id: 240xtJIEHhyRXNVEzAmYFcm6sv4
+                  passengers: 3
+                  luggage_places: 0
+                  sport_luggage_places: 0
+                  wheelchairs_places: 0
+                  children_seat_0: 0
+                  children_seat_1: 0
+                  children_seat_2: 0
+                  children_seat_3: 1
+                  animals_places: 0
+                  flight_number: No flight
+                  comment: ''
+                  shield_text: John Smith
+                  upsells:
+                    - id: childrenSeat3
+                      count: 1
+                  main_passenger:
+                    first_name: John
+                    last_name: Smith
+                    middle_name: ''
+                    phone: '+1 123 45678'
+                    email: 1a1ed591@test.com
+                  start_point:
+                    type: coordinates
+                    coordinates:
+                      lat: 50.8442085
+                      lon: 4.3473824
+                    address: Bedford Hotel
+                  end_point:
+                    type: iata
+                    iata: BRU
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+              examples:
+                example-1:
+                  value:
+                    supplier_link: 'http://localhost/test/92929292'
+                    order_id: '93939393'
+                    pin_code: '2222'
+                    start_time: '2022-05-25T12:00:00+03:00'
+                    distance: 28
+                    included_waiting_time_minutes: 60
+                    estimated_duration_minutes: 37
+                    passengers: 8
+                    luggage_places: 0
+                    sport_luggage_places: 0
+                    animals: 0
+                    wheelchairs_places: 0
+                    children_seat_0: 1
+                    children_seat_1: 0
+                    children_seat_2: 0
+                    children_seat_3: 0
+                    comment: ''
+                    flight_number: No flight
+                    shield_text: John Smith
+                    price:
+                      amount: 100
+                      currency: EUR
+                    upsells:
+                      - id: childrenSeat0
+                        type: children_seat_0
+                        count: 1
+                        price: 4
+                    meeting_instructions: 'After collecting your luggage, please make your way to the arrival hall using any of the available exits.'
+                    meeting_images: ["https://example.com/img1.png", "https://example.com/img2.png"]
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      security:
+        - APIKey1: []
+  /status:
+    post:
+      tags: []
+      summary: Update the order
+      operationId: post-update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/status_body'
+            examples:
+              example-1:
+                value:
+                  order_id: '37469273'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+              examples:
+                example-1:
+                  value:
+                    status: completed
+                    order_id: '92929292'
+                    start_time: '2022-05-25T12:00:00+03:00'
+                    price:
+                      amount: 100
+                      currency: EUR
+                    driver_info:
+                      first_name: David
+                      last_name: Johnsson
+                      phone: '+1 123 45678'
+                      carrier_company_name: iway
+                    car_info:
+                      car_model: bmw
+                      plate_number: WR123
+                      color: red
+                    meeting_info:
+                      instructions: 'After collecting your luggage, please make your way to the arrival hall using any of the available exits.'
+                      images: [ "https://example.com/img1.png", "https://example.com/img2.png" ]
+                    main_passenger:
+                      first_name: First Name
+                      last_name: Last Name
+                      phone: +1 123 456 7890
+                    included_waiting_time_minutes: 10
+                    passengers: 2
+                    luggage_places: 2
+                    sport_luggage_places: 0
+                    animals: 0
+                    comment: ''
+                    shield_text: Shield Text
+                    transfer_category: economy
+                    free_cancel_until: '2021-11-17T14:09:56.459738+03:00'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      security:
+        - APIKey1: []
+  /cancel:
+    post:
+      summary: Order cancellation
+      operationId: post-cancel
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/cancel_body'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+              examples:
+                example-1:
+                  value:
+                    penalty:
+                      amount: 0
+                      currency: EUR
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      security:
+        - APIKey1: []
+components:
+  schemas:
+    search_start_point_coordinates:
+      required:
+        - lat
+        - lon
+      type: object
+      properties:
+        lat:
+          type: number
+          description: latitude coordinates approx. 55.755749
+        lon:
+          type: number
+          description: longitude coordinates approx. 55.755749
+      description: 'Coordinate data. Required for type = "coordinates" '
+    search_start_point:
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: 'search type. iata - by airport code, coordinates - by point coordinates'
+          enum:
+            - iata
+            - coordinates
+        iata:
+          minLength: 1
+          type: string
+          description: IATA airport code. Transmitted only if type = IATA
+        coordinates:
+          $ref: '#/components/schemas/search_start_point_coordinates'
+        address:
+          type: string
+          description: |-
+            Name of start point or address. Only for type = 
+            "coordinates"
+      description: Point of departure
+    search_end_point_coordinates:
+      required:
+        - lat
+        - lon
+      type: object
+      properties:
+        lat:
+          type: number
+          description: latitude coordinates approx. 55.755749
+        lon:
+          type: number
+          description: longitude coordinates approx. 55.755749
+      description: Coordinate data. Required for type = "coordinates"
+    search_end_point:
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          minLength: 1
+          type: string
+          description: 'search type. iata - by airport code, coordinates - by point coordinates'
+          enum:
+            - iata
+            - coordinates
+        iata:
+          type: string
+          description: IATA airport code. Transmitted only if type = IATA
+        coordinates:
+          $ref: '#/components/schemas/search_end_point_coordinates'
+        address:
+          type: string
+          description: |-
+            Name of end point or address. Only for type = 
+            "coordinates"
+      description: Point of arrival
+    search_body:
+      required:
+        - end_point
+        - passengers
+        - start_date_time
+        - start_point
+      type: object
+      properties:
+        passengers:
+          type: integer
+          description: number of passengers with children (from 1 to 100)
+        children_seat_0:
+          type: integer
+          description: number of child seats for 0-13 kg (cradle for children under 1 year of age)
+        children_seat_1:
+          type: integer
+          description: number of child seats for 9-18 kg (seat for 1-4 year old)
+        children_seat_2:
+          type: integer
+          description: number of child seats for 15-25 kg (seat for 3-7 year old)
+        children_seat_3:
+          type: integer
+          description: number of child seats for 22-36 kg (seat for 6-12 year old)
+        start_date_time:
+          minLength: 1
+          type: string
+          description: 'Date and time of departure in RFC3339 format.  '
+        start_point:
+          $ref: '#/components/schemas/search_start_point'
+        end_point:
+          $ref: '#/components/schemas/search_end_point'
+      description: ''
+      x-examples:
+        example-1:
+          passengers: 5
+          children_seat_0: 1
+          children_seat_1: 1
+          children_seat_2: 1
+          children_seat_3: 1
+          luggage_places: 3
+          start_date_time: '2021-11-18T14:04:03.226442+03:00'
+          start_point:
+            type: iata
+            iata: JFK
+          end_point:
+            type: coordinates
+            coordinates:
+              lat: 3.14
+              lon: 15.19
+    inline_response_200:
+      required:
+        - offers
+        - start_date_time
+      type: object
+      properties:
+        start_date_time:
+          type: string
+          description: Date and time of departure in RFC3339 with timezone of departure
+        offers:
+          uniqueItems: true
+          type: array
+          description: variants of transfers
+          items:
+            $ref: '#/components/schemas/inline_response_200_offers'
+      description: ''
+      x-examples:
+        example-1:
+          start_date_time: '2021-11-18T14:09:56.459738+03:00'
+          offers:
+            - id: d7decec7-61fd-4aad-838a-0d42c85d6672
+              estimated_duration_minutes: 30
+              distance: 27
+              service_type: transfer
+              transfer_category: economy
+              car_model: Toyota Camry
+              included_waiting_time_minutes: 45
+              luggage_places: 3
+              seats: 5
+              children_seat_0: 1
+              children_seat_1: 1
+              children_seat_2: 1
+              children_seat_3: 1
+              amount:
+                price: 20
+                currency: EUR
+              upsells:
+                - id: children_seat_0
+                  price: 100
+                  type: children_seat_0
+                  min_count: 1
+                  max_count: 1
+                  is_price_included: true
+                  is_required: true
+                - id: children_seat_1
+                  price: 100
+                  type: children_seat_1
+                  min_count: 1
+                  max_count: 1
+                  is_price_included: true
+                  is_required: true
+                - id: children_seat_2
+                  price: 100
+                  type: children_seat_2
+                  min_count: 1
+                  max_count: 1
+                  is_price_included: true
+                  is_required: true
+                - id: children_seat_3
+                  price: 100
+                  type: children_seat_3
+                  min_count: 1
+                  max_count: 1
+                  is_price_included: true
+                  is_required: true
+              tolls_included: true
+              gratuity_included: true
+              free_cancel_until: '2021-11-17T14:09:56.459738+03:00'
+    inline_response_500:
+      required:
+        - code
+        - error
+      type: object
+      properties:
+        code:
+          type: string
+        error:
+          type: string
+    book_upsells:
+      required:
+        - count
+        - id
+      type: object
+      properties:
+        id:
+          minLength: 1
+          type: string
+          description: id of selected upsell
+        count:
+          type: integer
+          description: count of this upsell
+    book_main_passenger:
+      type: object
+      description: Passenger data model
+      properties:
+        first_name:
+          minLength: 1
+          type: string
+          description: first name in English
+        last_name:
+          minLength: 1
+          type: string
+          description: last name in English
+        middle_name:
+          minLength: 1
+          type: string
+          description: middle name in English
+        phone:
+          minLength: 1
+          type: string
+          description: phone number
+        email:
+          minLength: 1
+          type: string
+          description: email of passenger. It will be the email of our support team
+      required:
+        - first_name
+        - last_name
+        - phone
+        - email
+    book_start_point_coordinates:
+      type: object
+      description: Coordinate data. Required for type = "coordinates".
+      properties:
+        lat:
+          type: number
+          description: latitude coordinates approx. 12.123456
+        lon:
+          type: number
+          description: longitude coordinates approx. 12.123456
+      required:
+        - lat
+        - lon
+    book_start_point:
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: 'search type. iata - by airport code, coordinates - by point coordinates'
+        iata:
+          type: string
+          description: IATA airport code. Transmitted only if type = IATA
+        coordinates:
+          $ref: '#/components/schemas/book_start_point_coordinates'
+        address:
+          type: string
+          description: |-
+            Name of start point or address. Only for type = 
+            "coordinates"
+      description: Point of departure
+    book_end_point:
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: 'search type. iata - by airport code, coordinates - by point coordinates'
+        iata:
+          type: string
+          description: IATA airport code. Transmitted only if type = IATA
+        coordinates:
+          $ref: '#/components/schemas/book_start_point_coordinates'
+        address:
+          type: string
+          description: |-
+            Name of end point or address. Only for type = 
+            "coordinates"
+      description: Point of arrival
+    book_body:
+      type: object
+      x-examples:
+        example-1:
+          offer_id: d7decec7-61fd-4aad-838a-0d42c85d6672
+          passengers: 5
+          luggage_places: 3
+          sport_luggage_places: 1
+          wheelchairs_places: 1
+          children_seat_0: 1
+          children_seat_1: 1
+          children_seat_2: 1
+          children_seat_3: 1
+          animals_places: 1
+          flight_number: AB1234
+          comment: comment
+          shield_text: shield text
+          upsells:
+            - id: children_seat_0
+              type: children_seat_0
+              count: 1
+              price: 100
+            - id: children_seat_1
+              type: children_seat_1
+              count: 1
+              price: 100
+            - id: children_seat_2
+              type: children_seat_2
+              count: 1
+              price: 100
+            - id: children_seat_3
+              type: children_seat_3
+              count: 1
+              price: 100
+          main_passenger:
+            first_name: First Name
+            last_name: Last Name
+            middle_name: Middle Name
+            phone: '+1 123 45678'
+            email: email@email.email
+      properties:
+        offer_id:
+          minLength: 1
+          type: string
+          description: ID of the selected transfer
+        passengers:
+          type: integer
+          description: how many passengers are selected
+        luggage_places:
+          type: integer
+          description: how many luggage places are selected
+        sport_luggage_places:
+          type: integer
+          description: how many sport luggage places are selected
+        wheelchairs_places:
+          type: integer
+          description: how many wheelchairs are selected
+        children_seat_0:
+          type: integer
+          description: how many cradles are selected
+        children_seat_1:
+          type: integer
+          description: How many child seats for 9-18 kg are selected
+        children_seat_2:
+          type: integer
+          description: How many child seats for 15-25 kg are selected
+        children_seat_3:
+          type: integer
+          description: How many child seats for 22-36 kg are selected
+        animals_places:
+          type: integer
+          description: How many animals are selected
+        flight_number:
+          minLength: 1
+          type: string
+          description: 'A flight number OR "No flight"'
+        comment:
+          type: string
+          description: Fields for entering free-form travel wishes from a passenger. Different languages
+        shield_text:
+          type: string
+          description: name on the meeting plate. Different languages
+        upsells:
+          uniqueItems: true
+          type: array
+          description: 'additional services'
+          items:
+            $ref: '#/components/schemas/book_upsells'
+        main_passenger:
+          $ref: '#/components/schemas/book_main_passenger'
+        start_point:
+          $ref: '#/components/schemas/book_start_point'
+        end_point:
+          $ref: '#/components/schemas/book_end_point'
+      required:
+        - offer_id
+        - passengers
+        - luggage_places
+        - flight_number
+        - shield_text
+        - main_passenger
+        - start_point
+        - end_point
+    inline_response_200_1:
+      type: object
+      x-examples:
+        example-1:
+          status: completed
+          supplier_link: 'https://order.com/1234'
+          order_id: '1234'
+          pin_code: '123'
+          start_time: '2021-11-19T14:26:47.427783+03:00'
+          distance: 27
+          included_waiting_time_minutes: 45
+          buffer_time_minutes: 30
+          estimated_duration_minutes: 30
+          passengers: 5
+          luggage_places: 3
+          sport_luggage_places: 1
+          animals: 1
+          wheelchairs_places: 1
+          children_seat_0: 1
+          children_seat_1: 1
+          children_seat_2: 1
+          children_seat_3: 1
+          comment: comment
+          flight_number: AB1234
+          shield_text: shield text
+          amount:
+            price: 20
+            currency: EUR
+          upsells:
+            - id: children_seat_0
+              type: children_seat_0
+              count: 1
+              price: 100
+            - id: children_seat_1
+              type: children_seat_1
+              count: 1
+              price: 100
+            - id: children_seat_2
+              type: children_seat_2
+              count: 1
+              price: 100
+            - id: children_seat_3
+              type: children_seat_3
+              count: 1
+              price: 100
+      properties:
+        supplier_link:
+          minLength: 1
+          type: string
+          description: link to order in the supplier's personal account
+        order_id:
+          minLength: 1
+          type: string
+          description: ID of the order in the personal account of the supplier
+        pin_code:
+          type: string
+          description: 'Pin code, we get when creating a booking. The passenger will provide this code to the driver to confirm the completion of the order'
+        start_time:
+          minLength: 1
+          type: string
+          description: Date and time of departure in RFC3339 with timezone of departure
+        distance:
+          type: number
+          description: Distance of the way in km.
+        included_waiting_time_minutes:
+          type: integer
+          description: free waiting time for the transfer. Number in minutes
+        buffer_time_minutes:
+          type: interger
+          description: buffer time is the time between the moment the aircraft lands and the start of the transfer waiting time. Number in minutes
+        estimated_duration_minutes:
+          type: integer
+          description: estimated travel time in minutes.
+        passengers:
+          type: integer
+          description: how many passengers are selected
+        luggage_places:
+          type: integer
+          description: how many luggage places are selected
+        sport_luggage_places:
+          type: integer
+          description: how many sport luggage places are selected
+        animals:
+          type: integer
+          description: how many animals are selected
+        wheelchairs_places:
+          type: integer
+          description: how many wheelchairs are selected
+        children_seat_0:
+          type: integer
+          description: how many cradles are selected
+        children_seat_1:
+          type: integer
+          description: How many child seats for 9-18 kg are selected
+        children_seat_2:
+          type: integer
+          description: How many child seats for 15-25 kg are selected
+        children_seat_3:
+          type: integer
+          description: How many child seats for 22-36 kg are selected
+        comment:
+          type: string
+          description: Fields for entering free-form travel wishes from a passenger.
+        flight_number:
+          minLength: 1
+          type: string
+          description: 'A flight number OR "No flight"'
+        shield_text:
+          type: string
+        price:
+          $ref: '#/components/schemas/inline_response_200_1_price'
+        upsells:
+          uniqueItems: true
+          type: array
+          description: 'additional services. We need to see our booked upsells here '
+          items:
+            $ref: '#/components/schemas/inline_response_200_1_upsells'
+        meeting_instructions:
+          type: string
+          description: Instruction of how to find the driver before the ride (in English)
+        meeting_images:
+          description: Urls to images of how to find the driver to illustrate the meeting_instructions
+          type: array
+          items:
+            type: string
+      required:
+        - supplier_link
+        - order_id
+        - start_time
+        - distance
+        - included_waiting_time_minutes
+        - estimated_duration_minutes
+        - passengers
+        - luggage_places
+        - flight_number
+        - shield_text
+        - price
+    status_body:
+      required:
+        - order_id
+      type: object
+      properties:
+        order_id:
+          type: string
+          description: ID of the order in the personal account of the supplier
+      description: ''
+      x-examples:
+        example-1:
+          status: cancelled
+          order_id: '76523479'
+          start_time: '2020-07-20T22:00:00+03:00'
+          amount:
+            price: 100
+            currency: EUR
+          driver_info:
+            first_name: John
+            last_name: Smith
+            phone: '+1 123 45678'
+          car_info:
+            car_model: Kia Rio
+            plate_number: v123vv
+            color: black
+          meeting_info:
+            instructions: 'After collecting your luggage, please make your way to the arrival hall using any of the available exits.'
+            images: [ "https://example.com/img1.png", "https://example.com/img2.png" ]
+    inline_response_200_2:
+      type: object
+      x-examples:
+        example-1:
+          status: completed
+          order_id: '1234'
+          start_time: '2021-11-19T14:50:46.880968+03:00'
+          amount:
+            price: 20
+            currency: EUR
+          driver_info:
+            first_name: First Name
+            last_name: Last Name
+            phone: '+1 123 45678'
+          car_info:
+            car_model: Toyota Camry
+            plate_number: ba123c
+            color: cherry
+          main_passenger:
+            first_name: First Name
+            last_name: Last Name
+            phone: +1 123 456 7890
+          included_waiting_time_minutes: 10
+          buffer_time_minutes: 30
+          passengers: 2
+          luggage_places: 2
+          sport_luggage_places: 0
+          animals: 0
+          comment: ''
+          shield_text: Shield Text
+          transfer_category: economy
+          free_cancel_until: '2021-11-17T14:09:56.459738+03:00'
+      properties:
+        status:
+          minLength: 1
+          type: string
+          description: Status of the order (completed or cancelled)
+        order_id:
+          minLength: 1
+          type: string
+          description: ID of the order in the personal account of the supplier
+        start_time:
+          minLength: 1
+          type: string
+          description: Date and time of departure in RFC3339 with timezone of departure
+        price:
+          $ref: '#/components/schemas/inline_response_200_1_price'
+        driver_info:
+          $ref: '#/components/schemas/inline_response_200_2_driver_info'
+        car_info:
+          $ref: '#/components/schemas/inline_response_200_2_car_info'
+        meeting_info:
+          $ref: '#/components/schemas/meeting_info'
+        main_passenger:
+          $ref: '#/components/schemas/status_main_passenger'
+        included_waiting_time_minutes:
+          type: integer
+          description: free waiting time for the transfer. Number in minutes
+        buffer_time_minutes:
+          type: interger
+          description: buffer time is the time between the moment the aircraft lands and the start of the transfer waiting time. Number in minutes
+        passengers:
+          type: integer
+          description: how many passengers are selected
+        luggage_places:
+          type: integer
+          description: how many luggage places are selected
+        sport_luggage_places:
+          type: integer
+          description: how many sport luggage places are selected
+        animals:
+          type: integer
+          description: how many animals are selected
+        comment:
+          type: string
+          description: Fields for entering free-form travel wishes from a passenger. Different languages
+        shield_text:
+          type: string
+          description: name on the meeting plate. Different languages
+        transfer_category:
+          $ref: '#/components/schemas/transfer_category'
+        free_cancel_until:
+          minLength: 1
+          type: string
+          description: 'date when free cancellation ends, example: 2021-11-17T14:09:56.459738+03:00 with TIMEZONE RFC3339. Date in travel time zone'
+      required:
+        - status
+        - order_id
+        - start_time
+        - price
+    status_main_passenger:
+      type: object
+      description: Passenger data model
+      properties:
+        first_name:
+          minLength: 1
+          type: string
+          description: first name in English
+        last_name:
+          minLength: 1
+          type: string
+          description: last name in English
+        phone:
+          minLength: 1
+          type: string
+          description: phone number
+    cancel_body:
+      required:
+        - order_id
+      type: object
+      properties:
+        order_id:
+          minLength: 1
+          type: string
+          description: ID of the order in the personal account of the supplier
+      description: ''
+      x-examples:
+        example-1:
+          order_id: '1234'
+    inline_response_200_3:
+      required:
+        - penalty
+      type: object
+      properties:
+        penalty:
+          $ref: '#/components/schemas/inline_response_200_3_penalty'
+      description: ''
+      x-examples:
+        example-1:
+          status: cancelled
+          penalty:
+            price: 0
+            currency: EUR
+    inline_response_200_price:
+      required:
+        - amount
+        - currency
+      type: object
+      properties:
+        amount:
+          type: number
+          description: Price of the offer with upsells
+        currency:
+          minLength: 1
+          type: string
+          description: 'Supplier currency in alpha-3 ISO 4217 format, for example EUR'
+      description: price data object
+    inline_response_200_upsells:
+      required:
+        - count
+        - id
+        - max_count
+        - price
+        - type
+      type: object
+      properties:
+        id:
+          minLength: 1
+          type: string
+          description: internal id of additional service
+        price:
+          type: number
+          description: Price of additional service in currency of transfer. Price for the one upsell
+        type:
+          minLength: 1
+          type: string
+          description: 'type of service (children_seat_0,children_seat_1, children_seat_2, children_seat_3, bottle_of_water, ski_transportation and other)'
+        max_count:
+          type: integer
+          description: how much can we add of this upsell maximum?
+        count:
+          type: integer
+          description: 'Count of chosen upsells. Count = 0, if type != children_seat_0 / children_seat_1 / children_seat_2 / children_seat_3 '
+    inline_response_200_offers:
+      required:
+        - car_model
+        - distance
+        - estimated_duration_minutes
+        - free_cancel_until
+        - gratuity_included
+        - id
+        - included_waiting_time_minutes
+        - luggage_places
+        - price
+        - seats
+        - service_type
+        - tolls_included
+        - transfer_category
+      type: object
+      properties:
+        id:
+          minLength: 1
+          type: string
+          description: id of offer
+        estimated_duration_minutes:
+          type: integer
+          description: estimated travel time in minutes.
+        distance:
+          type: number
+          description: distance in kilometers
+        service_type:
+          minLength: 1
+          type: string
+          description: 'transfer, taxi'
+        transfer_category:
+          $ref: '#/components/schemas/transfer_category'
+        car_model:
+          minLength: 1
+          type: string
+          description: for example "Mercedes-Benz E-Class"
+        included_waiting_time_minutes:
+          type: integer
+          description: free waiting time in minutes
+        luggage_places:
+          type: integer
+          description: how many luggage spaces are in the car
+        seats:
+          type: integer
+          description: how many seats are in the car
+        children_seat_0:
+          type: integer
+          description: possible number of seats for a child under a weight of 0-13 kg (from birth to 1 year)
+        children_seat_1:
+          type: integer
+          description: possible number of seats for a child under a weight of 9-18 kg (from 9 months to 4 years)
+        children_seat_2:
+          type: integer
+          description: possible number of seats for a child under a weight of 15-25 kg (from 3 to 7 years old)
+        children_seat_3:
+          type: integer
+          description: possible number of seats for a child under a weight of 22-36 kg (6-12 years old)
+        price:
+          $ref: '#/components/schemas/inline_response_200_price'
+        upsells:
+          uniqueItems: true
+          type: array
+          description: array of objects with additional services that supplier can add
+          items:
+            $ref: '#/components/schemas/inline_response_200_upsells'
+        tolls_included:
+          type: boolean
+          description: Is tolls included?
+        gratuity_included:
+          type: boolean
+          description: Is gratuity included?
+        free_cancel_until:
+          minLength: 1
+          type: string
+          description: 'date when free cancellation ends, example: 2021-11-17T14:09:56.459738+03:00 with TIMEZONE RFC3339. Date in travel time zone'
+    inline_response_200_1_price:
+      required:
+        - amount
+        - currency
+      type: object
+      properties:
+        amount:
+          type: number
+          description: Price of the order with upsells
+        currency:
+          minLength: 1
+          type: string
+          description: 'Supplier currency in alpha-3 ISO 4217 format, for example EUR'
+      description: price data object
+    inline_response_200_1_upsells:
+      required:
+        - count
+        - id
+        - price
+        - type
+      type: object
+      properties:
+        id:
+          minLength: 1
+          type: string
+          description: id of selected upsell
+        type:
+          minLength: 1
+          type: string
+          description: 'type of service (children_seat_0,children_seat_1, children_seat_2, children_seat_3, bottle_of_water, ski_transportation and other)'
+        count:
+          type: integer
+          description: count of this upsell
+        price:
+          type: number
+          description: price for the one
+    inline_response_200_2_driver_info:
+      required:
+        - phone
+      type: object
+      properties:
+        first_name:
+          minLength: 1
+          type: string
+          description: 'first name of the driver '
+        last_name:
+          minLength: 1
+          type: string
+          description: last name of driver
+        phone:
+          minLength: 1
+          type: string
+          description: phone number of driver or carrier
+        carrier_company_name:
+          type: string
+          description: if you don't have info about driver
+      description: data driver info object or carrier info
+    inline_response_200_2_car_info:
+      required:
+        - car_model
+        - plate_number
+      type: object
+      properties:
+        car_model:
+          minLength: 1
+          type: string
+          description: car model (for example "Mercedes-Benz E-Class")
+        plate_number:
+          minLength: 1
+          type: string
+        color:
+          minLength: 1
+          type: string
+          description: color of the car
+      description: object with information about car
+    transfer_category:
+      minLength: 1
+      type: string
+      description: |-
+        category of transfer.
+        "economy" - Economy
+        "economy_mpv_new" - MPV
+        "economy_mpv" - Comfort
+        "economy_van" - Minivan
+        "minibus" - Minibus
+        "business" - Business
+        "business_mpv" - Business MPV
+        "business_van" - Business Minivan
+        "first" - First class
+        "micro" - Micro
+        "bus" - Bus
+        "electro_economy" - Electro Economy
+        "electro_economy_mpv" - Electro MPV
+        "electro_comfort" - Electro Comfort
+        "electro_economy_van" - Electro Minivan
+        "electro_minibus" - Electro Minibus
+        "electro_business" - Electro Business
+        "electro_business_mpv" - Electro Business MPV
+        "electro_business_van" - Electro Business Minivan
+        "electro_first" - Electro First class
+        "electro_micro" - Electro Micro
+        "electro_bus" - Electro Bus
+      enum:
+        - economy
+        - economy_mpv_new
+        - economy_mpv
+        - economy_van
+        - minibus
+        - business
+        - business_mpv
+        - business_van
+        - first
+        - micro
+        - bus
+        - electro_economy
+        - electro_economy_mpv
+        - electro_comfort
+        - electro_economy_van
+        - electro_minibus
+        - electro_business
+        - electro_business_mpv
+        - electro_business_van
+        - electro_first
+        - electro_micro
+        - electro_bus
+    meeting_info:
+      type: object
+      properties:
+        instructions:
+          type: string
+          description: Text instruction of how to find the driver (in English)
+        images:
+          type: array
+          items:
+            type: string
+          description: Array of urls of images to illustrate the instruction
+      description: object with information of how to meet the driver
+    inline_response_200_3_penalty:
+      required:
+        - amount
+        - currency
+      type: object
+      properties:
+        amount:
+          type: number
+          description: cost of the penalty
+        currency:
+          minLength: 1
+          type: string
+          description: 'Supplier currency in alpha-3 ISO 4217 format, for example EUR'
+      description: 'object with information about the penalty (for example, when the free cancellation period has ended)'
+  securitySchemes:
+    APIKey1:
+      type: http
+      scheme: basic

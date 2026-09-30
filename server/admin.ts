@@ -13,6 +13,7 @@ import {
   clearSessionCookie,
   requireAdmin,
   hashPassword,
+  PARTNER_ROLE,
   type AdminRequest,
 } from './auth.ts';
 import { UPLOADS } from './paths.ts';
@@ -71,11 +72,21 @@ adminRouter.post('/logout', (_req, res) => {
 });
 
 adminRouter.get('/me', (req: AdminRequest, res) => {
-  requireAdmin(req, res, () => res.json({ ok: true, email: req.admin }));
+  requireAdmin(req, res, () => res.json({ ok: true, email: req.admin, role: req.adminRole }));
 });
 
 // A partir de aquí, todo exige sesión.
 adminRouter.use(requireAdmin);
+
+// El soporte de ETG (rol partner_etg) solo ve su sección (/api/admin/etg,
+// que va en su propio router): el resto del panel le está cerrado.
+adminRouter.use((req: AdminRequest, res, next) => {
+  if (req.adminRole === PARTNER_ROLE) {
+    res.status(403).json({ ok: false, error: 'Sin acceso a esta sección.' });
+    return;
+  }
+  next();
+});
 
 /* -------------------------------------------------------------- excursiones */
 

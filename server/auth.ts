@@ -83,7 +83,11 @@ export const clearSessionCookie = (res: Response) =>
 
 export interface AdminRequest extends Request {
   admin?: string;
+  /** 'admin' (equipo) o 'partner_etg' (soporte de ETG: solo su sección). */
+  adminRole?: string;
 }
+
+export const PARTNER_ROLE = 'partner_etg';
 
 /** Puerta de todas las rutas del panel. */
 export function requireAdmin(req: AdminRequest, res: Response, next: NextFunction) {
@@ -92,11 +96,14 @@ export function requireAdmin(req: AdminRequest, res: Response, next: NextFunctio
     res.status(401).json({ ok: false, error: 'Sesión caducada. Vuelve a entrar.' });
     return;
   }
-  const user = db.prepare('SELECT email FROM users WHERE email = ?').get(email);
+  const user = db.prepare('SELECT email, role FROM users WHERE email = ?').get(email) as
+    | { email: string; role: string | null }
+    | undefined;
   if (!user) {
     res.status(401).json({ ok: false, error: 'Sesión no válida.' });
     return;
   }
   req.admin = email;
+  req.adminRole = user.role || 'admin';
   next();
 }
