@@ -13,7 +13,7 @@ Rama: `feature/etg-integration` (worktree `dominican-routes-etg`). Nada fusionad
 | 5 | `/book` (idempotente, `order_id` corto, textos UTF-8 idénticos) | Hecho |
 | 6 | `/status` y `/cancel` (penalidad, idempotencia, chofer/coche nunca `{}`) | Hecho |
 | 7 | Autotests de ETG en local | **Hecho: 20 peticiones, 201/201 aserciones** |
-| 8 | Staging en el VPS | Pendiente: DNS y app en Dokploy (DESPLIEGUE-ETG.md, pasos A y B) |
+| 8 | Staging en el VPS | **Hecho** (2026-09-29): https://staging-api.dominicanroutes.com · autotests de ETG 201/201 · casos borde 16/16 |
 | 9 | Panel interno y portal ETG (rol `partner_etg`, detalle por orden, modificar, cancelar, chofer y vehículo, ajustes, flota, accesos, logs) | Hecho |
 | 10 | Conexión con la web | Hecho: misma base, mismas Tarifas y flota; las órdenes ETG van en su sección del panel y avisan por correo |
 | 11 | Producción | Pendiente de OK (DESPLIEGUE-ETG.md, paso C) |
@@ -26,11 +26,19 @@ Rama: `feature/etg-integration` (worktree `dominican-routes-etg`). Nada fusionad
 - Regresión de la web y el panel: build, catálogo, reserva web, login, reservas, excursiones y tarifas funcionan igual.
 - Acceso del soporte de ETG: solo ve «Órdenes ETG». El resto de rutas del panel y de la API del panel le devuelve 403. El enlace directo a una orden abre la orden después del login.
 
+## Staging (2026-09-29)
+
+- La base arrancó con el seed del Dockerfile: 38 excursiones, 8 vehículos, 17 tramos por km, 26 zonas, 19 recargos, sillas y el mapeo de flota de ETG. No faltaba nada para las pruebas; solo faltan las rutas cerradas que el cliente creó en producción, que no hacen falta.
+- Autotests de ETG (newman) contra staging: 20 peticiones, 201/201 aserciones, 0 fallos (media 122 ms).
+- Casos borde propios contra staging: 16/16.
+- Acceso `partner_etg` creado para el soporte de ETG. Verificado: solo ve «Órdenes ETG» y el resto devuelve 403.
+- Material para ETG (capturas, mensaje y credenciales aparte) en `C:/Users/dante/routes/ETG-entrega-staging`, fuera del repositorio.
+
 ## Pendiente de Dante o del cliente
 
-- [ ] DNS: `staging`, `staging-api` y `api` (paso A).
-- [ ] Crear la app de staging en Dokploy (paso B) con `.env.etg-staging`.
-- [ ] Ejecutar los autotests contra staging, hacer las capturas y enviárselas a ETG junto con las credenciales.
+- [x] DNS y app de staging en Dokploy.
+- [x] Autotests contra staging y capturas.
+- [ ] Enviar a ETG el mensaje, las capturas y las credenciales (por canales separados).
 - [ ] Confirmar la moneda y el ajuste de precio según el contrato con ETG.
 - [ ] Confirmar el seguimiento de vuelo (completo, parcial o sin seguimiento).
 - [ ] Confirmar los modelos reales y las plazas del sedán (3) y del VIP (4).
