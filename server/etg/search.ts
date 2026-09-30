@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { brotliCompressSync, brotliDecompressSync, constants as zc } from 'node:zlib';
 import { db } from '../db.ts';
 import { buildCatalog } from '../catalog.ts';
 import { quote } from '../../src/data/pricing.ts';
@@ -119,6 +120,15 @@ export const resetPricingCache = () => {
 };
 
 /* ----------------------------------------------------------- utilidades */
+
+/**
+ * Las búsquedas se guardan comprimidas (≈ 4 KB → 0,7 KB): con 80 000 al día y
+ * 26 h de vida, la diferencia son ~400 MB frente a ~60 MB en disco.
+ */
+const pack = (v: unknown) =>
+  brotliCompressSync(Buffer.from(JSON.stringify(v)), { params: { [zc.BROTLI_PARAM_QUALITY]: 4 } });
+const unpack = <T>(v: string | Buffer): T =>
+  JSON.parse(typeof v === 'string' ? v : brotliDecompressSync(v).toString('utf8')) as T;
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -270,8 +280,8 @@ export function search(raw: unknown): SearchResult {
     now,
     expiresAt,
     etgEnv(),
-    JSON.stringify(raw),
-    JSON.stringify({ start: pointSnapshot(start), end: pointSnapshot(end), offers: stored }),
+    pack(raw),
+    pack({ start: pointSnapshot(start), end: pointSnapshot(end), offers: stored }),
   );
 
   return { start_date_time: startDateTime, offers: stored.map((s) => s.offer) };
@@ -292,11 +302,11 @@ export function findOffer(offerId: string): { stored: StoredOffer; expiresAt: nu
   const dot = offerId.lastIndexOf('.');
   if (dot <= 0) return null;
   const row = db.prepare('SELECT request, response, expires_at FROM etg_searches WHERE id = ?').get(offerId.slice(0, dot)) as
-    | { request: string; response: string; expires_at: number }
+    | { request: string | Buffer; response: string | Buffer; expires_at: number }
     | undefined;
   if (!row) return null;
-  const data = JSON.parse(row.response) as { start: unknown; end: unknown; offers: StoredOffer[] };
+  const data = unpack<{ start: unknown; end: unknown; offers: StoredOffer[] }>(row.response);
   const stored = data.offers.find((o) => o.offer.id === offerId);
   if (!stored) return null;
-  return { stored, expiresAt: row.expires_at, request: JSON.parse(row.request), points: { start: data.start, end: data.end } };
+  return { stored, expiresAt: row.expires_at, request: unpack(row.request), points: { start: data.start, end: data.end } };
 }

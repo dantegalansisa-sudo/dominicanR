@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, unlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { db, DB_PATH } from '../db.ts';
 import { DATA_DIR } from '../paths.ts';
@@ -170,4 +170,22 @@ export function purgeEtg(logDays = 30) {
   const now = Date.now();
   db.prepare('DELETE FROM etg_searches WHERE expires_at < ?').run(now - 60 * 60 * 1000);
   db.prepare(`DELETE FROM etg_api_logs WHERE at < datetime('now', ?)`).run(`-${logDays} days`);
+}
+
+/**
+ * Copia diaria de la base (API de copia en caliente de SQLite: no bloquea la
+ * web) en data/backups/daily-AAAA-MM-DD.db, conservando las últimas 14. En el
+ * VPS la carpeta está en el mismo volumen; conviene bajarla de vez en cuando
+ * (ver docs/etg/DESPLIEGUE-ETG.md).
+ */
+export async function dailyBackup(keep = 14) {
+  const dir = resolve(DATA_DIR, 'backups');
+  mkdirSync(dir, { recursive: true });
+  const name = `daily-${new Date().toISOString().slice(0, 10)}.db`;
+  const files = readdirSync(dir).filter((f) => f.startsWith('daily-') && f.endsWith('.db')).sort();
+  if (!files.includes(name)) {
+    await db.backup(resolve(dir, name));
+    files.push(name);
+  }
+  for (const old of files.sort().slice(0, Math.max(0, files.length - keep))) unlinkSync(resolve(dir, old));
 }

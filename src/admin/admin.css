@@ -940,3 +940,75 @@ button.adm-chip {
 .adm-table input[type='number'] {
   width: 68px;
 }
+
+/* ---------- sección ETG ---------- */
+
+.adm-etg-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.adm-etg-stats span {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  font-size: 13.5px;
+}
+
+.adm-etg-stats span.is-warn {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+.adm-etg-change {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+}
+
+.adm-etg-change:last-child {
+  border-bottom: 0;
+}
+
+.adm-etg-change ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  overflow-wrap: anywhere;
+}
+
+.adm-etg-access {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(var(--coral-rgb), 0.08);
+  border: 1px solid rgba(var(--coral-rgb), 0.35);
+  font-size: 14px;
+}
+
+.adm-etg-h3 {
+  margin: 18px 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.adm-tabs a {
+  display: inline-flex;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.adm-tabs a.is-active {
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(11, 30, 51, 0.08);
+}

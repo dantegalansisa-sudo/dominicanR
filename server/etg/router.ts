@@ -6,7 +6,7 @@ import { apiCredentials, etgConfig, etgEnv } from './config.ts';
 import { EtgError, errorBody } from './errors.ts';
 import { search } from './search.ts';
 import { book, cancel, statusOf } from './orders.ts';
-import { purgeEtg } from './db.ts';
+import { dailyBackup, purgeEtg } from './db.ts';
 
 /**
  * API para ETG: POST /search, /book, /status, /cancel con HTTP Basic Auth.
@@ -132,4 +132,10 @@ export function startEtgHousekeeping() {
   };
   run();
   setInterval(run, 60 * 60 * 1000).unref();
+  // Copia diaria (se comprueba cada hora; solo copia si hoy aún no hay).
+  const backup = () => dailyBackup().catch((err) => console.error('Copia diaria fallida:', err));
+  if (process.env.DB_DAILY_BACKUP !== '0') {
+    backup();
+    setInterval(backup, 60 * 60 * 1000).unref();
+  }
 }

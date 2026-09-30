@@ -42,6 +42,13 @@ app.disable('x-powered-by');
 // entre por HTTPS. Sin esto Express no se fia del X-Forwarded-Proto y la
 // cookie "secure" del panel no se enviaria nunca.
 app.set('trust proxy', 1);
+// Staging es una copia para las pruebas de ETG: que Google no la indexe.
+if (process.env.ETG_ENV === 'staging') {
+  app.use((_req, res, next) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    next();
+  });
+}
 app.use(express.json({ limit: '1mb' }));
 app.use(etgJsonErrors);
 app.use(cookieParser());
